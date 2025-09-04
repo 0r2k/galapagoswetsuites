@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -51,6 +51,25 @@ export default function GalapagosRentalPage() {
     endTime: null,
     returnIsland: null,
   })
+  
+  // Efecto para actualizar automáticamente currentStep basado en los valores del formulario
+  useEffect(() => {
+    // Usamos un setTimeout para asegurar que este efecto se ejecute después de que
+    // los cambios en rental se hayan procesado completamente
+    const timer = setTimeout(() => {
+      const completedSteps = getCompletedSteps()
+      const nextStep = completedSteps + 1
+      const totalSteps = getTotalSteps()
+      
+      // Solo actualizar si el paso completado sugiere que deberíamos estar en un paso posterior
+      // y si ese paso es válido (no mayor que el total de pasos)
+      if (nextStep > currentStep && nextStep <= totalSteps) {
+        setCurrentStep(nextStep)
+      }
+    }, 0)
+    
+    return () => clearTimeout(timer)
+  }, [rental, currentStep]) // Incluir currentStep para que la comparación sea correcta
 
   const calculateRentalPrice = (rentalItem: RentalState): number => {
     if (!rentalItem.startDate || !rentalItem.endDate || !rentalItem.startTime || !rentalItem.endTime) return 0
@@ -133,7 +152,13 @@ export default function GalapagosRentalPage() {
 
   const goToNextStep = () => {
     const totalSteps = getTotalSteps()
-    let nextStep = currentStep + 1
+    const completedSteps = getCompletedSteps()
+    console.log("completedSteps", completedSteps)
+    console.log("currentStep", currentStep)
+
+    // Determinar el siguiente paso basado en el paso completado más avanzado
+    // o en el paso actual si es mayor
+    let nextStep = Math.max(completedSteps + 1, currentStep + 1)
 
     // Si estamos en el paso 2 (edad y talla) y no hemos interactuado con el paso 3 (equipo de snorkel),
     // establecer explícitamente los valores por defecto para que se registre como visitado
@@ -151,6 +176,9 @@ export default function GalapagosRentalPage() {
       // Si no escogió aletas, saltar al paso 5
       nextStep = 5
     }
+
+    // Asegurarse de que no nos pasemos del total de pasos
+    nextStep = Math.min(nextStep, totalSteps)
 
     if (nextStep <= totalSteps && canProceed(currentStep)) {
       setCurrentStep(nextStep)
