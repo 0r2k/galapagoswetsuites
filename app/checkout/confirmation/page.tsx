@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabaseClient'
 import { getRentalOrderById } from '@/lib/db'
 
-export default function ConfirmationPage() {
+function ConfirmationContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
@@ -141,5 +141,13 @@ export default function ConfirmationPage() {
         </CardFooter>
       </Card>
     </div>
+  )
+}
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
+      <ConfirmationContent />
+    </Suspense>
   )
 }
