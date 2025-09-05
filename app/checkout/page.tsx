@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { redirect, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,25 +11,26 @@ import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabaseClient'
 import { differenceInDays } from 'date-fns'
 import { 
-  Customer, 
-  RentalOrder,
+  Customer,
   createCustomer, 
   updateCustomer, 
   getCurrentCustomer,
   createRentalOrder,
   createRentalItems
 } from '@/lib/db'
+import PaymentButton from '@/components/payment-button'
 
 function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rentalData = searchParams.get('rentalData')
-  
+
   const [loading, setLoading] = useState(true)
-  const [processingPayment, setProcessingPayment] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [rental, setRental] = useState<any>(null)
+  const [processingPayment, setProcessingPayment] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   
   // Formulario de cliente
   const [firstName, setFirstName] = useState('')
@@ -37,12 +38,6 @@ function CheckoutContent() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [nationality, setNationality] = useState('')
-  
-  // Formulario de pago
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardName, setCardName] = useState('')
-  const [expiryDate, setExpiryDate] = useState('')
-  const [cvv, setCvv] = useState('')
   
   // Función para cargar el carrito desde localStorage
   function loadCartFromLocalStorage() {
@@ -63,6 +58,35 @@ function CheckoutContent() {
     }
   }
 
+  // Funciones de cálculo de precios
+  const calculateProductsSubtotal = (rental: any) => {
+    return ((rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays).toFixed(2)
+  }
+  
+  const calculateReturnFee = (rental: any) => {
+    return rental.returnFeeAmount.toFixed(2)
+  }
+  
+  const calculateSubtotal = (rental: any) => {
+    return ((rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays + rental.returnFeeAmount).toFixed(2)
+  }
+  
+  const calculateTaxes = (rental: any) => {
+    return (rental.items ? rental.items.reduce((total: number, item: any) => {
+      const taxRate = item.product.tax_percentage || 0;
+      return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
+    }, 0) : rental.totalPrice * rental.rentalDays * 0).toFixed(2)
+  }
+  
+  const calculateTotal = (rental: any) => {
+    const subtotal = (rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays + rental.returnFeeAmount
+    const taxes = rental.items ? rental.items.reduce((total: number, item: any) => {
+      const taxRate = item.product.tax_percentage || 0;
+      return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
+    }, 0) : (rental.totalPrice * rental.rentalDays * 0)
+    return (subtotal + taxes).toFixed(2)
+  }
+  
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -114,21 +138,41 @@ function CheckoutContent() {
             
             // Aplicar tarifa de devolución si existe
             const returnIsland = cartItems[0].returnIsland;
-            if (returnIsland) {
-              // Aquí deberíamos obtener las tarifas de devolución de la base de datos
-              // Por ahora, usamos un valor fijo si es San Cristóbal
-              if (returnIsland === 'san-cristobal') {
-                baseTotal += 10; // Valor ejemplo
+            let returnFeeAmount = 0;
+            
+            // Intentar obtener la tarifa de devolución desde localStorage
+            try {
+              const savedReturnFee = localStorage.getItem('galapagosReturnFee');
+              if (savedReturnFee) {
+                const parsedReturnFee = JSON.parse(savedReturnFee);
+                if (parsedReturnFee.island === returnIsland) {
+                  returnFeeAmount = parsedReturnFee.amount;
+                }
               }
+            } catch (error) {
+              console.error('Error al cargar la tarifa de devolución:', error);
             }
             
-            // Multiplicamos por los días de alquiler
-            return baseTotal;
+            // Si no se pudo obtener de localStorage, usar valor por defecto
+            if (returnFeeAmount === 0 && returnIsland === 'san-cristobal') {
+              returnFeeAmount = 5; // Tarifa por defecto para San Cristóbal
+            }
+            
+            baseTotal += returnFeeAmount;
+            
+            // Multiplicamos por los días de alquiler (sin incluir la tarifa de devolución)
+            return {
+              baseTotal: baseTotal,
+              returnFeeAmount: returnFeeAmount
+            };
           };
+          
+          const { baseTotal, returnFeeAmount } = calculateTotal();
           
           const rentalData = {
             items: cartItems,
-            totalPrice: calculateTotal(),
+            totalPrice: baseTotal,
+            returnFeeAmount: returnFeeAmount,
             rentalDays: calculateRentalDays(),
             startDate: cartItems[0].startDate,
             endDate: cartItems[0].endDate,
@@ -164,7 +208,7 @@ function CheckoutContent() {
     checkUser()
   }, [])
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, data?: any) => {
     e.preventDefault()
     
     if (!rental) {
@@ -174,18 +218,25 @@ function CheckoutContent() {
     try {
       setProcessingPayment(true)
       
+      // Validar que tenemos todos los datos necesarios
+      if (!firstName || !lastName || !email) {
+        alert('Por favor, complete todos los campos requeridos')
+        return
+      }
+      
       // Crear un cliente anónimo (sin cuenta de usuario)
       let customerId = customer?.id
       
       if (!customerId) {
         // Crear un nuevo cliente sin usuario asociado
         const newCustomer = await createCustomer({
-          user_id: null, // No asociamos a un usuario
+          user_id: null,
           first_name: firstName,
           last_name: lastName,
           email: email,
           phone: phone,
-          nationality: nationality // Agregamos la nacionalidad
+          nationality: nationality, // Agregamos la nacionalidad
+          uid: userId,
         })
         
         customerId = newCustomer.id
@@ -195,6 +246,7 @@ function CheckoutContent() {
           first_name: firstName,
           last_name: lastName,
           phone: phone,
+          email: email,
           nationality: nationality // Actualizamos la nacionalidad
         })
       }
@@ -205,63 +257,39 @@ function CheckoutContent() {
       
       // Calcular el total y el IVA
       const subtotal = rental.totalPrice
-      const taxRate = 0.12 // 12% IVA en Ecuador
+      const taxRate = 0 // 12% IVA en Ecuador
       const taxAmount = subtotal * taxRate
       const totalAmount = subtotal + taxAmount
       
       // Crear la orden de alquiler
       const order = await createRentalOrder({
+        auth_code: data?.transaction?.authorization_code || '',
+        bin: data?.card?.bin || '',
         customer_id: customerId,
+        dev_reference: data?.transaction?.dev_reference || Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000,
         start_date: rental.startDate,
         start_time: rental.startTime,
         end_date: rental.endDate,
         end_time: rental.endTime,
         return_island: rental.returnIsland || 'santa-cruz',
-        total_amount: totalAmount,
+        total_amount: data?.transaction?.amount || totalAmount,
         tax_amount: taxAmount,
-        status: 'confirmed', // Confirmado automáticamente al pagar
-        payment_status: 'paid',
+        payment_method: data?.card?.type || 'card',
+        payment_status: data?.transaction?.status || 'pending',
+        status: 'completed',
+        status_detail: data?.transaction?.status_detail || '',
         notes: ''
       })
       
-      // Crear los items de alquiler
-      const rentalItems = []
-      
-      // Traje de buceo
-      if (rental.wetsuitType && rental.size) {
-        rentalItems.push({
-          order_id: order.id,
-          product_config_id: `wetsuit-${rental.wetsuitType}-${rental.ageGroup}-${rental.size}`,
-          quantity: 1,
-          days: rental.days,
-          unit_price: rental.wetsuitPrice,
-          subtotal: rental.wetsuitPrice * rental.days
-        })
-      }
-      
-      // Snorkel
-      if (rental.includeSnorkel) {
-        rentalItems.push({
-          order_id: order.id,
-          product_config_id: 'snorkel',
-          quantity: 1,
-          days: rental.days,
-          unit_price: rental.snorkelPrice,
-          subtotal: rental.snorkelPrice * rental.days
-        })
-      }
-      
-      // Aletas
-      if (rental.includeFins && rental.footSize) {
-        rentalItems.push({
-          order_id: order.id,
-          product_config_id: `fins-${rental.footSize}`,
-          quantity: 1,
-          days: rental.days,
-          unit_price: rental.finsPrice,
-          subtotal: rental.finsPrice * rental.days
-        })
-      }
+      // Crear los items de alquiler basados en los productos del carrito
+      const rentalItems = rental.items.map((item: any) => ({
+        order_id: order.id,
+        product_config_id: item.product.id,
+        quantity: item.quantity,
+        days: rental.rentalDays,
+        unit_price: item.product.public_price,
+        subtotal: item.product.public_price * item.quantity * rental.rentalDays
+      }))
       
       // Guardar los items
       await createRentalItems(rentalItems)
@@ -285,6 +313,43 @@ function CheckoutContent() {
     return <div className="flex items-center justify-center h-screen">No hay datos de alquiler disponibles</div>
   }
   
+  // Variables para el PaymentButton
+  const userId = user?.id || `guest_${Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000}`
+  const taxable = parseFloat(calculateSubtotal(rental))
+  const taxes = parseFloat(calculateTaxes(rental))
+  const totalAmount = parseFloat(calculateTotal(rental))
+  
+  const createOrder = (response: any) => {
+    // Crear un evento sintético para handleSubmit
+    const syntheticEvent = {
+      preventDefault: () => {}
+    } as React.FormEvent
+    return handleSubmit(syntheticEvent, response)
+  }
+  const handlePaymentResponse = (transaction: any) => {
+    console.log('Payment response:', transaction)
+    // Aquí puedes manejar la respuesta del pago
+    if (transaction.status_detail != 3) {
+        if(transaction.message == 'Establecimiento invalido') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with a MasterCard o Visa credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transaction.message == 'Tx invalida' || transaction.message == 'No tarjeta de credito') {
+              setErrorMessage('Oops! There was a problem with your payment. Please try again with a valid credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transaction.message == 'Tarjeta expirada') {
+          setErrorMessage('Oops! It seems your card has expired. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transaction.message == 'Tarjeta en boletin') {
+          setErrorMessage('Oops! It seems you can\'t use this card temporarily. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transaction.message == 'Fondos insuficientes') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with a credit/debit card with enough funds or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transaction.message == 'Error en numero de tarjeta') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transaction.message == 'Numero de autorizacion no existe') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        }
+    }
+  }
+  
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8">Finalizar Compra</h1>
@@ -305,6 +370,7 @@ function CheckoutContent() {
                       value={firstName} 
                       onChange={(e) => setFirstName(e.target.value)} 
                       required 
+                      className='bg-white'
                     />
                   </div>
                   <div>
@@ -313,7 +379,8 @@ function CheckoutContent() {
                       id="lastName" 
                       value={lastName} 
                       onChange={(e) => setLastName(e.target.value)} 
-                      required 
+                      required
+                      className='bg-white'
                     />
                   </div>
                 </div>
@@ -327,6 +394,7 @@ function CheckoutContent() {
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       required 
+                      className='bg-white'
                     />
                   </div>
                   <div>
@@ -335,6 +403,7 @@ function CheckoutContent() {
                       id="phone" 
                       value={phone} 
                       onChange={(e) => setPhone(e.target.value)} 
+                      className='bg-white'
                     />
                   </div>
                 </div>
@@ -346,69 +415,30 @@ function CheckoutContent() {
                     value={nationality} 
                     onChange={(e) => setNationality(e.target.value)} 
                     required 
+                    className='bg-white'
                   />
                 </div>
               </CardContent>
             </Card>
+
+            {errorMessage && 
+              <Card className="text-red-500">
+                <CardHeader>
+                  <CardTitle>Hubo un problema con su pago</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {errorMessage}
+                </CardContent>
+              </Card>
+            }
             
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Información de Pago</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="cardName">Nombre en la Tarjeta</Label>
-                  <Input 
-                    id="cardName" 
-                    value={cardName} 
-                    onChange={(e) => setCardName(e.target.value)} 
-                    required 
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="cardNumber">Número de Tarjeta</Label>
-                  <Input 
-                    id="cardNumber" 
-                    value={cardNumber} 
-                    onChange={(e) => setCardNumber(e.target.value)} 
-                    required 
-                    placeholder="XXXX XXXX XXXX XXXX"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="expiryDate">Fecha de Expiración</Label>
-                    <Input 
-                      id="expiryDate" 
-                      value={expiryDate} 
-                      onChange={(e) => setExpiryDate(e.target.value)} 
-                      required 
-                      placeholder="MM/AA"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input 
-                      id="cvv" 
-                      value={cvv} 
-                      onChange={(e) => setCvv(e.target.value)} 
-                      required 
-                      placeholder="123"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Button 
+            {/* <Button 
               type="submit" 
               className="w-full" 
-              disabled={processingPayment}
+              disabled={processingPayment || !paymentToken}
             >
-              {processingPayment ? 'Procesando...' : 'Completar Pago'}
-            </Button>
+              {processingPayment ? 'Procesando...' : paymentToken ? 'Completar Pago' : 'Ingrese su tarjeta primero'}
+            </Button> */}
           </form>
         </div>
         
@@ -444,16 +474,26 @@ function CheckoutContent() {
               
               <div>
                 <div className="flex justify-between">
+                  <span>Productos</span>
+                  <span>${calculateProductsSubtotal(rental)}</span>
+                </div>
+                {rental.returnFeeAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tarifa de devolución {rental.returnIsland === 'san-cristobal' ? '(San Cristóbal)' : ''}</span>
+                    <span>${calculateReturnFee(rental)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${rental.totalPrice.toFixed(2)}</span>
+                  <span>${calculateSubtotal(rental)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>IVA (12%)</span>
-                  <span>${(rental.totalPrice * 0.12).toFixed(2)}</span>
+                  <span>Impuestos</span>
+                  <span>${calculateTaxes(rental)}</span>
                 </div>
                 <div className="flex justify-between font-bold mt-2">
                   <span>Total</span>
-                  <span>${(rental.totalPrice * 1.12).toFixed(2)}</span>
+                  <span>${calculateTotal(rental)}</span>
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
                   <p>Precio por {rental.rentalDays} día(s) de alquiler</p>
@@ -461,6 +501,19 @@ function CheckoutContent() {
               </div>
             </CardContent>
           </Card>
+
+          <PaymentButton 
+            email={email}
+            telefono={phone}
+            id={userId}
+            nombreCompleto={firstName + ' ' + lastName}
+            taxable={taxable}
+            taxes={taxes}
+            total={totalAmount}
+            callbackOrden={createOrder}
+            handleResponse={handlePaymentResponse}
+            disabled={processingPayment}
+          />
         </div>
       </div>
     </div>

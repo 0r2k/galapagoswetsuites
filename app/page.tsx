@@ -25,6 +25,7 @@ interface Product {
   description: string
   public_price: number
   image: string
+  tax_percentage: number
 }
 
 // Definición de tipos para los items del carrito
@@ -108,7 +109,7 @@ function RentalPageContent() {
       try {
         const { data, error } = await supabase
           .from('product_config')
-          .select('id, product_type, name, description, public_price, image')
+          .select('id, product_type, name, description, public_price, image, tax_percentage')
           .eq('active', true)
           
         if (error) {
@@ -122,7 +123,8 @@ function RentalPageContent() {
             name: item.name,
             description: item.description,
             public_price: item.public_price,
-            image: item.image
+            image: item.image,
+            tax_percentage: item.tax_percentage || 0
           }))
           
           setProducts(mappedProducts)
@@ -224,6 +226,19 @@ function RentalPageContent() {
     }))
     
     setCartItems(updatedCart)
+    
+    // Si estamos actualizando la isla de devolución, calculamos y guardamos la tarifa
+    if (field === 'returnIsland') {
+      const returnFee = returnFees.find(fee => fee.location === value)
+      const returnFeeAmount = returnFee ? returnFee.amount : 0
+      
+      // Guardamos la tarifa de devolución en localStorage
+      localStorage.setItem('galapagosReturnFee', JSON.stringify({
+        island: value,
+        amount: returnFeeAmount
+      }))
+    }
+    
     localStorage.setItem('galapagosCart', JSON.stringify(updatedCart))
   }
   
@@ -255,25 +270,38 @@ function RentalPageContent() {
     return Math.max(1, days)
   }
   
-  const calculateCartTotal = (): number => {
+  const calculateCartTotal = (): { baseTotal: number, returnFeeAmount: number } => {
     let baseTotal = cartItems.reduce((total, item) => {
       return total + (item.product.public_price * item.quantity)
     }, 0)
     
+    let returnFeeAmount = 0;
     if (cartItems.length > 0 && cartItems[0].returnIsland) {
       const returnFee = returnFees.find(fee => fee.location === cartItems[0].returnIsland)
       if (returnFee) {
-        baseTotal += returnFee.amount
+        returnFeeAmount = returnFee.amount;
+        baseTotal += returnFeeAmount;
       }
     }
     
-    return baseTotal
+    return { baseTotal, returnFeeAmount }
   }
   
-  const calculateFinalTotal = (): number => {
-    const dailyTotal = calculateCartTotal()
+  const calculateFinalTotal = (): { subtotal: number, returnFeeAmount: number, totalWithTax: number } => {
+    const { baseTotal, returnFeeAmount } = calculateCartTotal()
     const days = calculateRentalDays()
-    return dailyTotal * days
+    
+    // El subtotal es el precio base por día multiplicado por los días
+    const subtotal = baseTotal * days
+    
+    // Calculamos el IVA basado en el tax_percentage de cada producto
+    const totalWithTax = cartItems.reduce((total, item) => {
+      const itemSubtotal = item.product.public_price * item.quantity * days
+      const itemTax = itemSubtotal * (item.product.tax_percentage || 0)
+      return total + itemSubtotal + itemTax
+    }, returnFeeAmount) // Agregamos la tarifa de devolución sin multiplicar por días
+    
+    return { subtotal, returnFeeAmount, totalWithTax }
   }
   
   const proceedToCheckout = () => {
@@ -455,7 +483,7 @@ function RentalPageContent() {
               <div>
                 <div className="flex justify-between font-medium">
                   <span>Total/día</span>
-                  <span>${calculateCartTotal()}</span>
+                  <span>${calculateCartTotal().baseTotal}</span>
                 </div>
               </div>
               
@@ -630,7 +658,7 @@ function RentalPageContent() {
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total final:</span>
-                    <span>${calculateFinalTotal()}</span>
+                    <span>${calculateFinalTotal().totalWithTax.toFixed(2)}</span>
                   </div>
                 </div>
               )}

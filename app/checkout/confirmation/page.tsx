@@ -26,11 +26,20 @@ function ConfirmationContent() {
       try {
         const orderData = await getRentalOrderById(orderId)
         
-        // Obtener los items del pedido
+        // Obtener los items del pedido con información del producto
         const { data: items } = await supabase
           .from('rental_items')
-          .select('*')
-          .eq('rental_order_id', orderId)
+          .select(`
+            *,
+            product_configs (
+              id,
+              product_type,
+              product_subtype,
+              size,
+              public_price
+            )
+          `)
+          .eq('order_id', orderId)
         
         // Obtener información del cliente
         const { data: customer } = await supabase
@@ -42,7 +51,7 @@ function ConfirmationContent() {
         setOrder({
           ...orderData,
           rental_items: items || [],
-          customer: customer || {}
+          customer: customer
         })
       } catch (error) {
         console.error('Error loading order:', error)
@@ -78,7 +87,7 @@ function ConfirmationContent() {
         <CardContent className="space-y-6">
           <div className="bg-green-50 p-4 rounded-md text-center">
             <p className="text-green-700 font-medium">Número de Pedido: {order.id}</p>
-            <p className="text-sm text-green-600">Hemos enviado un correo electrónico de confirmación a {order.customer.email}</p>
+            <p className="text-sm text-green-600">Hemos enviado un correo electrónico de confirmación a {order.customer?.email || 'tu correo electrónico'}</p>
           </div>
           
           <div>
@@ -100,12 +109,22 @@ function ConfirmationContent() {
           <div>
             <h3 className="font-medium mb-2">Productos Alquilados</h3>
             <ul className="space-y-2">
-              {order.rental_items.map((item: any) => (
-                <li key={item.id} className="flex justify-between">
-                  <span>{item.product_config_id}</span>
-                  <span>${item.subtotal.toFixed(2)}</span>
-                </li>
-              ))}
+              {order.rental_items.map((item: any) => {
+                const productName = item.product_configs?.product_type === 'wetsuit' 
+                  ? `Traje de buceo ${item.product_configs?.product_subtype || ''} - Talla ${item.product_configs?.size || ''}`.trim()
+                  : item.product_configs?.product_type === 'snorkel'
+                  ? 'Snorkel'
+                  : item.product_configs?.product_type === 'fins'
+                  ? `Aletas - Talla ${item.product_configs?.size || ''}`.trim()
+                  : `Producto ${item.product_config_id}`
+                
+                return (
+                  <li key={item.id} className="flex justify-between">
+                    <span>{productName} x{item.quantity}</span>
+                    <span>${item.subtotal.toFixed(2)}</span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
           
@@ -113,16 +132,29 @@ function ConfirmationContent() {
           
           <div>
             <div className="flex justify-between">
+              <span>Productos</span>
+              <span>${order.rental_items.reduce((total: number, item: any) => total + (item.unit_price * item.quantity * item.days), 0).toFixed(2)}</span>
+            </div>
+            {order.return_island === 'san-cristobal' && (
+              <div className="flex justify-between">
+                <span>Tarifa de devolución (San Cristóbal)</span>
+                <span>$5.00</span>
+              </div>
+            )}
+            <div className="flex justify-between">
               <span>Subtotal</span>
               <span>${(order.total_amount - order.tax_amount).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>IVA (12%)</span>
+              <span>Impuestos</span>
               <span>${order.tax_amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold mt-2">
               <span>Total</span>
               <span>${order.total_amount.toFixed(2)}</span>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              <p>Precio por {order.rental_items[0]?.days || 1} día(s) de alquiler</p>
             </div>
           </div>
           

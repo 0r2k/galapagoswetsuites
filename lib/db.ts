@@ -41,6 +41,7 @@ export interface Customer {
   email: string;
   phone?: string;
   nationality?: string;
+  uid: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,7 +51,10 @@ export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 
 export interface RentalOrder {
   id: string;
+  auth_code: string;
+  bin: string;
   customer_id: string;
+  dev_reference: string;
   total_amount: number;
   tax_amount: number;
   status: OrderStatus;
@@ -60,6 +64,7 @@ export interface RentalOrder {
   end_time: string;
   return_island: Island;
   payment_method?: string;
+  status_detail?: string;
   payment_status: PaymentStatus;
   notes?: string;
   created_at: string;
