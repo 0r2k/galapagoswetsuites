@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -57,7 +57,7 @@ function loadCartFromLocalStorage(): CartItem[] {
   }
 }
 
-export default function GalapagosRentalPage() {
+function RentalPageContent() {
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const today = new Date()
@@ -716,5 +716,13 @@ export default function GalapagosRentalPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function GalapagosRentalPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
+      <RentalPageContent />
+    </Suspense>
   )
 }
