@@ -3,43 +3,59 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Edit } from 'lucide-react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { 
   ProductConfig, 
   AdditionalFee, 
   getProducts, 
   getAdditionalFees, 
-  createProduct, 
   updateProduct,
   ProductType,
   WetsuitSubtype,
   Island
 } from '@/lib/db'
+import { toast } from 'sonner'
+
+// Interface para productos con información completa
+interface Product {
+  id: string
+  product_type: string
+  name: string
+  description: string
+  public_price: number
+  supplier_cost: number
+  image: string
+  tax_percentage: number
+  active: boolean
+}
 
 export default function AdminPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [products, setProducts] = useState<ProductConfig[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [fees, setFees] = useState<AdditionalFee[]>([])
   const [user, setUser] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('products')
   
-  // Formulario para nuevo producto
-  const [newProduct, setNewProduct] = useState<Partial<ProductConfig>>({
-    product_type: 'snorkel',
-    product_subtype: undefined,
+  // Estados para el modal de edición
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editForm, setEditForm] = useState<Partial<Product>>({
+    name: '',
+    description: '',
     supplier_cost: 0,
-    public_price: 0,
-    tax_percentage: 0,
-    stock_quantity: 0,
-    active: true
+    public_price: 0
   })
 
   // Formulario para nueva tarifa
@@ -83,42 +99,60 @@ export default function AdminPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const productsData = await getProducts()
+      // Cargar productos con información completa
+      const { data: productsData, error: productsError } = await supabase
+        .from('product_config')
+        .select('id, product_type, name, description, public_price, supplier_cost, image, tax_percentage, active')
+        .eq('active', true)
+      
+      if (productsError) throw productsError
+      
       const feesData = await getAdditionalFees()
       
-      setProducts(productsData)
+      setProducts(productsData || [])
       setFees(feesData)
     } catch (error) {
       console.error('Error loading data:', error)
+      toast.error('Error', { description: 'No se pudieron cargar los datos' })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCreateProduct = async () => {
-    try {
-      await createProduct(newProduct as any)
-      setNewProduct({
-        product_type: 'snorkel',
-        product_subtype: undefined,
-        supplier_cost: 0,
-        public_price: 0,
-        tax_percentage: 0,
-        stock_quantity: 0,
-        active: true
-      })
-      loadData()
-    } catch (error) {
-      console.error('Error creating product:', error)
-    }
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product)
+    setEditForm({
+      name: product.name,
+      description: product.description,
+      supplier_cost: product.supplier_cost,
+      public_price: product.public_price
+    })
+    setIsEditModalOpen(true)
   }
 
-  const handleUpdateProduct = async (id: string, updates: Partial<ProductConfig>) => {
+  const handleUpdateProduct = async () => {
+    if (!editingProduct) return
+    
     try {
-      await updateProduct(id, updates)
+      const { error } = await supabase
+        .from('product_config')
+        .update({
+          name: editForm.name,
+          description: editForm.description,
+          supplier_cost: editForm.supplier_cost,
+          public_price: editForm.public_price
+        })
+        .eq('id', editingProduct.id)
+      
+      if (error) throw error
+      
+      toast.success('Producto actualizado', { description: 'Los cambios se han guardado correctamente' })
+      setIsEditModalOpen(false)
+      setEditingProduct(null)
       loadData()
     } catch (error) {
       console.error('Error updating product:', error)
+      toast.error('Error', { description: 'No se pudo actualizar el producto' })
     }
   }
 
@@ -171,141 +205,58 @@ export default function AdminPage() {
         <TabsContent value="products" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Agregar Nuevo Producto</CardTitle>
+              <CardTitle>Productos Disponibles</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="product_type">Tipo de Producto</Label>
-                  <Select 
-                    value={newProduct.product_type} 
-                    onValueChange={(value) => setNewProduct({...newProduct, product_type: value as ProductType})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="wetsuit">Traje de Buceo</SelectItem>
-                      <SelectItem value="snorkel">Snorkel</SelectItem>
-                      <SelectItem value="fins">Aletas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {newProduct.product_type === 'wetsuit' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="product_subtype">Subtipo</Label>
-                    <Select 
-                      value={newProduct.product_subtype} 
-                      onValueChange={(value) => setNewProduct({...newProduct, product_subtype: value as WetsuitSubtype})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar subtipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="corto">Corto</SelectItem>
-                        <SelectItem value="largo">Largo</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.length > 0 ? (
+                  products.map(product => (
+                    <Card key={product.id} className="overflow-hidden">
+                      <CardHeader className="text-center">
+                        <CardTitle className="text-lg flex flex-col items-center gap-2">
+                          {product.name}
+                          <div className="flex gap-2">
+                            <Badge variant="secondary">${product.public_price}/día</Badge>
+                            <Badge variant="outline">Costo: ${product.supplier_cost}</Badge>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="text-4xl mb-2">
+                            <Image 
+                              src={product.image}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground text-center">{product.description}</p>
+                          <div className="text-xs text-muted-foreground mt-2">
+                            <p>Tipo: {product.product_type === 'wetsuit' ? 'Traje de buceo' : 
+                                     product.product_type === 'snorkel' ? 'Snorkel' : 'Aletas'}</p>
+                            <p>IVA: {product.tax_percentage}%</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0">
+                        <Button 
+                          onClick={() => openEditModal(product)} 
+                          className="w-full"
+                          variant="outline"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-12 text-muted-foreground">
+                    <p>No hay productos disponibles en este momento.</p>
                   </div>
                 )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="supplier_cost">Costo del Proveedor</Label>
-                  <Input 
-                    type="number" 
-                    value={newProduct.supplier_cost?.toString()} 
-                    onChange={(e) => setNewProduct({...newProduct, supplier_cost: parseFloat(e.target.value)})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="public_price">Precio al Público</Label>
-                  <Input 
-                    type="number" 
-                    value={newProduct.public_price?.toString()} 
-                    onChange={(e) => setNewProduct({...newProduct, public_price: parseFloat(e.target.value)})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tax_percentage">Porcentaje de IVA</Label>
-                  <Input 
-                    type="number" 
-                    value={newProduct.tax_percentage?.toString()} 
-                    onChange={(e) => setNewProduct({...newProduct, tax_percentage: parseFloat(e.target.value)})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="stock_quantity">Cantidad en Stock</Label>
-                  <Input 
-                    type="number" 
-                    value={newProduct.stock_quantity?.toString()} 
-                    onChange={(e) => setNewProduct({...newProduct, stock_quantity: parseInt(e.target.value)})}
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    checked={newProduct.active} 
-                    onCheckedChange={(checked) => setNewProduct({...newProduct, active: checked})}
-                  />
-                  <Label>Activo</Label>
-                </div>
               </div>
-
-              <Button className="mt-4" onClick={handleCreateProduct}>Agregar Producto</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Productos Existentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Subtipo</TableHead>
-                    <TableHead>Talla</TableHead>
-                    <TableHead>Costo</TableHead>
-                    <TableHead>Precio</TableHead>
-                    <TableHead>IVA %</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        {product.product_type === 'wetsuit' ? 'Traje de buceo' : 
-                         product.product_type === 'snorkel' ? 'Snorkel' : 'Aletas'}
-                      </TableCell>
-                      <TableCell>{product.product_subtype}</TableCell>
-                      <TableCell>{product.size}</TableCell>
-                      <TableCell>${product.supplier_cost.toFixed(2)}</TableCell>
-                      <TableCell>${product.public_price.toFixed(2)}</TableCell>
-                      <TableCell>{product.tax_percentage}%</TableCell>
-                      <TableCell>{product.stock_quantity}</TableCell>
-                      <TableCell>
-                        <Switch 
-                          checked={product.active} 
-                          onCheckedChange={(checked) => handleUpdateProduct(product.id, { active: checked })}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" onClick={() => {
-                          // Implementar edición
-                        }}>Editar</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
             </CardContent>
           </Card>
         </TabsContent>
@@ -416,6 +367,68 @@ export default function AdminPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Edición */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Producto</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nombre
+              </Label>
+              <Input
+                id="name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Descripción
+              </Label>
+              <Input
+                id="description"
+                value={editForm.description}
+                onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="supplier_cost" className="text-right">
+                Costo Proveedor
+              </Label>
+              <Input
+                id="supplier_cost"
+                type="number"
+                value={editForm.supplier_cost?.toString()}
+                onChange={(e) => setEditForm({...editForm, supplier_cost: parseFloat(e.target.value)})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="public_price" className="text-right">
+                Precio Público
+              </Label>
+              <Input
+                id="public_price"
+                type="number"
+                value={editForm.public_price?.toString()}
+                onChange={(e) => setEditForm({...editForm, public_price: parseFloat(e.target.value)})}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleUpdateProduct}>
+              Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
