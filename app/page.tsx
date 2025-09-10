@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -73,7 +73,7 @@ function RentalPageContent() {
   const [returnFees, setReturnFees] = useState<{id: string, name: string, location: string, amount: number}[]>([])
   const [quantity, setQuantity] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
-  const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
+  const [cartSheetOpen, setCartSheetOpen] = useState(false)
 
   const timeSlots = [
     { time: "07:00", available: true },
@@ -544,7 +544,7 @@ function RentalPageContent() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <div className="flex max-sm:flex-col">
+                        <div className="flex">
                           <Calendar
                             mode="single"
                             selected={startDate}
@@ -560,16 +560,22 @@ function RentalPageContent() {
                               { before: today }, // Dates before today
                             ]}
                           />
-                          <div className="relative w-full max-sm:h-48 sm:w-40">
-                            <div className="absolute inset-0 py-4 max-sm:border-t">
-                              <ScrollArea className="h-full sm:border-s">
-                                <div className="space-y-3">
-                                  <div className="flex h-5 shrink-0 items-center px-5">
-                                    <p className="text-sm font-medium">
-                                      {startDate ? format(startDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
-                                    </p>
-                                  </div>
-                                  <div className="grid gap-1.5 px-5 max-sm:grid-cols-2">
+                          <div className="w-40 border-l">
+                            <div className="py-4">
+                              <div className="space-y-3">
+                                <div className="flex h-5 shrink-0 items-center px-5">
+                                  <p className="text-sm font-medium">
+                                    {startDate ? format(startDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
+                                  </p>
+                                </div>
+                                <div 
+                                  className="h-[300px] overflow-y-auto px-5"
+                                  style={{
+                                    WebkitOverflowScrolling: 'touch',
+                                    touchAction: 'pan-y'
+                                  }}
+                                >
+                                  <div className="grid gap-1.5">
                                     {timeSlots.map(({ time: timeSlot, available }) => {
                                       const isAvailable = available && isTimeSlotAvailable(timeSlot, startDate)
                                       return (
@@ -590,7 +596,7 @@ function RentalPageContent() {
                                     })}
                                   </div>
                                 </div>
-                              </ScrollArea>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -615,7 +621,7 @@ function RentalPageContent() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <div className="flex max-sm:flex-col">
+                        <div className="flex">
                           <Calendar
                             mode="single"
                             selected={endDate}
@@ -631,16 +637,22 @@ function RentalPageContent() {
                               { before: startDate ? startDate : today }
                             ]}
                           />
-                          <div className="relative w-full max-sm:h-48 sm:w-40">
-                            <div className="absolute inset-0 py-4 max-sm:border-t">
-                              <ScrollArea className="h-full sm:border-s">
-                                <div className="space-y-3">
-                                  <div className="flex h-5 shrink-0 items-center px-5">
-                                    <p className="text-sm font-medium">
-                                      {endDate ? format(endDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
-                                    </p>
-                                  </div>
-                                  <div className="grid gap-1.5 px-5 max-sm:grid-cols-2">
+                          <div className="w-40 border-l">
+                            <div className="py-4">
+                              <div className="space-y-3">
+                                <div className="flex h-5 shrink-0 items-center px-5">
+                                  <p className="text-sm font-medium">
+                                    {endDate ? format(endDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
+                                  </p>
+                                </div>
+                                <div 
+                                  className="h-[300px] overflow-y-auto px-5"
+                                  style={{
+                                    WebkitOverflowScrolling: 'touch',
+                                    touchAction: 'pan-y'
+                                  }}
+                                >
+                                  <div className="grid gap-1.5">
                                     {timeSlots.map(({ time: timeSlot, available }) => (
                                       <Button
                                         key={timeSlot}
@@ -658,7 +670,7 @@ function RentalPageContent() {
                                     ))}
                                   </div>
                                 </div>
-                              </ScrollArea>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -735,7 +747,7 @@ function RentalPageContent() {
                 variant="outline"
                 size="icon"
                 className="relative"
-                onClick={() => setCartDrawerOpen(true)}
+                onClick={() => setCartSheetOpen(true)}
               >
                 <ShoppingCart className="h-4 w-4" />
                 {cartItems.length > 0 && (
@@ -793,17 +805,17 @@ function RentalPageContent() {
       {/* Modal para seleccionar cantidad */}
       {renderQuantityModal()}
 
-      {/* Mobile Cart Drawer */}
-      <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
-        <DrawerContent className="max-h-[85vh]">
-          <DrawerHeader>
-            <DrawerTitle>Tu Carrito</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4 overflow-y-auto">
+      {/* Mobile Cart Sheet */}
+      <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
+        <SheetContent side="bottom" className="max-h-[85vh]">
+          <SheetHeader>
+            <SheetTitle>Tu Carrito</SheetTitle>
+          </SheetHeader>
+          <div className="px-4 pb-4 overflow-y-auto max-h-[70vh]">
             {renderCart()}
           </div>
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
 
       {/* Footer */}
       <footer className="border-t bg-card/50 mt-16">
