@@ -5,8 +5,10 @@ async function generateAuthToken() {
   const serverTime = await serverTimeResponse.json()
 
   //credenciales proporcionadas por Paymentez, hay de desarrollo y producción
-  const server_application_code = "CHOKOTRIP-EC-SERVER"
-  const server_app_key = "IeqBabo9kNmKbEsVIm2V6T6enavzim"
+  // const server_application_code = "CHOKOTRIP-EC-SERVER"
+  // const server_app_key = "IeqBabo9kNmKbEsVIm2V6T6enavzim"
+  const server_application_code = "TESTECUADORSTG-EC-SERVER"
+  const server_app_key = "67vVmLALRrbSaQHiEer40gjb49peos"
 
   const unix_timestamp = String(serverTime.serverTimestamp);
 

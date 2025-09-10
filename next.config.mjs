@@ -9,6 +9,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  serverExternalPackages: [
+    'mjml',
+    'mjml-core',
+    'mjml-preset-core',
+    'html-minifier',
+    'uglify-js'
+  ],
 }
 
 export default nextConfig

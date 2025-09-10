@@ -1,0 +1,57 @@
+<mjml><mj-head><mj-title>Reporte de Nueva Venta</mj-title><mj-attributes><mj-all font-family="Arial, sans-serif"/><mj-text color="#333333" font-size="14px" line-height="1.6"/></mj-attributes></mj-head><mj-body background-color="#f4f4f4"><!-- Header --><mj-section padding="30px" background-color="#28a745"><mj-column><mj-text align="center" color="white" font-size="28px" font-weight="bold" padding-bottom="10px">
+          💼 Galápagos Viajes
+        </mj-text><mj-text align="center" color="white" font-size="22px" font-weight="bold" padding-bottom="10px">
+          Nueva Venta Registrada
+        </mj-text><mj-text align="center" color="white" font-size="16px">
+          Reporte automático del sistema
+        </mj-text></mj-column></mj-section><!-- Metrics Cards --><mj-section padding="20px 30px" background-color="#f8f9fa"><mj-group><mj-column width="33.33%" padding="10px"><mj-text align="center" color="#28a745" padding="20px 20px 5px 20px" font-size="20px" font-weight="bold" background-color="white">
+            ${{{globalData.totalAmount.data}}}</mj-text><mj-text align="center" color="#666666" padding="0 20px 20px 20px" font-size="12px" background-color="white">
+            Venta Total
+          </mj-text></mj-column><mj-column width="33.33%" padding="10px"><mj-text align="center" color="#28a745" padding="20px 20px 5px 20px" font-size="20px" font-weight="bold" background-color="white">
+            ${{{globalData.commission.data}}}</mj-text><mj-text align="center" color="#666666" padding="0 20px 20px 20px" font-size="12px" background-color="white">
+            Ganancia Neta
+          </mj-text></mj-column><mj-column width="33.33%" padding="10px"><mj-text align="center" color="#28a745" padding="20px 20px 5px 20px" font-size="20px" font-weight="bold" background-color="white">{{{globalData.rentalDays.data}}}</mj-text><mj-text align="center" color="#666666" padding="0 20px 20px 20px" font-size="12px" background-color="white">
+            Días de Alquiler
+          </mj-text></mj-column></mj-group></mj-section><!-- Order Summary --><mj-section padding="0 30px 20px" background-color="#f8f9fa"><mj-column padding="20px" background-color="white"><mj-text color="#333333" font-size="18px" font-weight="bold" padding-bottom="15px">
+          📊 Resumen de la Venta
+        </mj-text><mj-text color="#333333" padding="5px 0" font-size="14px"><strong>Orden:</strong> {{{globalData.orderId.data}}}
+          | <strong>Fecha:</strong> {{{globalData.orderDate.data}}}</mj-text><mj-text color="#333333" padding="5px 0" font-size="14px"><strong>Cliente:</strong>{{{globalData.customerName.data}}} ({{{globalData.customerNationality.data}}})
+        </mj-text><mj-text color="#333333" padding="5px 0" font-size="14px"><strong>Período:</strong>{{{globalData.startDate.data}}} - {{{globalData.endDate.data}}}
+          ({{{globalData.rentalDays.data}}} días)
+        </mj-text><mj-text color="#333333" padding="5px 0" font-size="14px"><strong>Devolución en:</strong>{{{globalData.returnIsland.data}}}</mj-text></mj-column></mj-section><!-- Customer Info --><mj-section padding="0 30px 20px" background-color="#f8f9fa"><mj-column padding="15px" background-color="white"><mj-text color="#333333" font-size="16px" font-weight="bold" padding-bottom="10px">
+          👤 Información del Cliente
+        </mj-text><mj-text color="#333333" padding="3px 0" font-size="14px"><strong>Nombre:</strong>{{{globalData.customerName.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px"><strong>Email:</strong>{{{globalData.customerEmail.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px"><strong>Teléfono:</strong>{{{globalData.customerPhone.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px"><strong>Nacionalidad:</strong>{{{globalData.customerNationality.data}}}</mj-text></mj-column></mj-section><!-- Equipment List --><mj-section padding="0 30px 20px" background-color="#f8f9fa"><mj-column padding="20px" background-color="white"><mj-text color="#333333" font-size="18px" font-weight="bold" padding-bottom="15px">
+          🤿 Equipos Vendidos
+        </mj-text>
+<mj-raw>{{#each globalData.products.data as |collection_n0v4bjb0|}}</mj-raw>
+  <mj-table><tr style="padding:12px 0;border-bottom:1px solid #eee;"><td style="padding:12px 0;vertical-align:center;"><strong style="color:#333333;">{{{collection_n0v4bjb0.name}}}</strong><br/><small style="color:#666666;">{{{collection_n0v4bjb0.quantity}}} unidad(es) × ${{{collection_n0v4bjb0.unitPrice}}} × {{{collection_n0v4bjb0.globalData.rentalDays.data}}} días</small></td><td style="padding:12px 0;text-align:right;vertical-align:center;"><strong style="color:#333333;">${{{collection_n0v4bjb0.subtotal}}}</strong></td></tr></mj-table>
+<mj-raw>{{/each}}</mj-raw>
+</mj-column></mj-section><!-- Financial Summary --><mj-section padding="0px 30px 0px 30px" background-color="#f8f9fa"><mj-column padding="20px" background-color="#e8f5e8"><mj-text color="#333333" font-size="18px" font-weight="bold" padding-bottom="15px">
+          💰 Análisis Financiero
+        </mj-text></mj-column></mj-section><mj-section padding="0 30px" background-color="#f8f9fa"><mj-column width="50%" padding="10px" background-color="#e7f5e8"><mj-text color="#333333" font-size="16px" font-weight="bold" padding-bottom="10px">
+          Ingresos
+        </mj-text><mj-text color="#333333" padding="3px 0" font-size="14px">
+          Subtotal: ${{{globalData.subtotal.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px">
+          Impuestos: ${{{globalData.taxAmount.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px"><strong>Total Facturado: ${{{globalData.totalAmount.data}}}</strong></mj-text></mj-column><mj-column width="50%" padding="10px" background-color="#e7f5e8"><mj-text color="#333333" font-size="16px" font-weight="bold" padding-bottom="10px">
+          Costos y Comisiones
+        </mj-text><mj-text color="#333333" padding="3px 0" font-size="14px">
+          Costo Proveedor: ${{{globalData.supplierCost.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px">
+          Comisión Sistema: ${{{globalData.commission.data}}}</mj-text><mj-text color="#333333" padding="3px 0" font-size="14px"><strong>Costo Total: ${{{globalData.supplierCost.data}}}</strong></mj-text></mj-column></mj-section><mj-section padding="0px 30px 20px 30px" background-color="#f8f9fa"><mj-column padding="15px" background-color="#d4edda"><mj-text align="center" color="#28a745" padding="0" font-size="18px" font-weight="bold">
+          🎯 Ganancia Neta: ${{{globalData.profit.data}}}</mj-text><mj-text align="center" color="#666666" padding="5px 0 0 0" font-size="12px">
+          Margen de ganancia calculado después de costos
+        </mj-text></mj-column></mj-section><!-- Required="Required" Actions --><mj-section padding="0 30px 20px" background-color="#f8f9fa"><mj-column padding="15px" background-color="#fff3cd"><mj-text color="#333333" font-size="16px" font-weight="bold" padding-bottom="10px">
+          ⚠️ Acciones Requeridas:
+        </mj-text><mj-text color="#333333" padding="2px 0" font-size="14px">
+          ✅ Confirmar disponibilidad de equipos para {{{globalData.startDate.data}}}</mj-text><mj-text color="#333333" padding="2px 0" font-size="14px">
+          ✅ Preparar equipos según especificaciones del cliente
+        </mj-text><mj-text color="#333333" padding="2px 0" font-size="14px">
+          ✅ Coordinar logística de entrega y devolución
+        </mj-text><mj-text color="#333333" padding="2px 0" font-size="14px">
+          ✅ Actualizar inventario en el sistema
+        </mj-text></mj-column></mj-section><!-- Daily Statistics --><mj-section padding="0 30px 20px" background-color="#f8f9fa"><mj-column padding="15px" background-color="#d1ecf1"><mj-text color="#333333" font-size="16px" font-weight="bold" padding-bottom="10px">
+          📈 Estadísticas del Día
+        </mj-text><mj-text color="#333333" padding="5px 0" font-size="14px">
+          Esta venta contribuye al crecimiento del negocio. Revisa el dashboard para ver métricas completas del día.
+        </mj-text><mj-text color="#333333" padding="5px 0" font-size="14px"><strong>Hora de la venta:</strong> {{{globalData.orderDate.data}}}</mj-text></mj-column></mj-section><!-- Footer --><mj-section padding="20px 30px" background-color="#f4f4f4"><mj-column><mj-divider align="center" padding="10px 0" border-color="#dddddd" border-width="1px"/><mj-text align="center" color="#666666" padding="5px 0" font-size="12px">
+          Reporte generado automáticamente por el sistema
+        </mj-text><mj-text align="center" color="#666666" padding="5px 0" font-size="12px"><div>Galápagos Viajes - Panel de Administración</div></mj-text></mj-column></mj-section></mj-body></mjml>

@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -72,6 +73,7 @@ function RentalPageContent() {
   const [returnFees, setReturnFees] = useState<{id: string, name: string, location: string, amount: number}[]>([])
   const [quantity, setQuantity] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
 
   const timeSlots = [
     { time: "07:00", available: true },
@@ -89,6 +91,33 @@ function RentalPageContent() {
     { time: "19:00", available: true },
     { time: "20:00", available: true },
   ]
+
+  // Función para verificar si una hora está disponible
+  const isTimeSlotAvailable = (timeSlot: string, selectedDate: Date | undefined) => {
+    if (!selectedDate) return true
+    
+    // Verificar si la fecha seleccionada es hoy
+    const isToday = selectedDate.toDateString() === today.toDateString()
+    
+    if (!isToday) return true
+    
+    // Obtener la hora actual en Galápagos (UTC-6)
+    const now = new Date()
+    // Primero obtener UTC, luego restar 6 horas para Galápagos
+    const utcTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000))
+    const galapagosTime = new Date(utcTime.getTime() - (6 * 60 * 60 * 1000))
+    const currentHour = galapagosTime.getHours()
+    const currentMinute = galapagosTime.getMinutes()
+    
+    // Convertir el timeSlot a horas y minutos
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number)
+    
+    // Comparar si la hora del slot es posterior a la hora actual
+    if (slotHour > currentHour) return true
+    if (slotHour === currentHour && slotMinute > currentMinute) return true
+    
+    return false
+  }
   
   useEffect(() => {
     const loadedCart = loadCartFromLocalStorage()
@@ -340,8 +369,20 @@ function RentalPageContent() {
   }
 
   const renderProduct = (product: Product) => {
+    const productQuantity = cartItems.reduce((total: number, item: CartItem) => {
+      return item.product.id === product.id ? total + item.quantity : total
+    }, 0)
+    
     return (
-      <Card key={product.id} className="overflow-hidden gap-4">
+      <Card key={product.id} className="gap-4 relative">
+        {productQuantity > 0 && (
+          <Badge 
+            variant="destructive" 
+            className="absolute -top-2 -right-2 z-10 min-w-[24px] h-6 flex items-center justify-center rounded-full text-xs font-bold"
+          >
+            {productQuantity}
+          </Badge>
+        )}
         <CardHeader className="text-center">
           <CardTitle className="text-xl flex justify-center gap-2">{product.name} <Badge variant="secondary">${product.public_price}/día</Badge></CardTitle>
         </CardHeader>
@@ -394,13 +435,9 @@ function RentalPageContent() {
               <MinusIcon className="h-4 w-4" />
             </Button>
             <div className="w-16 text-center">
-              <Input 
-                type="number" 
-                min="1"
-                value={quantity.toString()} 
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                className="text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
+              <div className="h-10 w-full rounded-md border border-gray-300 bg-background px-3 py-2 text-sm ring-offset-background text-center">
+                {quantity}
+              </div>
             </div>
             <Button
               variant="outline"
@@ -491,7 +528,7 @@ function RentalPageContent() {
               {cartItems.length > 0 && (
                 <div className="mt-4 space-y-3">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Fecha de alquiler</label>
+                    <label className="text-sm font-medium">Fecha y hora de recogida</label>
                     <Popover>
                       <PopoverTrigger asChild className="w-full">
                         <Button
@@ -533,21 +570,24 @@ function RentalPageContent() {
                                     </p>
                                   </div>
                                   <div className="grid gap-1.5 px-5 max-sm:grid-cols-2">
-                                    {timeSlots.map(({ time: timeSlot, available }) => (
-                                      <Button
-                                        key={timeSlot}
-                                        variant={startTime === timeSlot ? "default" : "outline"}
-                                        size="sm"
-                                        className="w-full"
-                                        onClick={() => {
-                                          setStartTime(timeSlot)
-                                          updateCartDetails('startTime', timeSlot)
-                                        }}
-                                        disabled={!available}
-                                      >
-                                        {timeSlot}
-                                      </Button>
-                                    ))}
+                                    {timeSlots.map(({ time: timeSlot, available }) => {
+                                      const isAvailable = available && isTimeSlotAvailable(timeSlot, startDate)
+                                      return (
+                                        <Button
+                                          key={timeSlot}
+                                          variant={startTime === timeSlot ? "default" : "outline"}
+                                          size="sm"
+                                          className="w-full"
+                                          onClick={() => {
+                                            setStartTime(timeSlot)
+                                            updateCartDetails('startTime', timeSlot)
+                                          }}
+                                          disabled={!isAvailable}
+                                        >
+                                          {timeSlot}
+                                        </Button>
+                                      )
+                                    })}
                                   </div>
                                 </div>
                               </ScrollArea>
@@ -559,7 +599,7 @@ function RentalPageContent() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Fecha de devolución</label>
+                    <label className="text-sm font-medium">Fecha y hora de devolución</label>
                     <Popover>
                       <PopoverTrigger asChild className="w-full">
                         <Button
@@ -650,14 +690,14 @@ function RentalPageContent() {
               )}
 
               {/* Total final */}
-              {cartItems.length > 0 && (
+              {cartItems.length > 0 && startDate && endDate && (
                 <div className="mt-4 border-t pt-4">
                   <div className="flex justify-between text-sm mb-2">
                     <span>Días de alquiler:</span>
                     <span>{calculateRentalDays()} días</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
-                    <span>Total final:</span>
+                    <span>Total:</span>
                     <span>${calculateFinalTotal().totalWithTax.toFixed(2)}</span>
                   </div>
                 </div>
@@ -688,6 +728,26 @@ function RentalPageContent() {
               <Image src="/chokotrip.webp" alt="Chokotrip" width={40} height={40} />
               <h1 className="text-xl font-bold">Galápagos - Wetsuit & Snorkeling</h1>
             </div>
+            
+            {/* Mobile Cart Button */}
+            <div className="sm:hidden">
+              <Button
+                variant="outline"
+                size="icon"
+                className="relative"
+                onClick={() => setCartDrawerOpen(true)}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {cartItems.length > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute rounded-full -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {cartItems.reduce((total, item) => total + item.quantity, 0)}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -704,9 +764,9 @@ function RentalPageContent() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col sm:flex-row gap-8 items-start">
           {/* Left Column - Products */}
-          <div className="flex-1">
+          <div className="flex-1 w-full sm:w-auto ">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {loading ? (
                 <div className="col-span-2 flex justify-center items-center py-12">
@@ -723,8 +783,8 @@ function RentalPageContent() {
             </div>
           </div>
 
-          {/* Right Column - Cart */}
-          <div className="w-full lg:w-80 lg:sticky lg:top-24">
+          {/* Right Column - Cart (Hidden on mobile) */}
+          <div className="hidden sm:block w-full sm:w-80 sm:sticky lg:top-24">
             {renderCart()}
           </div>
         </div>
@@ -732,6 +792,18 @@ function RentalPageContent() {
 
       {/* Modal para seleccionar cantidad */}
       {renderQuantityModal()}
+
+      {/* Mobile Cart Drawer */}
+      <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader>
+            <DrawerTitle>Tu Carrito</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 overflow-y-auto">
+            {renderCart()}
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Footer */}
       <footer className="border-t bg-card/50 mt-16">

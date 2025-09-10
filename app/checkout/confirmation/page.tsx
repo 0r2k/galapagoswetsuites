@@ -53,6 +53,27 @@ function ConfirmationContent() {
           rental_items: items || [],
           customer: customer
         })
+        
+        // Enviar emails automáticos después de cargar el pedido
+        try {
+          const emailResponse = await fetch('/api/send-order-emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ orderId })
+          })
+          
+          if (emailResponse.ok) {
+            const emailResult = await emailResponse.json()
+            console.log('Emails enviados:', emailResult.message)
+          } else {
+            console.error('Error enviando emails:', await emailResponse.text())
+          }
+        } catch (emailError) {
+          console.error('Error al enviar emails automáticos:', emailError)
+        }
+        
       } catch (error) {
         console.error('Error loading order:', error)
       } finally {

@@ -2,14 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { redirect, useRouter, useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabaseClient'
 import { differenceInDays } from 'date-fns'
+import Script from 'next/script'
 import { 
   Customer,
   createCustomer, 
@@ -522,8 +521,14 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
-      <CheckoutContent />
-    </Suspense>
+    <>
+      {/* Paymentez Libraries - Solo cargados en checkout */}
+      <Script src="https://code.jquery.com/jquery-3.5.0.min.js" />
+      <Script src="https://cdn.paymentez.com/ccapi/sdk/payment_checkout_3.0.0.min.js" />
+      
+      <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
+        <CheckoutContent />
+      </Suspense>
+    </>
   )
 }

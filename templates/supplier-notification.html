@@ -1,0 +1,262 @@
+<mjml>
+  <mj-head>
+    <mj-title>Nueva Reserva de Equipos</mj-title>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" color="#333333" line-height="1.6" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#fd7e14" padding="30px">
+      <mj-column>
+        <mj-text align="center" color="white" font-size="28px" font-weight="bold" padding-bottom="10px">
+          🏭 Notificación de Reserva
+        </mj-text>
+        <mj-text align="center" color="white" font-size="22px" font-weight="bold" padding-bottom="10px">
+          Galápagos Dive Rental
+        </mj-text>
+        <mj-text align="center" color="white" font-size="16px">
+          Nueva solicitud de equipos
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Alert Box -->
+    <mj-section background-color="#f8f9fa" padding="20px 30px">
+      <mj-column background-color="#fff3cd" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="10px">
+          🚨 Acción Requerida
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Nueva reserva confirmada</strong> - Se requiere preparación de equipos
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Orden:</strong> {{globalData.orderId.data}} | <strong>Fecha límite de preparación:</strong> {{globalData.startDate.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Timeline -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          📅 Cronograma de Entrega
+        </mj-text>
+        <mj-table>
+          <tr>
+            <td style="padding: 10px 0; vertical-align: center; width: 40px; font-weight: bold; text-align: center; line-height: 30px;">
+              <mj-text font-size="14px" color="white" container-background-color="#fd7e14">1</mj-text>
+            </td>
+            <td style="padding: 10px 0 10px 15px; vertical-align: center;">
+              <mj-text>
+                <strong style="color: #333333;">Preparación de Equipos</strong><br />
+                <small style="color: #666666;">Hasta: {{globalData.startDate.data}} a las 08:00</small>
+              </mj-text>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 0; vertical-align: center; width: 40px; font-weight: bold; text-align: center; line-height: 30px;">
+              <mj-text font-size="14px" color="white" container-background-color="#fd7e14">2</mj-text>
+            </td>
+            <td style="padding: 10px 0 10px 15px; vertical-align: center;">
+              <mj-text>
+                <strong style="color: #333333;">Entrega al Cliente</strong><br />
+                <small style="color: #666666;">{{globalData.startDate.data}} a las {{globalData.startTime.data}}</small>
+              </mj-text>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 0; vertical-align: center; width: 40px; font-weight: bold; text-align: center; line-height: 30px;">
+              <mj-text font-size="14px" color="white" container-background-color="#fd7e14">3</mj-text>
+            </td>
+            <td style="padding: 10px 0 10px 15px; vertical-align: center;">
+              <mj-text>
+                <strong style="color: #333333;">Devolución Esperada</strong><br />
+                <small style="color: #666666;">{{globalData.endDate.data}} a las {{globalData.endTime.data}} en {{globalData.returnIsland.data}}</small>
+              </mj-text>
+            </td>
+          </tr>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+
+    <!-- Order Details -->
+    <mj-section background-color="#f8f9fa" padding="20px 30px 0px 30px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px"
+          container-background-color="rgba(255, 255, 255, 1)">
+          <div>📋 Detalles de la Reserva</div>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#f8f9fa" padding="0px 30px 20px 30px">
+      <mj-column width="50%">
+        <mj-text font-size="14px" color="#333333" padding="10px 0px 3px 20px"
+          container-background-color="rgba(255, 255, 255, 1)"><strong>Número de Orden:</strong>
+          {{{globalData.orderId.data}}}</mj-text>
+        <mj-text font-size="14px" color="#333333" padding="3px 0 3px 20px" container-background-color="rgba(255, 255, 255, 1)">
+          <strong>Fecha de Reserva:</strong> {{{globalData.orderDate.data}}}</mj-text>
+        <mj-text font-size="14px" color="#333333" padding="3px 0px 10px 20px"
+          container-background-color="rgba(255, 255, 255, 1)"><strong>Duración:</strong>
+          {{{globalData.rentalDays.data}}} días
+        </mj-text>
+      </mj-column>
+      <mj-column width="50%">
+        <mj-text font-size="14px" color="#333333" padding="10px 20px 3px 0px"
+          container-background-color="rgba(255, 255, 255, 1)"><strong>Inicio:</strong> {{{globalData.startDate.data}}}
+          {{{globalData.startTime.data}}}</mj-text>
+        <mj-text font-size="14px" color="#333333" padding="3px 20px 3px 0" container-background-color="rgba(255, 255, 255, 1)">
+          <strong>Fin:</strong> {{{globalData.endDate.data}}} {{{globalData.endTime.data}}}</mj-text>
+        <mj-text font-size="14px" color="#333333" padding="3px 20px 10px 0px"
+          container-background-color="rgba(255, 255, 255, 1)"><strong>Devolución:</strong>
+          {{{globalData.returnIsland.data}}}</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Customer Info -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          👤 Información del Cliente
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Nombre:</strong> {{globalData.customerName.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Email:</strong> {{globalData.customerEmail.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Teléfono:</strong> {{globalData.customerPhone.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Nacionalidad:</strong> {{globalData.customerNationality.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Equipment List -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="#f8f9fa" padding="15px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          🤿 Equipos Solicitados
+        </mj-text>
+        {{#each globalData.products.data}}
+        <mj-table>
+          <tr style="border-bottom: 1px solid #dee2e6; padding: 12px 0;">
+            <td style="padding: 12px 0; vertical-align: center;">
+              <strong style="color: #333333;">{{name}}</strong><br />
+              <small style="color: #666666;">Cantidad: {{quantity}} unidad(es) por {{../globalData.rentalDays.data}} días</small>
+            </td>
+            <td style="padding: 12px 0; text-align: right; vertical-align: center;">
+              <div style="background: #28a745; color: white; padding: 5px 10px; font-size: 12px; display: inline-block;">
+                {{quantity}} unid.
+              </div>
+            </td>
+          </tr>
+        </mj-table>
+        {{/each}}
+      </mj-column>
+    </mj-section>
+
+    <!-- Financial Info -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          💰 Análisis Financiero
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Total a cobrar:</strong> ${{globalData.supplierCost.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Checklist -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="#d1ecf1" padding="20px">
+        <mj-text font-size="16px" font-weight="bold" color="#333333" padding-bottom="10px">
+          📝 Lista de Verificación
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          ☐ Verificar disponibilidad de equipos
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          ☐ Inspeccionar estado de equipos
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          ☐ Limpiar y desinfectar equipos
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          ☐ Preparar kit completo por cliente
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          ☐ Etiquetar con número de orden
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          ☐ Coordinar punto de entrega
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Special Instructions -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="#f8d7da" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          ⚠️ Acciones Requeridas
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>1.</strong> Confirmar recepción de esta orden
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>2.</strong> Verificar disponibilidad de todos los equipos
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>3.</strong> Preparar equipos antes de {{startDate}} 08:00
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>4.</strong> Contactar al cliente si hay algún problema
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Emergency Contact -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="#f8f9fa" padding="20px">
+        <mj-text align="center" font-size="16px" font-weight="bold" color="#333333" padding-bottom="10px">
+          📞 Contacto de Emergencia
+        </mj-text>
+        <mj-text align="center" font-size="14px" color="#333333" padding="5px 0">
+          Para cualquier consulta o problema:
+        </mj-text>
+        <mj-text align="center" font-size="14px" color="#333333" padding="5px 0">
+          <strong>Galápagos Viajes</strong><br />
+          📧 operaciones@galapagos-dive.com<br />
+          📱 +593 99 123 4567<br />
+          🕒 Disponible 24/7
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Confirmation Required -->
+    <mj-section background-color="#f8f9fa" padding="0 30px 20px">
+      <mj-column background-color="#e8f5e8" padding="15px">
+        <mj-text font-size="14px" color="#333333" padding="0">
+          <strong>Confirmación requerida:</strong> Por favor confirma la recepción de esta notificación y la disponibilidad de los equipos solicitados.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#f4f4f4" padding="20px 30px">
+      <mj-column>
+        <mj-divider border-color="#dddddd" border-width="1px" padding="10px 0" />
+        <mj-text align="center" font-size="12px" color="#666666" padding="5px 0">
+          Notificación automática del sistema de reservas
+        </mj-text>
+        <mj-text align="center" font-size="12px" color="#666666" padding="5px 0">
+          Galápagos Viajes - Red de Proveedores
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

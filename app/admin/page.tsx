@@ -26,6 +26,7 @@ import {
   Island
 } from '@/lib/db'
 import { toast } from 'sonner'
+import EmailTemplatesList from '@/app/admin/email-templates/page'
 
 // Interface para productos con información completa
 interface Product {
@@ -55,7 +56,9 @@ export default function AdminPage() {
     name: '',
     description: '',
     supplier_cost: 0,
-    public_price: 0
+    public_price: 0,
+    tax_percentage: 0,
+    active: true
   })
 
   // Formulario para nueva tarifa
@@ -125,7 +128,9 @@ export default function AdminPage() {
       name: product.name,
       description: product.description,
       supplier_cost: product.supplier_cost,
-      public_price: product.public_price
+      public_price: product.public_price,
+      tax_percentage: product.tax_percentage,
+      active: product.active
     })
     setIsEditModalOpen(true)
   }
@@ -197,9 +202,10 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="products">Productos</TabsTrigger>
           <TabsTrigger value="fees">Tarifas Adicionales</TabsTrigger>
+          <TabsTrigger value="email-templates">Plantillas de Email</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products" className="space-y-6">
@@ -366,6 +372,10 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="email-templates" className="space-y-6">
+          <EmailTemplatesList />
+        </TabsContent>
       </Tabs>
 
       {/* Modal de Edición */}
@@ -375,7 +385,7 @@ export default function AdminPage() {
             <DialogTitle>Editar Producto</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="space-y-2">
               <Label htmlFor="name" className="text-right">
                 Nombre
               </Label>
@@ -383,10 +393,10 @@ export default function AdminPage() {
                 id="name"
                 value={editForm.name}
                 onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                className="col-span-3"
+                className="col-span-3 border border-gray-300"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="space-y-2">
               <Label htmlFor="description" className="text-right">
                 Descripción
               </Label>
@@ -394,32 +404,46 @@ export default function AdminPage() {
                 id="description"
                 value={editForm.description}
                 onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                className="col-span-3"
+                className="col-span-3 border border-gray-300"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="supplier_cost" className="text-right">
-                Costo Proveedor
-              </Label>
-              <Input
-                id="supplier_cost"
-                type="number"
-                value={editForm.supplier_cost?.toString()}
-                onChange={(e) => setEditForm({...editForm, supplier_cost: parseFloat(e.target.value)})}
-                className="col-span-3"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="supplier_cost" className="text-right">
+                  Costo Proveedor
+                </Label>
+                <Input
+                  id="supplier_cost"
+                  type="number"
+                  value={editForm.supplier_cost?.toString()}
+                  onChange={(e) => setEditForm({...editForm, supplier_cost: parseFloat(e.target.value)})}
+                  className="col-span-3 border border-gray-300"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="public_price" className="text-right">
+                  PVP
+                </Label>
+                <Input
+                  id="public_price"
+                  type="number"
+                  value={editForm.public_price?.toString()}
+                  onChange={(e) => setEditForm({...editForm, public_price: parseFloat(e.target.value)})}
+                  className="col-span-3 border border-gray-300"
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="public_price" className="text-right">
-                Precio Público
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-right">
+                Impuesto
               </Label>
               <Input
-                id="public_price"
-                type="number"
-                value={editForm.public_price?.toString()}
-                onChange={(e) => setEditForm({...editForm, public_price: parseFloat(e.target.value)})}
-                className="col-span-3"
-              />
+                  id="tax_percentage"
+                  type="number"
+                  value={editForm.tax_percentage?.toString()}
+                  onChange={(e) => setEditForm({...editForm, tax_percentage: parseFloat(e.target.value)})}
+                  className="col-span-3 border border-gray-300"
+                />
             </div>
           </div>
           <DialogFooter>

@@ -1,0 +1,170 @@
+<mjml>
+  <mj-head>
+    <mj-title>Confirmación de Reserva</mj-title>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" color="#333333" line-height="1.6" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#0066cc" padding="30px">
+      <mj-column>
+        <mj-text align="center" color="white" font-size="28px" font-weight="bold" padding-bottom="10px">
+          🌊 Galápagos Dive Rental
+        </mj-text>
+        <mj-text align="center" color="white" font-size="22px" font-weight="bold">
+          ¡Confirmación de tu Reserva!
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Content -->
+    <mj-section background-color="#f9f9f9" padding="30px">
+      <mj-column>
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          Estimado/a <strong>{{globalData.customerName.data}}</strong>,
+        </mj-text>
+        
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          ¡Gracias por elegir Galápagos Dive Rental! Tu reserva ha sido confirmada exitosamente.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Order Details -->
+    <mj-section background-color="#f9f9f9" padding="0 30px">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          📋 Detalles de tu Reserva
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Número de Orden:</strong> <span style="color: #0066cc; font-weight: bold;">{{globalData.orderId.data}}</span>
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Fecha de Reserva:</strong> {{globalData.orderDate.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Período de Alquiler:</strong> {{globalData.startDate.data}} {{globalData.startTime.data}} - {{globalData.endDate.data}} {{globalData.endTime.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Días de Alquiler:</strong> {{globalData.rentalDays.data}} días
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Isla de Devolución:</strong> {{globalData.returnIsland.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Equipment List -->
+    <mj-section background-color="#f9f9f9" padding="20px 30px 0">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          🤿 Equipos Reservados
+        </mj-text>
+        {{#each globalData.products.data}}
+        <mj-table>
+          <tr style="border-bottom: 1px solid #eee; padding: 10px 0;">
+            <td style="padding: 10px 0; vertical-align: top;">
+              <strong style="color: #333333;">{{name}}</strong><br />
+              <small style="color: #666666;">Cantidad: {{quantity}} | Precio por día: ${{unitPrice}}</small>
+            </td>
+            <td style="padding: 10px 0; text-align: right; vertical-align: top;">
+              <span style="color: #0066cc; font-weight: bold;">${{subtotal}}</span>
+            </td>
+          </tr>
+        </mj-table>
+        {{/each}}
+      </mj-column>
+    </mj-section>
+
+    <!-- Total Section -->
+    <mj-section background-color="#f9f9f9" padding="20px 30px 0">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          💰 Análisis Financiero
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Subtotal:</strong> ${{globalData.subtotal.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Impuestos:</strong> ${{globalData.taxes.data}}
+        </mj-text>
+        <mj-text font-size="16px" font-weight="bold" color="#28a745" padding="10px 0 5px 0">
+          <strong>Total Facturado:</strong> ${{globalData.totalAmount.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Contact Info -->
+    <mj-section background-color="#f9f9f9" padding="20px 30px 0">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          👤 Tu información
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Nombre:</strong> {{globalData.customerName.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Email:</strong> {{globalData.customerEmail.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Teléfono:</strong> {{globalData.customerPhone.data}}
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Nacionalidad:</strong> {{globalData.customerNationality.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Instructions -->
+    <mj-section background-color="#f9f9f9" padding="20px 30px">
+      <mj-column background-color="#fff3cd" padding="15px">
+        <mj-text font-size="16px" font-weight="bold" color="#333333" padding-bottom="10px">
+          📍 Instrucciones Importantes:
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          • Presenta este email al momento de recoger tu equipo
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          • Llega 15 minutos antes de tu hora programada
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          • Trae una identificación válida
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="2px 0">
+          • El equipo debe devolverse limpio y en buenas condiciones
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Contact and Closing -->
+    <mj-section background-color="#f9f9f9" padding="0 30px 20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#333333" padding="10px 0">
+          Si tienes alguna pregunta, no dudes en contactarnos:
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          📧 <a href="mailto:info@galapagos-dive.com" style="color: #0066cc;">info@galapagos-dive.com</a><br />
+          📱 +593 99 123 4567
+        </mj-text>
+        <mj-text font-size="16px" color="#333333" padding="15px 0">
+          ¡Esperamos que disfrutes tu experiencia de buceo en las Galápagos! 🐢🦈
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#f4f4f4" padding="20px 30px">
+      <mj-column>
+        <mj-divider border-color="#dddddd" border-width="1px" padding="10px 0" />
+        <mj-text align="center" font-size="12px" color="#666666" padding="5px 0">
+          Galápagos Dive Rental - Tu aventura submarina comienza aquí
+        </mj-text>
+        <mj-text align="center" font-size="12px" color="#666666" padding="5px 0">
+          Puerto Ayora, Santa Cruz - Islas Galápagos, Ecuador
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
