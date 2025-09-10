@@ -4,15 +4,14 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Input } from "@/components/ui/input"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CalendarIcon, MapPin, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2 } from "lucide-react"
+import { SheetPopoverContent } from "@/components/ui/sheet-popover-content"
+import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2 } from "lucide-react"
 import { format, differenceInDays } from "date-fns"
 import { es } from "date-fns/locale"
 import { toast } from 'sonner'
@@ -73,7 +72,17 @@ function RentalPageContent() {
   const [returnFees, setReturnFees] = useState<{id: string, name: string, location: string, amount: number}[]>([])
   const [quantity, setQuantity] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
-  const [cartSheetOpen, setCartSheetOpen] = useState(false)
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
+  const [sheetPortalEl, setSheetPortalEl] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setSheetPortalEl(document.getElementById("sheet-portal"));
+  }, []);
+
+  useEffect(() => {
+    const el = document.getElementById("sheet-portal");
+    if (!el) console.warn("No existe #sheet-portal");
+  }, []);
 
   const timeSlots = [
     { time: "07:00", available: true },
@@ -529,7 +538,7 @@ function RentalPageContent() {
                 <div className="mt-4 space-y-3">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Fecha y hora de recogida</label>
-                    <Popover>
+                    <Popover modal={false}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
@@ -543,7 +552,7 @@ function RentalPageContent() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <SheetPopoverContent container={sheetPortalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                         <div className="flex">
                           <Calendar
                             mode="single"
@@ -568,12 +577,10 @@ function RentalPageContent() {
                                     {startDate ? format(startDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
                                   </p>
                                 </div>
-                                <div 
-                                  className="h-[300px] overflow-y-auto px-5"
-                                  style={{
-                                    WebkitOverflowScrolling: 'touch',
-                                    touchAction: 'pan-y'
-                                  }}
+                                <div
+                                  className="h-[300px] overflow-y-auto px-5 touch-pan-y"
+                                  style={{ WebkitOverflowScrolling: "touch" }}
+                                  data-scroll-lock-scrollable=""
                                 >
                                   <div className="grid gap-1.5">
                                     {timeSlots.map(({ time: timeSlot, available }) => {
@@ -600,13 +607,13 @@ function RentalPageContent() {
                             </div>
                           </div>
                         </div>
-                      </PopoverContent>
+                      </SheetPopoverContent>
                     </Popover>
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Fecha y hora de devolución</label>
-                    <Popover>
+                    <Popover modal={false}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
@@ -620,7 +627,7 @@ function RentalPageContent() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <SheetPopoverContent container={sheetPortalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                         <div className="flex">
                           <Calendar
                             mode="single"
@@ -645,12 +652,10 @@ function RentalPageContent() {
                                     {endDate ? format(endDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
                                   </p>
                                 </div>
-                                <div 
-                                  className="h-[300px] overflow-y-auto px-5"
-                                  style={{
-                                    WebkitOverflowScrolling: 'touch',
-                                    touchAction: 'pan-y'
-                                  }}
+                                <div
+                                  className="h-[300px] overflow-y-auto px-5 touch-pan-y"
+                                  style={{ WebkitOverflowScrolling: "touch" }}
+                                  data-scroll-lock-scrollable=""
                                 >
                                   <div className="grid gap-1.5">
                                     {timeSlots.map(({ time: timeSlot, available }) => (
@@ -674,7 +679,7 @@ function RentalPageContent() {
                             </div>
                           </div>
                         </div>
-                      </PopoverContent>
+                      </SheetPopoverContent>
                     </Popover>
                   </div>
                   
@@ -747,7 +752,7 @@ function RentalPageContent() {
                 variant="outline"
                 size="icon"
                 className="relative"
-                onClick={() => setCartSheetOpen(true)}
+                onClick={() => setCartDrawerOpen(true)}
               >
                 <ShoppingCart className="h-4 w-4" />
                 {cartItems.length > 0 && (
@@ -805,17 +810,18 @@ function RentalPageContent() {
       {/* Modal para seleccionar cantidad */}
       {renderQuantityModal()}
 
-      {/* Mobile Cart Sheet */}
-      <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[85vh]">
-          <SheetHeader>
-            <SheetTitle>Tu Carrito</SheetTitle>
-          </SheetHeader>
-          <div className="px-4 pb-4 overflow-y-auto max-h-[70vh]">
+      {/* Mobile Cart Drawer */}
+      <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
+        <DrawerContent className="max-h-[85vh]">
+          <div id="sheet-portal" className="contents" />
+          <DrawerHeader>
+            <DrawerTitle>Tu Carrito</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 overflow-y-auto">
             {renderCart()}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
       {/* Footer */}
       <footer className="border-t bg-card/50 mt-16">
