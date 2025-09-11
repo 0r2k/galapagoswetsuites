@@ -549,8 +549,7 @@ function RentalPageContent() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      {portalEl && (
-                      <SheetPopoverContent container={portalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
+                      <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                         <div className="flex">
                           <Calendar
                             mode="single"
@@ -576,7 +575,7 @@ function RentalPageContent() {
                                   </p>
                                 </div>
                                 <div
-                                  className="h-[300px] overflow-y-auto px-5 touch-pan-y"
+                                  className="h-[250px] overflow-y-auto px-5 touch-pan-y"
                                   style={{ WebkitOverflowScrolling: "touch" }}
                                   data-scroll-lock-scrollable=""
                                 >
@@ -606,7 +605,6 @@ function RentalPageContent() {
                           </div>
                         </div>
                       </SheetPopoverContent>
-                      )}
                     </Popover>
                   </div>
                   
@@ -626,8 +624,7 @@ function RentalPageContent() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      {portalEl && (
-                      <SheetPopoverContent container={portalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
+                      <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                         <div className="flex">
                           <Calendar
                             mode="single"
@@ -653,7 +650,7 @@ function RentalPageContent() {
                                   </p>
                                 </div>
                                 <div
-                                  className="h-[300px] overflow-y-auto px-5 touch-pan-y"
+                                  className="h-[250px] overflow-y-auto px-5 touch-pan-y"
                                   style={{ WebkitOverflowScrolling: "touch" }}
                                   data-scroll-lock-scrollable=""
                                 >
@@ -680,7 +677,6 @@ function RentalPageContent() {
                           </div>
                         </div>
                       </SheetPopoverContent>
-                      )}
                     </Popover>
                   </div>
                   
