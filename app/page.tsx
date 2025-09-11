@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -73,15 +73,12 @@ function RentalPageContent() {
   const [quantity, setQuantity] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
-  const [sheetPortalEl, setSheetPortalEl] = useState<HTMLElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
+  const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
 
-  useEffect(() => {
-    setSheetPortalEl(document.getElementById("sheet-portal"));
-  }, []);
-
-  useEffect(() => {
-    const el = document.getElementById("sheet-portal");
-    if (!el) console.warn("No existe #sheet-portal");
+  const portalRefCb = useCallback((node: HTMLDivElement | null) => {
+    portalRef.current = node;
+    setPortalEl(node);
   }, []);
 
   const timeSlots = [
@@ -552,7 +549,8 @@ function RentalPageContent() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <SheetPopoverContent container={sheetPortalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
+                      {portalEl && (
+                      <SheetPopoverContent container={portalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                         <div className="flex">
                           <Calendar
                             mode="single"
@@ -608,6 +606,7 @@ function RentalPageContent() {
                           </div>
                         </div>
                       </SheetPopoverContent>
+                      )}
                     </Popover>
                   </div>
                   
@@ -627,7 +626,8 @@ function RentalPageContent() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <SheetPopoverContent container={sheetPortalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
+                      {portalEl && (
+                      <SheetPopoverContent container={portalEl} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                         <div className="flex">
                           <Calendar
                             mode="single"
@@ -680,6 +680,7 @@ function RentalPageContent() {
                           </div>
                         </div>
                       </SheetPopoverContent>
+                      )}
                     </Popover>
                   </div>
                   
@@ -813,7 +814,7 @@ function RentalPageContent() {
       {/* Mobile Cart Drawer */}
       <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
         <DrawerContent className="max-h-[85vh]">
-          <div id="sheet-portal" className="contents" />
+          <div id="sheet-portal" ref={portalRefCb} className="contents" />
           <DrawerHeader>
             <DrawerTitle>Tu Carrito</DrawerTitle>
           </DrawerHeader>
