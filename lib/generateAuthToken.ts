@@ -1,14 +1,19 @@
 import crypto from "crypto"
+import { getActivePaymentConfig } from './paymentConfig'
 
 async function generateAuthToken() {
   const serverTimeResponse = await fetch("/api/getServerTime")
   const serverTime = await serverTimeResponse.json()
 
-  //credenciales proporcionadas por Paymentez, hay de desarrollo y producción
-  // const server_application_code = "CHOKOTRIP-EC-SERVER"
-  // const server_app_key = "IeqBabo9kNmKbEsVIm2V6T6enavzim"
-  const server_application_code = "TESTECUADORSTG-EC-SERVER"
-  const server_app_key = "67vVmLALRrbSaQHiEer40gjb49peos"
+  // Obtener configuración activa desde la base de datos
+  const activeConfig = await getActivePaymentConfig()
+  
+  if (!activeConfig) {
+    throw new Error('No hay configuración de pago activa. Por favor, configure Paymentez en el panel de administración.')
+  }
+
+  const server_application_code = activeConfig.app_code
+  const server_app_key = activeConfig.app_key
 
   const unix_timestamp = String(serverTime.serverTimestamp);
 
