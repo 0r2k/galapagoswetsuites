@@ -2,8 +2,8 @@ import crypto from "crypto"
 import { getActivePaymentConfig } from './paymentConfig'
 
 async function generateAuthToken() {
-  const serverTimeResponse = await fetch("/api/getServerTime")
-  const serverTime = await serverTimeResponse.json()
+  // Obtener timestamp directamente en el servidor
+  const unix_timestamp = String(Math.floor(Date.now() / 1000));
 
   // Obtener configuración activa desde la base de datos
   const activeConfig = await getActivePaymentConfig()
@@ -14,8 +14,6 @@ async function generateAuthToken() {
 
   const server_application_code = activeConfig.app_code
   const server_app_key = activeConfig.app_key
-
-  const unix_timestamp = String(serverTime.serverTimestamp);
 
   const uniq_token_string = server_app_key + unix_timestamp;
 

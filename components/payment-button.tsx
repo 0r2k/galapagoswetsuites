@@ -1,7 +1,5 @@
 'use client'
 import { useEffect, useRef, useState } from "react"
-import generateAuthToken from "@/lib/generateAuthToken"
-import { getActivePaymentConfig, PaymentConfig } from "@/lib/paymentConfig"
 import { Button } from "./ui/button";
 
 const PaymentButton = ({
@@ -18,15 +16,20 @@ const PaymentButton = ({
 }: any) => {
 
   const paymentCheckoutRef = useRef<any>(null);
-  const [activeConfig, setActiveConfig] = useState<PaymentConfig | null>(null);
+  const [paymentEnvironment, setPaymentEnvironment] = useState<string | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
 
   // Cargar configuración de pago al montar el componente
   useEffect(() => {
     const loadPaymentConfig = async () => {
       try {
-        const config = await getActivePaymentConfig();
-        setActiveConfig(config);
+        const response = await fetch('/api/payment/config');
+        if (response.ok) {
+          const data = await response.json();
+          setPaymentEnvironment(data.environment);
+        } else {
+          console.error('Error loading payment config:', response.statusText);
+        }
       } catch (error) {
         console.error('Error loading payment config:', error);
       } finally {
@@ -43,15 +46,23 @@ const PaymentButton = ({
 
     // La siguiente función permite configurar acciones con la apertura, cierre y respuesta del modal
     const initializePaymentModal = async () => {
-      if (!configLoaded || !activeConfig) {
+      if (!configLoaded || !paymentEnvironment) {
         // console.error('No hay configuración de pago activa');
         return;
       }
-      // console.log('Active Config:', activeConfig);
+      
+      // Obtener configuración completa para el modal
+      const configResponse = await fetch('/api/payment/config');
+      if (!configResponse.ok) {
+        console.error('Error obteniendo configuración para modal');
+        return;
+      }
+      const configData = await configResponse.json();
+      
       //@ts-ignore
       paymentCheckoutRef.current = new window.PaymentCheckout.modal({
         locale: 'es',
-        env_mode: activeConfig.environment,
+        env_mode: configData.environment,
         onOpen: function () {
           console.log("modal open");
         },
@@ -73,16 +84,13 @@ const PaymentButton = ({
 
     initializePaymentModal();
 
-  }, [activeConfig, configLoaded]);
+  }, [paymentEnvironment, configLoaded]);
 
-  // La siguiente función genera la referencia, por eso se ejecuta
-  // generateAuthToken()
+  // La siguiente función genera la referencia usando el nuevo endpoint
   const initiateTransaction = async () => {
-    if (!activeConfig) {
+    if (!paymentEnvironment) {
       throw new Error('No hay configuración de pago activa. Por favor, configure Paymentez en el panel de administración.');
     }
-    
-    const apiUrl = `${activeConfig.api_url}/v2/transaction/init_reference/`;
 
     // Ejemplo donde en Ecuador se paga el 12% de IVA
     // solo deben tener 2 decimales
@@ -90,12 +98,8 @@ const PaymentButton = ({
     const amount = total.toFixed(2);
     const taxable_amount = taxable.toFixed(2);
     const vat = taxes.toFixed(2);
-
-    //se genera el token
-    const authToken = await generateAuthToken();
     
-    console.log('Using API URL:', apiUrl);
-    console.log('Payment environment:', activeConfig.environment);
+    console.log('Payment environment:', paymentEnvironment);
 
     // Crear el objeto order base
     const orderData: any = {
@@ -111,36 +115,33 @@ const PaymentButton = ({
       orderData.tax_percentage = 0;
     }
 
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Auth-Token": authToken,
-      },
-      body: JSON.stringify({
-        locale: "es",
-        order: orderData,
-        user: {
-          id: id, //Cualquier id que se ponga, puede ser alfanumérico
-          email: email,
-          phone: telefono,
-        },
-        conf: {
-          style_version: "2",
-        }
-      })
-    };
+    const requestData = {
+       orderData: orderData,
+       user: {
+         id: id, //Cualquier id que se ponga, puede ser alfanumérico
+         email: email,
+         phone: telefono,
+       }
+     };
 
     try {
-      const response = await fetch(apiUrl, requestOptions)
-        .then((res) => res.json())
-        .then((data) => {
-          return data.reference;
-        });
+      const response = await fetch('/api/payment/init-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
 
-      return response;
+      if (!response.ok) {
+        throw new Error('Error al inicializar la transacción');
+      }
+
+      const data = await response.json();
+      return data.reference;
     } catch (error) {
       console.error("Error:", error);
+      throw error;
     }
   };
 
@@ -159,7 +160,7 @@ const PaymentButton = ({
         className="mt-6 h-14 font-bold w-full"
         type="button"
         onClick={handleButtonClick}
-        disabled={disabled || !configLoaded || !activeConfig}
+        disabled={disabled || !configLoaded || !paymentEnvironment}
       >
         {!configLoaded ? 'Cargando configuración...' : 'Pagar con tarjeta de crédito/débito'}
       </Button>
