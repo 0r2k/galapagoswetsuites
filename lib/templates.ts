@@ -11,6 +11,7 @@ export type EmailTemplate = {
   project: any | null;
   html_published: string | null;
   preview_data: any | null;
+  subject: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -18,7 +19,7 @@ export type EmailTemplate = {
 export async function listTemplates(): Promise<EmailTemplate[]> {
   const { data, error } = await supabase
     .from('email_templates')
-    .select('id,name,template_type,recipient_emails,updated_at,created_at,preview_data,project,html_published')
+    .select('id,name,template_type,recipient_emails,updated_at,created_at,preview_data,project,html_published,subject')
     .order('updated_at', { ascending: false });
   if (error) throw error;
   return data as EmailTemplate[];
@@ -76,10 +77,15 @@ export async function publishHtml(id: string, html: string) {
   return data as EmailTemplate;
 }
 
-export async function updatePreviewData(id: string, preview: any) {
+export async function updatePreviewData(id: string, preview: any, subject?: string) {
+  const updateData: any = { preview_data: preview };
+  if (subject !== undefined) {
+    updateData.subject = subject;
+  }
+  
   const { data, error } = await supabase
     .from('email_templates')
-    .update({ preview_data: preview })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single();

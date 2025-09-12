@@ -58,6 +58,8 @@ export interface EmailVariables {
   subtotal: number;
   taxAmount: number;
   totalAmount: number;
+  initialPayment: number;
+  pickupPayment: number;
   
   // Variables del negocio (para el dueño)
   supplierCost?: number;
@@ -104,6 +106,15 @@ function prepareEmailVariables(orderData: OrderEmailData): EmailVariables {
   );
   const commission = subtotal - supplierCost;
   
+  // Calcular pago inicial (diferencia entre precio público y costo proveedor)
+  const initialPayment = order.rental_items.reduce((total, item) => {
+    const priceDifference = (item.unit_price - (item.product_configs?.supplier_cost || 0)) * item.quantity * item.days;
+    return total + priceDifference;
+  }, 0);
+  
+  // Calcular valor a pagar al recoger (total - pago inicial)
+  const pickupPayment = order.total_amount - Math.max(initialPayment, 0);
+  
   return {
     // Cliente
     customerName: `${order.customer?.first_name || ''} ${order.customer?.last_name || ''}`.trim() || 'Cliente',
@@ -128,6 +139,8 @@ function prepareEmailVariables(orderData: OrderEmailData): EmailVariables {
     subtotal: subtotal,
     taxAmount: order.tax_amount,
     totalAmount: order.total_amount,
+    initialPayment: Math.max(initialPayment, 0),
+    pickupPayment: Math.max(pickupPayment, 0),
     
     // Negocio
     supplierCost,
@@ -158,7 +171,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
     const getSubjectByType = (templateType: string) => {
       switch (templateType) {
         case 'customer':
-          return `Confirmación de Reserva - Pedido ${orderData.order.id}`;
+          return `En hora buena, haz confirmado el alquiler de tus equipos`;
         case 'business_owner':
           return `Nueva Reserva - Pedido ${orderData.order.id} - Comisión: $${variables.commission?.toFixed(2)}`;
         case 'supplier':
@@ -196,11 +209,16 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
           }
         }
         
+        // Usar el subject de la plantilla si existe, sino usar el por defecto
+        const emailSubject = template.subject && template.subject.trim() 
+          ? template.subject 
+          : getSubjectByType(template.template_type);
+        
         emailPromises.push(
           resend.emails.send({
             from: FROM,
             to: recipients,
-            subject: getSubjectByType(template.template_type),
+            subject: emailSubject,
             html: finalHtml,
           })
         );

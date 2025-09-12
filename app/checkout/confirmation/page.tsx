@@ -36,7 +36,8 @@ function ConfirmationContent() {
               product_type,
               product_subtype,
               size,
-              public_price
+              public_price,
+              supplier_cost
             )
           `)
           .eq('order_id', orderId)

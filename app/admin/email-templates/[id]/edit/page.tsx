@@ -15,6 +15,10 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
   const [previewData, setPreviewData] = useState<any>(null);
   const [to, setTo] = useState("");
   const [varsJson, setVarsJson] = useState<string>("");
+  const [subject, setSubject] = useState<string>("");
+  const [isSavingPreview, setIsSavingPreview] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const onReady = (editor: Editor) => {
     console.log('Editor loaded', editor);
@@ -92,7 +96,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
     }
   }
 
-  // Carga preview_data (para mostrar variables en el editor)
+  // Carga preview_data y subject (para mostrar variables en el editor)
   useEffect(() => {
     (async () => {
       const res = await fetch(`/api/studio/templates/${templateId}`);
@@ -108,6 +112,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
       };
       setPreviewData(p);
       setVarsJson(JSON.stringify(p, null, 2));
+      setSubject(json.item?.subject || "");
       setReady(true);
     })();
   }, [templateId]);
@@ -200,62 +205,83 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
 
   const publish = async () => {
     if (!editor) return alert("Editor aún no está listo");
+    if (isPublishing) return;
 
-    let html = editor.getHtml(); // HTML con {{variables}}
-    
-    // Remover todos los atributos id que el StudioEditor agrega automáticamente para evitar errores de validación MJML
-    html = html.replace(/\s+id="[^"]*"/g, '');
-    
-    const res = await fetch(`/api/studio/templates/${templateId}/publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ html })
-    });
-    if (!res.ok) return alert("Error al publicar");
-    alert("Publicado ✅");
+    setIsPublishing(true);
+    try {
+      let html = editor.getHtml(); // HTML con {{variables}}
+      
+      // Remover todos los atributos id que el StudioEditor agrega automáticamente para evitar errores de validación MJML
+      html = html.replace(/\s+id="[^"]*"/g, '');
+      
+      const res = await fetch(`/api/studio/templates/${templateId}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html })
+      });
+      if (!res.ok) throw new Error("Error al publicar");
+      alert("Publicado ✅");
+    } catch (error) {
+      alert("Error al publicar");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const savePreview = async () => {
+    if (isSavingPreview) return;
+    
+    setIsSavingPreview(true);
     try {
       const parsed = JSON.parse(varsJson || "{}");
       const res = await fetch(`/api/studio/templates/${templateId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preview_data: parsed })
+        body: JSON.stringify({ preview_data: parsed, subject: subject.trim() })
       });
       if (!res.ok) throw new Error("No se pudo guardar preview");
       setPreviewData(parsed);
-      alert("Preview guardado ✅ (vuelve a recargar para refrescar el editor)");
+      alert("Preview y subject guardados ✅ (vuelve a recargar para refrescar el editor)");
     } catch (e: any) {
       alert(`JSON inválido: ${e.message}`);
+    } finally {
+      setIsSavingPreview(false);
     }
   };
 
   const sendTest = async () => {
     if (!to.trim()) return alert("Pon un email de destino");
+    if (isSendingTest) return;
     
-    // Convertir variables planas a formato globalData que espera Handlebars
-    let variables = {};
+    setIsSendingTest(true);
     try {
-      const parsedVars = JSON.parse(varsJson || "{}");
-      variables = {
-        globalData: Object.keys(parsedVars).reduce((acc, key) => {
-          acc[key] = { data: parsedVars[key] };
-          return acc;
-        }, {} as any)
-      };
-    } catch (e) {
-      return alert("JSON de variables inválido");
+      // Convertir variables planas a formato globalData que espera Handlebars
+      let variables = {};
+      try {
+        const parsedVars = JSON.parse(varsJson || "{}");
+        variables = {
+          globalData: Object.keys(parsedVars).reduce((acc, key) => {
+            acc[key] = { data: parsedVars[key] };
+            return acc;
+          }, {} as any)
+        };
+      } catch (e) {
+        return alert("JSON de variables inválido");
+      }
+      
+      const res = await fetch(`/api/studio/templates/${templateId}/send-test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to, vars: variables })
+      });
+      const ok = res.ok;
+      const msg = ok ? "Email de prueba enviado ✅" : `Error: ${await res.text()}`;
+      alert(msg);
+    } catch (error) {
+      alert("Error al enviar email de prueba");
+    } finally {
+      setIsSendingTest(false);
     }
-    
-    const res = await fetch(`/api/studio/templates/${templateId}/send-test`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to, vars: variables })
-    });
-    const ok = res.ok;
-    const msg = ok ? "Email de prueba enviado ✅" : `Error: ${await res.text()}`;
-    alert(msg);
   };
 
   if (!editorOptions) return <div className="p-6">Cargando editor…</div>;
@@ -281,7 +307,12 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
           </Link>
         </div>
 
-        <label className="block text-sm text-gray-600">Enviar prueba a</label>
+        <label className="block text-sm text-gray-600">Asunto del email</label>
+        <input className="border rounded w-full px-3 py-2"
+               placeholder="Confirmación de reserva"
+               value={subject} onChange={e => setSubject(e.target.value)} />
+
+        <label className="block text-sm text-gray-600 mt-4">Enviar prueba a</label>
         <input className="border rounded w-full px-3 py-2"
                placeholder="cecheverria@gmail.com"
                value={to} onChange={e => setTo(e.target.value)} />
@@ -291,17 +322,29 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
                   value={varsJson} onChange={e => setVarsJson(e.target.value)} />
 
         <div className="flex gap-2">
-          <button className="bg-black text-white px-3 py-2 rounded" onClick={savePreview}>
-            Guardar variables
+          <button 
+            className="bg-black text-white px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed" 
+            onClick={savePreview}
+            disabled={isSavingPreview || isSendingTest || isPublishing}
+          >
+            {isSavingPreview ? 'Cargando...' : 'Guardar asunto y variables'}
           </button>
-          <button className="bg-emerald-600 text-white px-3 py-2 rounded" onClick={sendTest}>
-            Enviar prueba
+          <button 
+            className="bg-emerald-600 text-white px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed" 
+            onClick={sendTest}
+            disabled={isSavingPreview || isSendingTest || isPublishing}
+          >
+            {isSendingTest ? 'Cargando...' : 'Enviar prueba'}
           </button>
         </div>
 
         <div className="pt-4 border-t">
-          <button className="bg-indigo-600 text-white px-3 py-2 rounded w-full" onClick={publish}>
-            Guardar plantilla
+          <button 
+            className="bg-indigo-600 text-white px-3 py-2 rounded w-full disabled:opacity-50 disabled:cursor-not-allowed" 
+            onClick={publish}
+            disabled={isSavingPreview || isSendingTest || isPublishing}
+          >
+            {isPublishing ? 'Cargando...' : 'Guardar plantilla'}
           </button>
           <p className="text-xs text-gray-500 mt-2">
             * "Guardar plantilla" guarda el HTML con {`{{variables}}`} en la BD.<br />  

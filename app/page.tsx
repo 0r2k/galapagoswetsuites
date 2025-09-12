@@ -863,7 +863,7 @@ function RentalPageContent() {
             <Image src="/chokotrip.webp" alt="Chokotrip" width={24} height={24} />
             <span className="font-semibold">Galápagos - Wetsuit & Snorkeling</span>
           </div>
-          <p className="text-muted-foreground text-sm">Explora las Islas Galápagos de manera responsable y segura</p>
+          <p className="text-muted-foreground text-sm">by <a href="https://www.chokotrip.info/" target="_blank">Chokotrip</a></p>
         </div>
       </footer>
     </div>

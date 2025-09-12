@@ -8,10 +8,10 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  // Permite actualizar sólo el preview_data si quieres
+  // Permite actualizar preview_data y subject
   const { id } = await params;
-  const { preview_data } = await req.json();
-  const item = await updatePreviewData(id, preview_data ?? null);
+  const { preview_data, subject } = await req.json();
+  const item = await updatePreviewData(id, preview_data ?? null, subject);
   return Response.json({ item });
 }
 
