@@ -12,7 +12,8 @@ const PaymentButton = ({
   total,
   callbackOrden,
   handleResponse,
-  disabled
+  disabled,
+  onValidate
 }: any) => {
 
   const paymentCheckoutRef = useRef<any>(null);
@@ -148,6 +149,11 @@ const PaymentButton = ({
   // Con el llamado y obtención de la referencia se ejecuta la función open
   // del paymentCheckout pasándola como parámetro en un objeto
   const handleButtonClick = async () => {
+    // Ejecutar validación si existe
+    if (onValidate && !onValidate()) {
+      return; // No proceder si la validación falla
+    }
+    
     const reference = await initiateTransaction();
     paymentCheckoutRef.current?.open({
       reference: reference,

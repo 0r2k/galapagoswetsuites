@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabaseClient'
 import { differenceInDays } from 'date-fns'
+import { toast } from 'sonner'
 import Script from 'next/script'
 import { 
   Customer,
@@ -37,6 +38,14 @@ function CheckoutContent() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [nationality, setNationality] = useState('')
+  
+  // Estados de validación
+  const [validationErrors, setValidationErrors] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    phone: false
+  })
   
   // Función para cargar el carrito desde localStorage
   function loadCartFromLocalStorage() {
@@ -76,7 +85,7 @@ function CheckoutContent() {
       return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
     }, 0) : rental.totalPrice * rental.rentalDays * 0).toFixed(2)
   }
-  
+
   const calculateTotal = (rental: any) => {
     const subtotal = (rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays + rental.returnFeeAmount
     const taxes = rental.items ? rental.items.reduce((total: number, item: any) => {
@@ -84,6 +93,45 @@ function CheckoutContent() {
       return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
     }, 0) : (rental.totalPrice * rental.rentalDays * 0)
     return (subtotal + taxes).toFixed(2)
+  }
+
+  const calculateInitialPayment = (rental: any) => {
+    if (!rental.items) return 0
+    
+    // Pago inicial = diferencia entre precio público y costo proveedor
+    const initialPayment = rental.items.reduce((total: number, item: any) => {
+      const priceDifference = (item.product.public_price - item.product.supplier_cost) * item.quantity * rental.rentalDays
+      return total + priceDifference
+    }, 0)
+    
+    return Math.max(initialPayment, 0) // Asegurar que no sea negativo
+  }
+  
+  // Función de validación
+  const validateForm = () => {
+    const errors = {
+      firstName: !firstName.trim(),
+      lastName: !lastName.trim(),
+      email: !email.trim(),
+      phone: !phone.trim()
+    }
+    
+    setValidationErrors(errors)
+    
+    // Si hay errores, mostrar toast con los campos faltantes
+    const hasErrors = Object.values(errors).some(error => error)
+    if (hasErrors) {
+      const missingFields = []
+      if (errors.firstName) missingFields.push('Nombre')
+      if (errors.lastName) missingFields.push('Apellido')
+      if (errors.email) missingFields.push('Email')
+      if (errors.phone) missingFields.push('Teléfono')
+      
+      toast.error(`Por favor complete los siguientes campos: ${missingFields.join(', ')}`)
+    }
+    
+    // Retorna true si no hay errores
+    return !hasErrors
   }
   
   useEffect(() => {
@@ -156,6 +204,12 @@ function CheckoutContent() {
             if (returnFeeAmount === 0 && returnIsland === 'san-cristobal') {
               returnFeeAmount = 5; // Tarifa por defecto para San Cristóbal
             }
+            
+            // Calcular cantidad total de items para aplicar la tarifa por cada 3 productos
+            const totalItems = cartItems.reduce((total: number, item: any) => total + item.quantity, 0);
+            // Multiplicar por cada grupo de 3 items (redondeado hacia arriba)
+            const multiplier = Math.ceil(totalItems / 3);
+            returnFeeAmount = returnFeeAmount * multiplier;
             
             baseTotal += returnFeeAmount;
             
@@ -314,9 +368,10 @@ function CheckoutContent() {
   
   // Variables para el PaymentButton
   const userId = user?.id || `guest_${Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000}`
-  const taxable = parseFloat(calculateSubtotal(rental))
-  const taxes = parseFloat(calculateTaxes(rental))
-  const totalAmount = parseFloat(calculateTotal(rental))
+  const initialPaymentAmount = calculateInitialPayment(rental)
+  const taxable = initialPaymentAmount
+  const taxes = 0 // Los impuestos se cobran al recoger, no en el pago inicial
+  const totalAmount = initialPaymentAmount
   
   const createOrder = (response: any) => {
     // Crear un evento sintético para handleSubmit
@@ -367,9 +422,14 @@ function CheckoutContent() {
                     <Input 
                       id="firstName" 
                       value={firstName} 
-                      onChange={(e) => setFirstName(e.target.value)} 
+                      onChange={(e) => {
+                        setFirstName(e.target.value)
+                        if (validationErrors.firstName) {
+                          setValidationErrors(prev => ({ ...prev, firstName: false }))
+                        }
+                      }} 
                       required 
-                      className='bg-white'
+                      className={`bg-white ${validationErrors.firstName ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
                   <div>
@@ -377,9 +437,14 @@ function CheckoutContent() {
                     <Input 
                       id="lastName" 
                       value={lastName} 
-                      onChange={(e) => setLastName(e.target.value)} 
+                      onChange={(e) => {
+                        setLastName(e.target.value)
+                        if (validationErrors.lastName) {
+                          setValidationErrors(prev => ({ ...prev, lastName: false }))
+                        }
+                      }} 
                       required
-                      className='bg-white'
+                      className={`bg-white ${validationErrors.lastName ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
                 </div>
@@ -391,9 +456,14 @@ function CheckoutContent() {
                       id="email" 
                       type="email" 
                       value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        if (validationErrors.email) {
+                          setValidationErrors(prev => ({ ...prev, email: false }))
+                        }
+                      }} 
                       required 
-                      className='bg-white'
+                      className={`bg-white ${validationErrors.email ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
                   <div>
@@ -401,8 +471,13 @@ function CheckoutContent() {
                     <Input 
                       id="phone" 
                       value={phone} 
-                      onChange={(e) => setPhone(e.target.value)} 
-                      className='bg-white'
+                      onChange={(e) => {
+                        setPhone(e.target.value)
+                        if (validationErrors.phone) {
+                          setValidationErrors(prev => ({ ...prev, phone: false }))
+                        }
+                      }} 
+                      className={`bg-white ${validationErrors.phone ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
                 </div>
@@ -473,29 +548,40 @@ function CheckoutContent() {
               
               <div>
                 <div className="flex justify-between">
-                  <span>Productos</span>
+                  <span>Productos ({rental.rentalDays} días de alquiler)</span>
                   <span>${calculateProductsSubtotal(rental)}</span>
                 </div>
                 {rental.returnFeeAmount > 0 && (
                   <div className="flex justify-between">
-                    <span>Tarifa de devolución {rental.returnIsland === 'san-cristobal' ? '(San Cristóbal)' : ''}</span>
                     <span>${calculateReturnFee(rental)}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>${calculateSubtotal(rental)}</span>
+                {parseFloat(calculateTaxes(rental)) > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>${calculateSubtotal(rental)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Impuestos</span>
+                    <span>${calculateTaxes(rental)}</span>
+                  </div>
+                </>
+                )}
+              </div>
+              <Separator />
+              <div>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Pago inicial:</span>
+                  <span>${calculateInitialPayment(rental).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Impuestos</span>
-                  <span>${calculateTaxes(rental)}</span>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Pagar al recoger:</span>
+                  <span>${(parseFloat(calculateTotal(rental)) - calculateInitialPayment(rental)).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold mt-2">
-                  <span>Total</span>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total:</span>
                   <span>${calculateTotal(rental)}</span>
-                </div>
-                <div className="text-xs text-gray-500 mt-2">
-                  <p>Precio por {rental.rentalDays} día(s) de alquiler</p>
                 </div>
               </div>
             </CardContent>
@@ -512,6 +598,7 @@ function CheckoutContent() {
             callbackOrden={createOrder}
             handleResponse={handlePaymentResponse}
             disabled={processingPayment}
+            onValidate={validateForm}
           />
         </div>
       </div>

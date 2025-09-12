@@ -24,6 +24,7 @@ interface Product {
   name: string
   description: string
   public_price: number
+  supplier_cost: number
   image: string
   tax_percentage: number
 }
@@ -144,7 +145,7 @@ function RentalPageContent() {
       try {
         const { data, error } = await supabase
           .from('product_config')
-          .select('id, product_type, name, description, public_price, image, tax_percentage')
+          .select('id, product_type, name, description, public_price, supplier_cost, image, tax_percentage')
           .eq('active', true)
           
         if (error) {
@@ -158,6 +159,7 @@ function RentalPageContent() {
             name: item.name,
             description: item.description,
             public_price: item.public_price,
+            supplier_cost: item.supplier_cost,
             image: item.image,
             tax_percentage: item.tax_percentage || 0
           }))
@@ -314,8 +316,11 @@ function RentalPageContent() {
     if (cartItems.length > 0 && cartItems[0].returnIsland) {
       const returnFee = returnFees.find(fee => fee.location === cartItems[0].returnIsland)
       if (returnFee) {
-        returnFeeAmount = returnFee.amount;
-        baseTotal += returnFeeAmount;
+        // Calcular cantidad total de items
+        const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+        // Multiplicar por cada grupo de 3 items (redondeado hacia arriba)
+        const multiplier = Math.ceil(totalItems / 3)
+        returnFeeAmount = returnFee.amount * multiplier;
       }
     }
     
@@ -337,6 +342,18 @@ function RentalPageContent() {
     }, returnFeeAmount) // Agregamos la tarifa de devolución sin multiplicar por días
     
     return { subtotal, returnFeeAmount, totalWithTax }
+  }
+
+  const calculateInitialPayment = (): number => {
+    const days = calculateRentalDays()
+    
+    // Pago inicial = diferencia entre precio público y costo proveedor
+    const initialPayment = cartItems.reduce((total, item) => {
+      const priceDifference = (item.product.public_price - item.product.supplier_cost) * item.quantity * days
+      return total + priceDifference
+    }, 0)
+    
+    return Math.max(initialPayment, 0) // Asegurar que no sea negativo
   }
   
   const proceedToCheckout = () => {
@@ -480,7 +497,7 @@ function RentalPageContent() {
               <ShoppingCart className="h-5 w-5" />
               Carrito
             </span>
-            <Badge variant="outline" className="bg-white border border-accent text-accent">{cartItems.length} items</Badge>
+            <Badge variant="outline" className="bg-white border border-accent text-accent">{cartItems.reduce((total, item) => total + item.quantity, 0)} items</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
@@ -532,9 +549,9 @@ function RentalPageContent() {
               
               {/* Selector de fechas y horas */}
               {cartItems.length > 0 && (
-                <div className="mt-4 space-y-3">
+                <div className="mt-12 space-y-3">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Fecha y hora de recogida</label>
+                    <label className="font-bold">Fecha y hora de recogida</label>
                     <Popover modal={false}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
@@ -607,9 +624,17 @@ function RentalPageContent() {
                       </SheetPopoverContent>
                     </Popover>
                   </div>
+
+                  <div className="space-y-2">
+                    <label className="font-bold">Isla de recogida</label>
+                    <div className="">
+                      Santa Cruz
+                    </div>
+                  </div>
+
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Fecha y hora de devolución</label>
+                    <label className="font-bold">Fecha y hora de devolución</label>
                     <Popover modal={false}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
@@ -681,7 +706,7 @@ function RentalPageContent() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Isla de devolución</label>
+                    <label className="font-bold">Isla de devolución</label>
                     <Select
                       value={cartItems.length > 0 && cartItems[0].returnIsland ? cartItems[0].returnIsland : undefined}
                       onValueChange={(value) => {
@@ -709,6 +734,14 @@ function RentalPageContent() {
                   <div className="flex justify-between text-sm mb-2">
                     <span>Días de alquiler:</span>
                     <span>{calculateRentalDays()} días</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Pago inicial:</span>
+                    <span>${calculateInitialPayment().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Pagar al recoger:</span>
+                    <span>${(calculateFinalTotal().totalWithTax - calculateInitialPayment()).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
@@ -769,9 +802,12 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-balance mb-4">Renta tu equipo de snorkeling y wetsuit</h2>
-          <p className="text-xl text-muted-foreground text-pretty max-w-2xl mx-auto">
-            Una preocupacion menos para tu viaje en Galapagos, tenemos 100 equipos de snorkeling, aletas, wetsuit cortos y largos (3mm) para explorar la vida marina en cada playa y tour diario.
+          <h2 className="text-3xl font-bold text-balance mb-4">Renta tu equipo de snorkeling y wetsuit</h2>
+          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
+            ¡Una preocupacion menos en tu viaje a Galapagos! Tenemos en la Isla Santa Cruz, mas de 100 equipos de snorkeling, aletas, wetsuit cortos y largos (3mm) para explorar la vida marina en cada playa y tour diario.
+          </p>
+          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
+            Alquílalo por dia o por todo el tiempo que deseas y lo puedes devolver en la isla de Santa Cruz o San Cristobal.
           </p>
         </div>
       </section>
