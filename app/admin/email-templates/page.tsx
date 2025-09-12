@@ -21,6 +21,7 @@ type Item = {
 
 export default function EmailTemplatesList() {
   const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [templateType, setTemplateType] = useState<TemplateType | "">("");
   const [recipientEmails, setRecipientEmails] = useState("");
@@ -29,9 +30,17 @@ export default function EmailTemplatesList() {
   const [editRecipientEmails, setEditRecipientEmails] = useState("");
 
   const load = async () => {
-    const res = await fetch("/api/studio/templates", { cache: "no-store" });
-    const json = await res.json();
-    setItems(json.items);
+    try {
+      setLoading(true);
+      const res = await fetch("/api/studio/templates", { cache: "no-store" });
+      const json = await res.json();
+      setItems(json.items);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast.error('Error al cargar las plantillas');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -230,122 +239,131 @@ export default function EmailTemplatesList() {
       </Card>
 
       <div className="grid gap-4">
-        {items.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="text-muted-foreground text-center">
-                <h3 className="font-semibold text-lg mb-2">No hay plantillas</h3>
-                <p>Crea tu primera plantilla de email para comenzar</p>
-              </div>
-            </CardContent>
-          </Card>
+        {loading ? (
+          <div className="flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-gray-300"></div>
+            <span className="ml-2">Cargando...</span>
+          </div>
         ) : (
-          items.map(item => (
-            <Card key={item.id} className="shadow-none hover:shadow-md transition-shadow py-3 bg-white">
-              <CardContent className="py-0 px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{item.name}</h3>
-                      {item.template_type && (
-                        <Badge variant="secondary">
-                          {item.template_type === 'customer' && 'Cliente'}
-                          {item.template_type === 'business_owner' && 'Dueño del negocio'}
-                          {item.template_type === 'supplier' && 'Proveedor'}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">
-                        Última actualización: {new Date(item.updated_at).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                      {item.recipient_emails && item.recipient_emails.length > 0 && (
-                        <p className="text-sm text-gray-600">
-                          Destinatarios: {item.recipient_emails.join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => startEditing(item)}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Config
-                    </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/admin/email-templates/${item.id}/edit`}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </Link>
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => deleteTemplate(item.id, item.name)}
-                      className="text-destructive hover:text-white"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar
-                    </Button>
-                  </div>
+          <>
+          {items.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <div className="text-muted-foreground text-center">
+                  <h3 className="font-semibold text-lg mb-2">No hay plantillas</h3>
+                  <p>Crea tu primera plantilla de email para comenzar</p>
                 </div>
-                
-                {editingTemplate === item.id && (
-                  <div className="border-t mt-4 pt-4 bg-gray-50 -mx-6 -mb-3 px-6 pb-6 rounded-b-xl">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Tipo de plantilla</Label>
-                          <Select value={editTemplateType} onValueChange={(value: TemplateType) => {
-                            setEditTemplateType(value);
-                            if (value === 'customer') {
-                              setEditRecipientEmails('');
-                            }
-                          }}>
-                            <SelectTrigger className="bg-white">
-                              <SelectValue placeholder="Selecciona el tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="customer">Cliente - Confirmación de compra</SelectItem>
-                              <SelectItem value="business_owner">Dueño del negocio - Reporte de ventas</SelectItem>
-                              <SelectItem value="supplier">Proveedor - Notificación de reserva</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Emails destinatarios (separados por comas)</Label>
-                          <Input
-                            placeholder={editTemplateType === 'customer' ? "El email del cliente será el destinatario" : "admin@empresa.com, ventas@empresa.com"}
-                            value={editRecipientEmails}
-                            onChange={e => setEditRecipientEmails(e.target.value)}
-                            disabled={editTemplateType === 'customer'}
-                            className="bg-white border border-gray-300"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button onClick={() => updateTemplateConfig(item.id)} size="sm">
-                          Guardar Configuración
-                        </Button>
-                        <Button variant="outline" onClick={() => setEditingTemplate(null)} size="sm">
-                          Cancelar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
-          ))
+          ) : (
+            items.map(item => (
+              <Card key={item.id} className="shadow-none hover:shadow-md transition-shadow py-3 bg-white">
+                <CardContent className="py-0 px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">{item.name}</h3>
+                        {item.template_type && (
+                          <Badge variant="secondary">
+                            {item.template_type === 'customer' && 'Cliente'}
+                            {item.template_type === 'business_owner' && 'Dueño del negocio'}
+                            {item.template_type === 'supplier' && 'Proveedor'}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">
+                          Última actualización: {new Date(item.updated_at).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                        {item.recipient_emails && item.recipient_emails.length > 0 && (
+                          <p className="text-sm text-gray-600">
+                            Destinatarios: {item.recipient_emails.join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => startEditing(item)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Config
+                      </Button>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/admin/email-templates/${item.id}/edit`}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Link>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => deleteTemplate(item.id, item.name)}
+                        className="text-destructive hover:text-white"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {editingTemplate === item.id && (
+                    <div className="border-t mt-4 pt-4 bg-gray-50 -mx-6 -mb-3 px-6 pb-6 rounded-b-xl">
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Tipo de plantilla</Label>
+                            <Select value={editTemplateType} onValueChange={(value: TemplateType) => {
+                              setEditTemplateType(value);
+                              if (value === 'customer') {
+                                setEditRecipientEmails('');
+                              }
+                            }}>
+                              <SelectTrigger className="bg-white">
+                                <SelectValue placeholder="Selecciona el tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="customer">Cliente - Confirmación de compra</SelectItem>
+                                <SelectItem value="business_owner">Dueño del negocio - Reporte de ventas</SelectItem>
+                                <SelectItem value="supplier">Proveedor - Notificación de reserva</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Emails destinatarios (separados por comas)</Label>
+                            <Input
+                              placeholder={editTemplateType === 'customer' ? "El email del cliente será el destinatario" : "admin@empresa.com, ventas@empresa.com"}
+                              value={editRecipientEmails}
+                              onChange={e => setEditRecipientEmails(e.target.value)}
+                              disabled={editTemplateType === 'customer'}
+                              className="bg-white border border-gray-300"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={() => updateTemplateConfig(item.id)} size="sm">
+                            Guardar Configuración
+                          </Button>
+                          <Button variant="outline" onClick={() => setEditingTemplate(null)} size="sm">
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+          </>
         )}
       </div>
     </div>

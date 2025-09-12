@@ -48,14 +48,62 @@ interface Product {
   active: boolean
 }
 
+// Interface para pedidos de alquiler
+interface RentalOrder {
+  id: string
+  customer_id: string
+  total_amount: number
+  tax_amount: number
+  status: string
+  start_date: string
+  end_date: string
+  start_time: string
+  end_time: string
+  return_island: string
+  payment_method: string | null
+  payment_status: string
+  notes: string | null
+  created_at: string
+  updated_at: string
+  auth_code: string | null
+  bin: number | null
+  dev_reference: string | null
+  status_detail: string | null
+  // Campos del JOIN con users
+  customer_name: string
+  customer_email: string
+}
+
+// Interface para items de alquiler
+interface RentalItem {
+  id: string
+  order_id: string
+  product_config_id: string
+  quantity: number
+  days: number
+  unit_price: number
+  subtotal: number
+  created_at: string
+  updated_at: string
+  // Campos del JOIN con product_config
+  product_name: string
+  product_type: string
+  product_description: string
+}
+
 export default function AdminPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [fees, setFees] = useState<AdditionalFee[]>([])
   const [user, setUser] = useState<any>(null)
+  const [orders, setOrders] = useState<RentalOrder[]>([])
   const [activeTab, setActiveTab] = useState('products')
   const [paymentConfigs, setPaymentConfigs] = useState<PaymentConfig[]>([])
+  const [isItemsModalOpen, setIsItemsModalOpen] = useState(false)
+  const [selectedOrderItems, setSelectedOrderItems] = useState<RentalItem[]>([])
+  const [selectedOrderId, setSelectedOrderId] = useState<string>('')
+  const [loadingItems, setLoadingItems] = useState(false)
   const [editingPaymentConfig, setEditingPaymentConfig] = useState<PaymentConfig | null>(null)
   const [isPaymentConfigModalOpen, setIsPaymentConfigModalOpen] = useState(false)
   
@@ -109,6 +157,75 @@ export default function AdminPage() {
     checkUser()
   }, [])
 
+  // Función para cargar pedidos de alquiler
+  const loadOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rental_orders')
+        .select(`
+          *,
+          users!rental_orders_customer_id_fkey (
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      
+      // Mapear los datos para incluir customer_name y customer_email
+      const mappedOrders = data?.map(order => ({
+        ...order,
+        customer_name: order.users?.first_name + ' ' + order.users?.last_name || 'N/A',
+        customer_email: order.users?.email || 'N/A'
+      })) || []
+      
+      setOrders(mappedOrders)
+    } catch (error) {
+      console.error('Error loading orders:', error)
+      toast.error('Error al cargar pedidos')
+    }
+  }
+
+  // Función para cargar items de un pedido específico
+  const loadOrderItems = async (orderId: string) => {
+    setLoadingItems(true)
+    try {
+      const { data, error } = await supabase
+        .from('rental_items')
+        .select(`
+          *,
+          product_config!rental_items_product_config_id_fkey (
+            name,
+            product_type,
+            description
+          )
+        `)
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: true })
+
+      if (error) throw error
+      
+      // Mapear los datos para incluir información del producto
+      const mappedItems = data?.map(item => ({
+        ...item,
+        product_name: item.product_config?.name || 'N/A',
+        product_type: item.product_config?.product_type || 'N/A',
+        product_description: item.product_config?.description || 'N/A'
+      })) || []
+      
+      setSelectedOrderItems(mappedItems)
+      setSelectedOrderId(orderId)
+      setIsItemsModalOpen(true)
+    } catch (error) {
+      console.error('Error loading order items:', error)
+      toast.error('Error al cargar items del pedido')
+    } finally {
+      setLoadingItems(false)
+    }
+  }
+
   const loadData = async () => {
     setLoading(true)
     try {
@@ -125,6 +242,9 @@ export default function AdminPage() {
       // Inicializar y cargar configuraciones de pago
       await initializePaymentConfigs()
       const paymentConfigsData = await getAllPaymentConfigs()
+      
+      // Cargar pedidos
+      await loadOrders()
       
       setProducts(productsData || [])
       setFees(feesData)
@@ -263,11 +383,12 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="products">Productos</TabsTrigger>
           <TabsTrigger value="fees">Tarifas Adicionales</TabsTrigger>
           <TabsTrigger value="payment-config">Configuración de Pago</TabsTrigger>
           <TabsTrigger value="email-templates">Plantillas de Email</TabsTrigger>
+          <TabsTrigger value="orders">Pedidos</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products" className="space-y-6">
@@ -509,6 +630,83 @@ export default function AdminPage() {
         <TabsContent value="email-templates" className="space-y-6">
           <EmailTemplatesList />
         </TabsContent>
+
+        <TabsContent value="orders" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pedidos de Alquiler</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2">Cargando pedidos...</span>
+                </div>
+              ) : (
+                <Table>
+                   <TableHeader>
+                     <TableRow>
+                       <TableHead>Número de Pedido</TableHead>
+                       <TableHead>Nombre del Cliente</TableHead>
+                       <TableHead>Fecha y Hora de Recogida</TableHead>
+                       <TableHead>Isla de Devolución</TableHead>
+                       <TableHead>Estado</TableHead>
+                       <TableHead>Total</TableHead>
+                       <TableHead>Acciones</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                  <TableBody>
+                     {orders.length === 0 ? (
+                       <TableRow>
+                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                           No hay pedidos registrados
+                         </TableCell>
+                       </TableRow>
+                     ) : (
+                       orders.map((order) => (
+                         <TableRow key={order.id}>
+                           <TableCell className="font-mono text-sm">
+                             {order.id.slice(0, 8)}...
+                           </TableCell>
+                           <TableCell>{order.customer_name}</TableCell>
+                           <TableCell>
+                             {new Date(order.start_date).toLocaleDateString('es-ES')} - {order.start_time}
+                           </TableCell>
+                           <TableCell className="capitalize">
+                             {order.return_island.replace('-', ' ')}
+                           </TableCell>
+                           <TableCell>
+                             <Badge 
+                               variant={order.status === 'completed' ? 'default' : 
+                                       order.status === 'pending' ? 'secondary' : 'destructive'}
+                             >
+                               {order.status === 'pending' ? 'Pendiente' :
+                                order.status === 'completed' ? 'Completado' :
+                                order.status === 'cancelled' ? 'Cancelado' : order.status}
+                             </Badge>
+                           </TableCell>
+                           <TableCell className="font-semibold">
+                             ${order.total_amount.toFixed(2)}
+                           </TableCell>
+                           <TableCell>
+                             <Button 
+                               variant="outline" 
+                               size="sm"
+                               onClick={() => loadOrderItems(order.id)}
+                               disabled={loadingItems}
+                             >
+                               Ver Items
+                             </Button>
+                           </TableCell>
+                         </TableRow>
+                       ))
+                     )}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Modal de Edición */}
@@ -671,6 +869,85 @@ export default function AdminPage() {
             </Button>
             <Button onClick={handleUpdatePaymentConfig}>
               Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Items del Pedido */}
+      <Dialog open={isItemsModalOpen} onOpenChange={setIsItemsModalOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>
+              Items del Pedido {selectedOrderId ? selectedOrderId.slice(0, 8) + '...' : ''}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {loadingItems ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2">Cargando items...</span>
+            </div>
+          ) : (
+            <div className="max-h-[400px] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Cantidad</TableHead>
+                    <TableHead>Días</TableHead>
+                    <TableHead>Precio Unitario</TableHead>
+                    <TableHead>Subtotal</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedOrderItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No hay items en este pedido
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    selectedOrderItems.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {item.product_name}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {item.product_type.replace('_', ' ')}
+                        </TableCell>
+                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>{item.days}</TableCell>
+                        <TableCell>${item.unit_price.toFixed(2)}</TableCell>
+                        <TableCell className="font-semibold">
+                          ${item.subtotal.toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+              
+              {selectedOrderItems.length > 0 && (
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Total de Items:</span>
+                    <span className="font-bold text-lg">
+                      ${selectedOrderItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsItemsModalOpen(false)}
+            >
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>
