@@ -749,7 +749,7 @@ export default function AdminPage() {
                              >
                                {order.status === 'pending' ? 'Pendiente' :
                                 order.status === 'completed' ? 'Completado' :
-                                order.status === 'cancelled' ? 'Cancelado' : order.status}
+                                order.status === 'cancelled' ? 'Falló' : order.status}
                              </Badge>
                            </TableCell>
                            <TableCell className="font-semibold">
