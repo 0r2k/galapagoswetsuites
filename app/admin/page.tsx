@@ -34,6 +34,7 @@ import {
   updatePaymentConfig,
   initializePaymentConfigs
 } from '@/lib/paymentConfig'
+import refundPaymentez from '@/lib/refund-paymentez'
 
 // Interface para productos con información completa
 interface Product {
@@ -69,6 +70,7 @@ interface RentalOrder {
   bin: number | null
   dev_reference: string | null
   status_detail: string | null
+  transaction_id: string | null
   // Campos del JOIN con users
   customer_name: string
   customer_email: string
@@ -106,6 +108,8 @@ export default function AdminPage() {
   const [loadingItems, setLoadingItems] = useState(false)
   const [editingPaymentConfig, setEditingPaymentConfig] = useState<PaymentConfig | null>(null)
   const [isPaymentConfigModalOpen, setIsPaymentConfigModalOpen] = useState(false)
+  const [loadingRefund, setLoadingRefund] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState(new Date())
   
   // Estados para el modal de edición
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -156,6 +160,69 @@ export default function AdminPage() {
     
     checkUser()
   }, [])
+
+  // Actualizar tiempo cada 30 segundos para verificar disponibilidad del botón de reembolso
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 30000) // Actualizar cada 30 segundos para mayor precisión
+
+    return () => clearInterval(timer)
+  }, [])
+
+  // Función para verificar si el reembolso está disponible
+  const isRefundAvailable = (order: RentalOrder): boolean => {
+    if (!order.transaction_id || order.payment_status !== 'paid') {
+      return false
+    }
+
+    // Verificar si es del mismo día
+    const orderDate = new Date(order.created_at)
+    const today = new Date()
+    const isToday = orderDate.toDateString() === today.toDateString()
+
+    if (!isToday) {
+      return false
+    }
+
+    // Verificar si es antes de las 5pm Ecuador (UTC-5)
+    const ecuadorTime = new Date(currentTime.toLocaleString("en-US", {timeZone: "America/Guayaquil"}))
+    const hour = ecuadorTime.getHours()
+    
+    return hour < 17 // Antes de las 5pm
+  }
+
+  // Función para manejar el reembolso
+  const handleRefund = async (order: RentalOrder) => {
+    if (!order.transaction_id) {
+      toast.error('No se encontró ID de transacción')
+      return
+    }
+
+    setLoadingRefund(order.id)
+    try {
+      const result = await refundPaymentez(order.transaction_id)
+      
+      if (result?.status === 'success') {
+        toast.success('Reembolso procesado exitosamente')
+        // Actualizar el estado del pedido
+        await supabase
+          .from('rental_orders')
+          .update({ payment_status: 'refunded' })
+          .eq('id', order.id)
+        
+        // Recargar pedidos
+        await loadOrders()
+      } else {
+        toast.error('Error al procesar el reembolso: ' + (result?.message || 'Error desconocido'))
+      }
+    } catch (error) {
+      console.error('Error processing refund:', error)
+      toast.error('Error al procesar el reembolso')
+    } finally {
+      setLoadingRefund(null)
+    }
+  }
 
   // Función para cargar pedidos de alquiler
   const loadOrders = async () => {
@@ -689,14 +756,26 @@ export default function AdminPage() {
                              ${order.total_amount.toFixed(2)}
                            </TableCell>
                            <TableCell>
-                             <Button 
-                               variant="outline" 
-                               size="sm"
-                               onClick={() => loadOrderItems(order.id)}
-                               disabled={loadingItems}
-                             >
-                               Ver Items
-                             </Button>
+                             <div className="flex gap-2">
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => loadOrderItems(order.id)}
+                                 disabled={loadingItems}
+                               >
+                                 Ver Items
+                               </Button>
+                               {isRefundAvailable(order) && (
+                                 <Button 
+                                   variant="destructive" 
+                                   size="sm"
+                                   onClick={() => handleRefund(order)}
+                                   disabled={loadingRefund === order.id}
+                                 >
+                                   {loadingRefund === order.id ? 'Procesando...' : 'Reembolso'}
+                                 </Button>
+                               )}
+                             </div>
                            </TableCell>
                          </TableRow>
                        ))

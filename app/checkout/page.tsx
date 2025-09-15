@@ -332,6 +332,7 @@ function CheckoutContent() {
         payment_status: data?.transaction?.status || 'pending',
         status: 'completed',
         status_detail: data?.transaction?.status_detail || '',
+        transaction_id: data?.transaction?.id || '',
         notes: ''
       })
       

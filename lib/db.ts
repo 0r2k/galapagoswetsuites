@@ -66,6 +66,7 @@ export interface RentalOrder {
   payment_method?: string;
   status_detail?: string;
   payment_status: PaymentStatus;
+  transaction_id?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
