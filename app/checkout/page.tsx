@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { differenceInDays } from 'date-fns'
 import { toast } from 'sonner'
 import Script from 'next/script'
+import ReactFlagsSelect from 'react-flags-select'
 import { 
   Customer,
   createCustomer, 
@@ -406,18 +407,18 @@ function CheckoutContent() {
   
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Finalizar Compra</h1>
+      <h1 className="text-3xl font-bold mb-8 px-4">Finalizar Compra</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+        <div className="lg:col-span-2">
           <form onSubmit={handleSubmit}>
-            <Card className="mb-8">
+            <Card>
               <CardHeader>
                 <CardTitle>Información Personal</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="firstName">Nombre</Label>
                     <Input 
                       id="firstName" 
@@ -429,10 +430,10 @@ function CheckoutContent() {
                         }
                       }} 
                       required 
-                      className={`bg-white ${validationErrors.firstName ? 'border-red-500 ring-red-500' : ''}`}
+                      className={`bg-white border border-gray-400 rounded-md ${validationErrors.firstName ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="lastName">Apellido</Label>
                     <Input 
                       id="lastName" 
@@ -444,13 +445,13 @@ function CheckoutContent() {
                         }
                       }} 
                       required
-                      className={`bg-white ${validationErrors.lastName ? 'border-red-500 ring-red-500' : ''}`}
+                      className={`bg-white border border-gray-400 rounded-md ${validationErrors.lastName ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input 
                       id="email" 
@@ -463,10 +464,10 @@ function CheckoutContent() {
                         }
                       }} 
                       required 
-                      className={`bg-white ${validationErrors.email ? 'border-red-500 ring-red-500' : ''}`}
+                      className={`bg-white border border-gray-400 rounded-md ${validationErrors.email ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="phone">Teléfono</Label>
                     <Input 
                       id="phone" 
@@ -477,19 +478,21 @@ function CheckoutContent() {
                           setValidationErrors(prev => ({ ...prev, phone: false }))
                         }
                       }} 
-                      className={`bg-white ${validationErrors.phone ? 'border-red-500 ring-red-500' : ''}`}
+                      className={`bg-white border border-gray-400 rounded-md ${validationErrors.phone ? 'border-red-500 ring-red-500' : ''}`}
                     />
                   </div>
                 </div>
                 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="nationality">Nacionalidad</Label>
-                  <Input 
-                    id="nationality" 
-                    value={nationality} 
-                    onChange={(e) => setNationality(e.target.value)} 
-                    required 
-                    className='bg-white'
+                  <ReactFlagsSelect
+                    selected={nationality}
+                    onSelect={(code: string) => setNationality(code)}
+                    searchable
+                    searchPlaceholder="Buscar país..."
+                    placeholder="Selecciona tu país"
+                    className="bg-white"
+                    selectButtonClassName="bg-white border border-input rounded-md px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full justify-start"
                   />
                 </div>
               </CardContent>
@@ -553,6 +556,7 @@ function CheckoutContent() {
                 </div>
                 {rental.returnFeeAmount > 0 && (
                   <div className="flex justify-between">
+                    <span>Devolución en {rental.returnIsland === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</span>
                     <span>${calculateReturnFee(rental)}</span>
                   </div>
                 )}

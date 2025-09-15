@@ -717,11 +717,18 @@ function RentalPageContent() {
                         <SelectValue placeholder="Seleccionar isla" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {returnFees.map((fee) => (
-                          <SelectItem key={fee.id} value={fee.location}>
-                            {fee.name} {fee.amount > 0 && `(+$${fee.amount})`}
-                          </SelectItem>
-                        ))}
+                        {returnFees.map((fee) => {
+                          // Calcular el monto con multiplier como en línea 323
+                          const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+                          const multiplier = Math.ceil(totalItems / 3)
+                          const calculatedDeliveryAmount = fee.amount * multiplier
+                          
+                          return (
+                            <SelectItem key={fee.id} value={fee.location}>
+                              {fee.name} {fee.amount > 0 && `(+$${calculatedDeliveryAmount})`}
+                            </SelectItem>
+                          )
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -802,12 +809,12 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-balance mb-4">Renta tu equipo de snorkeling y wetsuit</h2>
+          <h2 className="text-3xl font-bold text-balance mb-4">Renta de wetsuits y equipo de snorkeling</h2>
           <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
-            ¡Una preocupacion menos en tu viaje a Galapagos! Tenemos en la Isla Santa Cruz, mas de 100 equipos de snorkeling, aletas, wetsuit cortos y largos (3mm) para explorar la vida marina en cada playa y tour diario.
+            ¡Una preocupacion menos en tu viaje a Galapagos!<strong>Tenemos en la Isla Santa Cruz, mas de 100 equipos de snorkeling, aletas, wetsuit</strong> cortos y largos (3mm) para explorar la vida marina en cada playa y tour diario.
           </p>
           <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
-            Alquílalo por dia o por todo el tiempo que deseas y lo puedes devolver en la isla de Santa Cruz o San Cristobal.
+            <strong>Alquílalo por dia o por todo el tiempo que deseas</strong> y lo puedes devolver en la isla de Santa Cruz o San Cristobal.
           </p>
         </div>
       </section>

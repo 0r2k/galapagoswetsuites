@@ -5,8 +5,9 @@ import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
-  title: 'Galapagos Wet Suit Rental',
+  title: 'Galápagos - Wetsuit & Snorkeling',
   description: 'By Chokotrip',
+  icons: "/favicon.webp"
 }
 
 export default function RootLayout({
