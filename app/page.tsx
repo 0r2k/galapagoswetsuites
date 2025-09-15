@@ -810,10 +810,10 @@ function RentalPageContent() {
       <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-balance mb-4">Renta de wetsuits y equipo de snorkeling</h2>
-          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-pretty">
             ¡Una preocupacion menos en tu viaje a Galapagos! En ChokoTrip pensamos en todo.<br /><strong>Tenemos para alaquilar mas de 100 equipos de snorkeling, aletas, wetsuit</strong> cortos y largos (3mm) para explorar la vida marina en cada playa y tour diario.
           </p>
-          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-pretty mt-4">
             <strong>Alquílalo por dia o por todo el tiempo que desees</strong>, lo recoges en la Isla Santa Cruz y lo puedes devolver en la Isla de Santa Cruz o San Cristobal.
           </p>
         </div>
