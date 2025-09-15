@@ -309,13 +309,17 @@ function CheckoutContent() {
         throw new Error('No se pudo crear o actualizar el cliente')
       }
       
+      // Verificar el estado de la transacción
+      const transactionStatusDetail = data?.transaction?.status_detail
+      const isTransactionSuccessful = transactionStatusDetail === 3
+      
       // Calcular el total y el IVA
       const subtotal = rental.totalPrice
       const taxRate = 0 // 12% IVA en Ecuador
       const taxAmount = subtotal * taxRate
       const totalAmount = subtotal + taxAmount
       
-      // Crear la orden de alquiler
+      // Crear la orden de alquiler (exitosa o fallida para tracking)
       const order = await createRentalOrder({
         auth_code: data?.transaction?.authorization_code || '',
         bin: data?.card?.bin || '',
@@ -329,8 +333,8 @@ function CheckoutContent() {
         total_amount: data?.transaction?.amount || totalAmount,
         tax_amount: taxAmount,
         payment_method: data?.card?.type || 'card',
-        payment_status: data?.transaction?.status || 'pending',
-        status: 'completed',
+        payment_status: isTransactionSuccessful ? 'paid' : 'pending',
+         status: isTransactionSuccessful ? 'completed' : 'cancelled',
         status_detail: data?.transaction?.status_detail || '',
         transaction_id: data?.transaction?.id || '',
         notes: ''
@@ -349,8 +353,39 @@ function CheckoutContent() {
       // Guardar los items
       await createRentalItems(rentalItems)
       
-      // Redirigir a la página de confirmación
-      router.push(`/checkout/confirmation?orderId=${order.id}`)
+      if (isTransactionSuccessful) {
+        // Redirigir a la página de confirmación solo si la transacción fue exitosa
+        router.push(`/checkout/confirmation?orderId=${order.id}`)
+      } else {
+        // Mostrar error pero permitir que se registre el intento fallido
+        const errorMessage = transactionStatusDetail === 1 ? 'Verificación requerida' :
+        transactionStatusDetail === 6 ? 'Fraude' :
+        transactionStatusDetail === 7 ? 'Reembolso' :
+        transactionStatusDetail === 8 ? 'Devolución de cargo' :
+        transactionStatusDetail === 9 ? 'Rechazado por el carrier' :
+        'Error del sistema.'
+
+        const transactionMessage = data?.transaction?.message;
+        if(transactionMessage == 'Establecimiento invalido') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with a MasterCard o Visa credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transactionMessage == 'Tx invalida' || transactionMessage == 'No tarjeta de credito') {
+              setErrorMessage('Oops! There was a problem with your payment. Please try again with a valid credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transactionMessage == 'Tarjeta expirada') {
+          setErrorMessage('Oops! It seems your card has expired. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transactionMessage == 'Tarjeta en boletin') {
+          setErrorMessage('Oops! It seems you can\'t use this card temporarily. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transactionMessage == 'Fondos insuficientes') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with a credit/debit card with enough funds or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transactionMessage == 'Error en numero de tarjeta') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else if(transactionMessage == 'Numero de autorizacion no existe') {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        } else {
+          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
+        }
+        
+        toast.error(errorMessage, { description: transactionMessage })
+      }
       
     } catch (error) {
       console.error('Error processing payment:', error)
@@ -382,29 +417,13 @@ function CheckoutContent() {
     } as React.FormEvent
     return handleSubmit(syntheticEvent, response)
   }
-  const handlePaymentResponse = (transaction: any) => {
-    console.log('Payment response:', transaction)
-    // Aquí puedes manejar la respuesta del pago
-    if (transaction.status_detail != 3) {
-        if(transaction.message == 'Establecimiento invalido') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with a MasterCard o Visa credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transaction.message == 'Tx invalida' || transaction.message == 'No tarjeta de credito') {
-              setErrorMessage('Oops! There was a problem with your payment. Please try again with a valid credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transaction.message == 'Tarjeta expirada') {
-          setErrorMessage('Oops! It seems your card has expired. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transaction.message == 'Tarjeta en boletin') {
-          setErrorMessage('Oops! It seems you can\'t use this card temporarily. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transaction.message == 'Fondos insuficientes') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with a credit/debit card with enough funds or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transaction.message == 'Error en numero de tarjeta') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transaction.message == 'Numero de autorizacion no existe') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        }
-    }
-  }
+  // const handlePaymentResponse = (transaction: any) => {
+  //   console.log('Payment response:', transaction)
+  //   // Aquí puedes manejar la respuesta del pago
+  //   if (transaction.status_detail != 3) {
+  //     toast.error('Error al procesar el pago. Por favor, inténtelo de nuevo.')
+  //   }
+  // }
   
   return (
     <div className="container mx-auto py-8">
@@ -510,13 +529,6 @@ function CheckoutContent() {
               </Card>
             }
             
-            {/* <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={processingPayment || !paymentToken}
-            >
-              {processingPayment ? 'Procesando...' : paymentToken ? 'Completar Pago' : 'Ingrese su tarjeta primero'}
-            </Button> */}
           </form>
         </div>
         
@@ -601,7 +613,7 @@ function CheckoutContent() {
             taxes={taxes}
             total={totalAmount}
             callbackOrden={createOrder}
-            handleResponse={handlePaymentResponse}
+            // handleResponse={handlePaymentResponse}
             disabled={processingPayment}
             onValidate={validateForm}
           />

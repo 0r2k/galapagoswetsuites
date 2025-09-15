@@ -11,7 +11,7 @@ const PaymentButton = ({
   taxes,
   total,
   callbackOrden,
-  handleResponse,
+  // handleResponse,
   disabled,
   onValidate
 }: any) => {
@@ -72,7 +72,7 @@ const PaymentButton = ({
         },
         onResponse: function (response: any) {
           // función del componente padre para cambiar estado
-          handleResponse(response.transaction);   
+          // handleResponse(response.transaction);   
           // función que guarda la orden en una base de datos       
           callbackOrden(response); 
         },
