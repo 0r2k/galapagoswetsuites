@@ -178,6 +178,19 @@ export async function getCurrentCustomer() {
 }
 
 export async function createCustomer(customer: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) {
+  // Verificar si ya existe un usuario con este email
+  const { data: existingUser, error: userError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', customer.email)
+    .maybeSingle();
+  
+  // maybeSingle() no lanza error si no encuentra resultados, solo devuelve null
+  if (existingUser) {
+    // Si el usuario ya existe, retornarlo en lugar de crear uno nuevo
+    return existingUser as Customer;
+  }
+  
   const { data, error } = await supabase
     .from('users')
     .insert([customer])

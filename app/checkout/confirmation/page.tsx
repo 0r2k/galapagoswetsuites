@@ -31,7 +31,7 @@ function ConfirmationContent() {
           .from('rental_items')
           .select(`
             *,
-            product_configs (
+            product_config (
               id,
               product_type,
               product_subtype,

@@ -9,7 +9,7 @@ const FROM = process.env.RESEND_FROM_EMAIL || 'noreply@galapagos.viajes';
 export interface OrderEmailData {
   order: RentalOrder & { 
     rental_items: (RentalItem & { 
-      product_configs: {
+      product_config: {
         id: string;
         product_type: string;
         product_subtype?: string;
@@ -67,10 +67,10 @@ export interface EmailVariables {
   profit?: number;
 }
 
-function formatProductName(item: any): string {
-  const productType = item.product_configs?.product_type;
-  const productSubtype = item.product_configs?.product_subtype;
-  const size = item.product_configs?.size;
+function formatProductName(item: RentalItem & { product_config: { id: string; product_type: string; product_subtype?: string; size?: string; public_price: number; supplier_cost: number; } }): string {
+  const productType = item.product_config?.product_type;
+  const productSubtype = item.product_config?.product_subtype;
+  const size = item.product_config?.size;
   
   switch (productType) {
     case 'wetsuit':
@@ -102,13 +102,13 @@ function prepareEmailVariables(orderData: OrderEmailData): EmailVariables {
   
   // Calcular comisiones (ejemplo: 30% de ganancia)
   const supplierCost = order.rental_items.reduce((total, item) => 
-    total + (item.product_configs?.supplier_cost * item.quantity * item.days), 0
+    total + (item.product_config?.supplier_cost * item.quantity * item.days), 0
   );
   const commission = subtotal - supplierCost;
   
   // Calcular pago inicial (diferencia entre precio público y costo proveedor)
   const initialPayment = order.rental_items.reduce((total, item) => {
-    const priceDifference = (item.unit_price - (item.product_configs?.supplier_cost || 0)) * item.quantity * item.days;
+    const priceDifference = (item.unit_price - (item.product_config?.supplier_cost || 0)) * item.quantity * item.days;
     return total + priceDifference;
   }, 0);
   
@@ -271,7 +271,7 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
       .from('rental_items')
       .select(`
         *,
-        product_configs (
+        product_config (
           id,
           product_type,
           product_subtype,

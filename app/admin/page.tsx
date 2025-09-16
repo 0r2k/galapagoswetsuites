@@ -208,7 +208,7 @@ export default function AdminPage() {
         // Actualizar el estado del pedido
         await supabase
           .from('rental_orders')
-          .update({ payment_status: 'refunded' })
+          .update({ payment_status: 'refunded', status: 'refunded' })
           .eq('id', order.id)
         
         // Recargar pedidos
@@ -745,10 +745,12 @@ export default function AdminPage() {
                            <TableCell>
                              <Badge 
                                variant={order.status === 'completed' ? 'default' : 
-                                       order.status === 'pending' ? 'secondary' : 'destructive'}
+                                       order.status === 'pending' ? 'secondary' :
+                                       order.status === 'refunded' ? 'outline' : 'destructive'}
                              >
                                {order.status === 'pending' ? 'Pendiente' :
                                 order.status === 'completed' ? 'Completado' :
+                                order.status === 'refunded' ? 'Reembolsado' :
                                 order.status === 'cancelled' ? 'Falló' : order.status}
                              </Badge>
                            </TableCell>

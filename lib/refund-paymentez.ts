@@ -1,7 +1,15 @@
 import generateAuthToken from "@/lib/generateAuthToken"
+import { getActivePaymentConfig } from "@/lib/paymentConfig"
 
 export default async function refundPaymentez(id: any) {
-    const apiUrl = "https://ccapi.paymentez.com/v2/transaction/refund/";
+    // Obtener la configuración activa para determinar la URL base
+    const paymentConfig = await getActivePaymentConfig();
+    
+    if (!paymentConfig) {
+        throw new Error('No hay configuración de pago activa');
+    }
+    
+    const apiUrl = `${paymentConfig.api_url}/v2/transaction/refund/`;
 
     const authToken = await generateAuthToken();
 

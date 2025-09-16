@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { redirect, useRouter, useSearchParams } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -13,11 +13,7 @@ import Script from 'next/script'
 import ReactFlagsSelect from 'react-flags-select'
 import { 
   Customer,
-  createCustomer, 
-  updateCustomer, 
-  getCurrentCustomer,
-  createRentalOrder,
-  createRentalItems
+  getCurrentCustomer
 } from '@/lib/db'
 import PaymentButton from '@/components/payment-button'
 
@@ -33,12 +29,14 @@ function CheckoutContent() {
   const [processingPayment, setProcessingPayment] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   
-  // Formulario de cliente
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [nationality, setNationality] = useState('')
+  // Formulario de cliente - usando un objeto formData
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    nationality: ''
+  })
   
   // Estados de validación
   const [validationErrors, setValidationErrors] = useState({
@@ -97,7 +95,7 @@ function CheckoutContent() {
   }
 
   const calculateInitialPayment = (rental: any) => {
-    if (!rental.items) return 0
+    if (!rental || !rental.items) return 0
     
     // Pago inicial = diferencia entre precio público y costo proveedor
     const initialPayment = rental.items.reduce((total: number, item: any) => {
@@ -111,10 +109,10 @@ function CheckoutContent() {
   // Función de validación
   const validateForm = () => {
     const errors = {
-      firstName: !firstName.trim(),
-      lastName: !lastName.trim(),
-      email: !email.trim(),
-      phone: !phone.trim()
+      firstName: !formData.firstName.trim(),
+      lastName: !formData.lastName.trim(),
+      email: !formData.email.trim(),
+      phone: !formData.phone.trim()
     }
     
     setValidationErrors(errors)
@@ -145,10 +143,13 @@ function CheckoutContent() {
           const customerData = await getCurrentCustomer()
           if (customerData) {
             setCustomer(customerData)
-            setFirstName(customerData.first_name || '')
-            setLastName(customerData.last_name || '')
-            setEmail(customerData.email || '')
-            setPhone(customerData.phone || '')
+            setFormData(prev => ({
+              ...prev,
+              firstName: customerData.first_name || '',
+              lastName: customerData.last_name || '',
+              email: customerData.email || '',
+              phone: customerData.phone || ''
+            }))
           }
         }
         
@@ -262,139 +263,6 @@ function CheckoutContent() {
     checkUser()
   }, [])
   
-  const handleSubmit = async (e: React.FormEvent, data?: any) => {
-    e.preventDefault()
-    
-    if (!rental) {
-      return
-    }
-    
-    try {
-      setProcessingPayment(true)
-      
-      // Validar que tenemos todos los datos necesarios
-      if (!firstName || !lastName || !email) {
-        alert('Por favor, complete todos los campos requeridos')
-        return
-      }
-      
-      // Crear un cliente anónimo (sin cuenta de usuario)
-      let customerId = customer?.id
-      
-      if (!customerId) {
-        // Crear un nuevo cliente sin usuario asociado
-        const newCustomer = await createCustomer({
-          user_id: null,
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          phone: phone,
-          nationality: nationality, // Agregamos la nacionalidad
-          uid: userId,
-        })
-        
-        customerId = newCustomer.id
-      } else if (customer) {
-        // Actualizar información del cliente existente
-        await updateCustomer(customer.id, {
-          first_name: firstName,
-          last_name: lastName,
-          phone: phone,
-          email: email,
-          nationality: nationality // Actualizamos la nacionalidad
-        })
-      }
-      
-      if (!customerId) {
-        throw new Error('No se pudo crear o actualizar el cliente')
-      }
-      
-      // Verificar el estado de la transacción
-      const transactionStatusDetail = data?.transaction?.status_detail
-      const isTransactionSuccessful = transactionStatusDetail === 3
-      
-      // Calcular el total y el IVA
-      const subtotal = rental.totalPrice
-      const taxRate = 0 // 12% IVA en Ecuador
-      const taxAmount = subtotal * taxRate
-      const totalAmount = subtotal + taxAmount
-      
-      // Crear la orden de alquiler (exitosa o fallida para tracking)
-      const order = await createRentalOrder({
-        auth_code: data?.transaction?.authorization_code || '',
-        bin: data?.card?.bin || '',
-        customer_id: customerId,
-        dev_reference: data?.transaction?.dev_reference || Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000,
-        start_date: rental.startDate,
-        start_time: rental.startTime,
-        end_date: rental.endDate,
-        end_time: rental.endTime,
-        return_island: rental.returnIsland || 'santa-cruz',
-        total_amount: data?.transaction?.amount || totalAmount,
-        tax_amount: taxAmount,
-        payment_method: data?.card?.type || 'card',
-        payment_status: isTransactionSuccessful ? 'paid' : 'pending',
-         status: isTransactionSuccessful ? 'completed' : 'cancelled',
-        status_detail: data?.transaction?.status_detail || '',
-        transaction_id: data?.transaction?.id || '',
-        notes: ''
-      })
-      
-      // Crear los items de alquiler basados en los productos del carrito
-      const rentalItems = rental.items.map((item: any) => ({
-        order_id: order.id,
-        product_config_id: item.product.id,
-        quantity: item.quantity,
-        days: rental.rentalDays,
-        unit_price: item.product.public_price,
-        subtotal: item.product.public_price * item.quantity * rental.rentalDays
-      }))
-      
-      // Guardar los items
-      await createRentalItems(rentalItems)
-      
-      if (isTransactionSuccessful) {
-        // Redirigir a la página de confirmación solo si la transacción fue exitosa
-        router.push(`/checkout/confirmation?orderId=${order.id}`)
-      } else {
-        // Mostrar error pero permitir que se registre el intento fallido
-        const errorMessage = transactionStatusDetail === 1 ? 'Verificación requerida' :
-        transactionStatusDetail === 6 ? 'Fraude' :
-        transactionStatusDetail === 7 ? 'Reembolso' :
-        transactionStatusDetail === 8 ? 'Devolución de cargo' :
-        transactionStatusDetail === 9 ? 'Rechazado por el carrier' :
-        'Error del sistema.'
-
-        const transactionMessage = data?.transaction?.message;
-        if(transactionMessage == 'Establecimiento invalido') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with a MasterCard o Visa credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transactionMessage == 'Tx invalida' || transactionMessage == 'No tarjeta de credito') {
-              setErrorMessage('Oops! There was a problem with your payment. Please try again with a valid credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transactionMessage == 'Tarjeta expirada') {
-          setErrorMessage('Oops! It seems your card has expired. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transactionMessage == 'Tarjeta en boletin') {
-          setErrorMessage('Oops! It seems you can\'t use this card temporarily. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transactionMessage == 'Fondos insuficientes') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with a credit/debit card with enough funds or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transactionMessage == 'Error en numero de tarjeta') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else if(transactionMessage == 'Numero de autorizacion no existe') {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        } else {
-          setErrorMessage('Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.')
-        }
-        
-        toast.error(errorMessage, { description: transactionMessage })
-      }
-      
-    } catch (error) {
-      console.error('Error processing payment:', error)
-      alert('Error al procesar el pago. Por favor, inténtelo de nuevo.')
-    } finally {
-      setProcessingPayment(false)
-    }
-  }
-  
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Cargando...</div>
   }
@@ -403,20 +271,13 @@ function CheckoutContent() {
     return <div className="flex items-center justify-center h-screen">No hay datos de alquiler disponibles</div>
   }
   
-  // Variables para el PaymentButton
+  // Variables para el PaymentButton (después de verificar que rental existe)
   const userId = user?.id || `guest_${Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000}`
   const initialPaymentAmount = calculateInitialPayment(rental)
   const taxable = initialPaymentAmount
   const taxes = 0 // Los impuestos se cobran al recoger, no en el pago inicial
   const totalAmount = initialPaymentAmount
   
-  const createOrder = (response: any) => {
-    // Crear un evento sintético para handleSubmit
-    const syntheticEvent = {
-      preventDefault: () => {}
-    } as React.FormEvent
-    return handleSubmit(syntheticEvent, response)
-  }
   // const handlePaymentResponse = (transaction: any) => {
   //   console.log('Payment response:', transaction)
   //   // Aquí puedes manejar la respuesta del pago
@@ -431,7 +292,7 @@ function CheckoutContent() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit}>
+          <form>
             <Card>
               <CardHeader>
                 <CardTitle>Información Personal</CardTitle>
@@ -442,9 +303,9 @@ function CheckoutContent() {
                     <Label htmlFor="firstName">Nombre</Label>
                     <Input 
                       id="firstName" 
-                      value={firstName} 
+                      value={formData.firstName} 
                       onChange={(e) => {
-                        setFirstName(e.target.value)
+                        setFormData(prev => ({ ...prev, firstName: e.target.value }))
                         if (validationErrors.firstName) {
                           setValidationErrors(prev => ({ ...prev, firstName: false }))
                         }
@@ -457,9 +318,9 @@ function CheckoutContent() {
                     <Label htmlFor="lastName">Apellido</Label>
                     <Input 
                       id="lastName" 
-                      value={lastName} 
+                      value={formData.lastName} 
                       onChange={(e) => {
-                        setLastName(e.target.value)
+                        setFormData(prev => ({ ...prev, lastName: e.target.value }))
                         if (validationErrors.lastName) {
                           setValidationErrors(prev => ({ ...prev, lastName: false }))
                         }
@@ -476,9 +337,9 @@ function CheckoutContent() {
                     <Input 
                       id="email" 
                       type="email" 
-                      value={email} 
+                      value={formData.email} 
                       onChange={(e) => {
-                        setEmail(e.target.value)
+                        setFormData(prev => ({ ...prev, email: e.target.value }))
                         if (validationErrors.email) {
                           setValidationErrors(prev => ({ ...prev, email: false }))
                         }
@@ -491,9 +352,9 @@ function CheckoutContent() {
                     <Label htmlFor="phone">Teléfono</Label>
                     <Input 
                       id="phone" 
-                      value={phone} 
+                      value={formData.phone} 
                       onChange={(e) => {
-                        setPhone(e.target.value)
+                        setFormData(prev => ({ ...prev, phone: e.target.value }))
                         if (validationErrors.phone) {
                           setValidationErrors(prev => ({ ...prev, phone: false }))
                         }
@@ -506,8 +367,8 @@ function CheckoutContent() {
                 <div className="space-y-2">
                   <Label htmlFor="nationality">Nacionalidad</Label>
                   <ReactFlagsSelect
-                    selected={nationality}
-                    onSelect={(code: string) => setNationality(code)}
+                    selected={formData.nationality}
+                    onSelect={(code: string) => setFormData(prev => ({ ...prev, nationality: code }))}
                     searchable
                     searchPlaceholder="Buscar país..."
                     placeholder="Selecciona tu país"
@@ -605,15 +466,13 @@ function CheckoutContent() {
           </Card>
 
           <PaymentButton 
-            email={email}
-            telefono={phone}
             id={userId}
-            nombreCompleto={firstName + ' ' + lastName}
             taxable={taxable}
             taxes={taxes}
             total={totalAmount}
-            callbackOrden={createOrder}
-            // handleResponse={handlePaymentResponse}
+            formData={formData}
+            rental={rental}
+            customer={customer}
             disabled={processingPayment}
             onValidate={validateForm}
           />
