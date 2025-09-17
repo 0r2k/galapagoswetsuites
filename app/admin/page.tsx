@@ -467,7 +467,7 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.length > 0 ? (
                   products.map(product => (
-                    <Card key={product.id} className="overflow-hidden">
+                    <Card key={product.id} className="bg-white overflow-hidden">
                       <CardHeader className="text-center">
                         <CardTitle className="text-lg flex flex-col items-center gap-2">
                           {product.name}

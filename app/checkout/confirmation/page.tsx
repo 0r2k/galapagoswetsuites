@@ -24,30 +24,23 @@ function ConfirmationContent() {
       }
       
       try {
-        const orderData = await getRentalOrderById(orderId)
+        const data = await fetch('/api/rentals/' + orderId)
+        if (!data.ok) {
+          throw new Error('Failed to fetch order')
+        }
+        const orderData = await data.json()
         
-        // Obtener los items del pedido con información del producto
-        const { data: items } = await supabase
-          .from('rental_items')
-          .select(`
-            *,
-            product_config (
-              id,
-              product_type,
-              product_subtype,
-              size,
-              public_price,
-              supplier_cost
-            )
-          `)
-          .eq('order_id', orderId)
-        
-        // Obtener información del cliente
-        const { data: customer } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', orderData.customer_id)
-          .single()
+        const rentalItemsData = await fetch('/api/rentals/items?order_id=' + orderId)
+        if (!rentalItemsData.ok) {
+          throw new Error('Failed to fetch rental items')
+        }
+        const items = await rentalItemsData.json()
+
+        const customerData = await fetch('/api/rentals/customer?order_id=' + orderId)
+        if (!customerData.ok) {
+          throw new Error('Failed to fetch customer')
+        }
+        const customer = await customerData.json()
         
         setOrder({
           ...orderData,
