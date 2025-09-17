@@ -36,14 +36,6 @@ const PaymentButton = ({
     }
     
     try {
-      console.log('FormData:', capturedFormData)
-      console.log('First Name:', capturedFormData.firstName)
-      console.log('Last Name:', capturedFormData.lastName)
-      console.log('Email:', capturedFormData.email)
-      console.log('Phone:', capturedFormData.phone)
-      console.log('Nationality:', capturedFormData.nationality)
-      
-      // Crear un cliente anónimo (sin cuenta de usuario)
       let customerId = customer?.id
       
       if (!customerId) {
@@ -132,7 +124,12 @@ const PaymentButton = ({
       }))
       
       // Guardar los items
-      await createRentalItems(rentalItems)
+      // await createRentalItems(rentalItems)
+      await fetch("/api/rentals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rentalItems),
+      });
       
       if (isTransactionSuccessful) {
         // Redirigir a la página de confirmación solo si la transacción fue exitosa

@@ -19,7 +19,7 @@ export type EmailTemplate = {
 export async function listTemplates(): Promise<EmailTemplate[]> {
   const { data, error } = await supabase
     .from('email_templates')
-    .select('id,name,template_type,recipient_emails,updated_at,created_at,preview_data,project,html_published,subject')
+    .select('*')
     .order('updated_at', { ascending: false });
   if (error) throw error;
   return data as EmailTemplate[];

@@ -108,7 +108,7 @@ function ConfirmationContent() {
         
         <CardContent className="space-y-6">
           <div className="bg-green-50 p-4 rounded-md text-center">
-            <p className="text-green-700 font-medium">Número de Pedido: {order.id}</p>
+            <p className="text-green-700 font-medium">ID único de Pedido: {order.id}</p>
             <p className="text-sm text-green-600">Hemos enviado un correo electrónico de confirmación a {order.customer?.email || 'tu correo electrónico'}</p>
           </div>
           
@@ -132,13 +132,14 @@ function ConfirmationContent() {
             <h3 className="font-medium mb-2">Productos Alquilados</h3>
             <ul className="space-y-2">
               {order.rental_items.map((item: any) => {
-                const productName = item.product_configs?.product_type === 'wetsuit' 
-                  ? `Traje de buceo ${item.product_configs?.product_subtype || ''} - Talla ${item.product_configs?.size || ''}`.trim()
-                  : item.product_configs?.product_type === 'snorkel'
+                console.log('item', item)
+                const productName = item.product_config?.product_type === 'wetsuit' 
+                  ? `Traje de buceo ${item.product_config?.product_subtype || ''}`.trim()
+                  : item.product_config?.product_type === 'snorkel'
                   ? 'Snorkel'
-                  : item.product_configs?.product_type === 'fins'
-                  ? `Aletas - Talla ${item.product_configs?.size || ''}`.trim()
-                  : `Producto ${item.product_config_id}`
+                  : item.product_config?.product_type === 'fins'
+                  ? `Aletas`.trim()
+                  : `Producto ${item.product_config?.id || 'desconocido'}`
                 
                 return (
                   <li key={item.id} className="flex justify-between">
