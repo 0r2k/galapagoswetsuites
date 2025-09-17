@@ -8,7 +8,8 @@ import {
   updateCustomer, 
   getCurrentCustomer,
   createRentalOrder,
-  createRentalItems
+  createRentalItems,
+  RentalOrder
 } from '@/lib/db'
 
 const PaymentButton = ({
@@ -91,9 +92,8 @@ const PaymentButton = ({
       const taxRate = 0 // 12% IVA en Ecuador
       const taxAmount = subtotal * taxRate
       const totalAmount = subtotal + taxAmount
-      
-      // Crear la orden de alquiler (exitosa o fallida para tracking)
-      const order = await createRentalOrder({
+
+      const orderToSave = {
         auth_code: data?.transaction?.authorization_code || '',
         bin: data?.card?.bin || '',
         customer_id: customerId,
@@ -111,7 +111,40 @@ const PaymentButton = ({
         status_detail: data?.transaction?.status_detail || '',
         transaction_id: data?.transaction?.id || '',
         notes: ''
-      })
+      };
+
+      const response = await fetch("/api/rentals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderToSave),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al crear la orden');
+      }
+      
+      const order: RentalOrder = await response.json();
+      
+      // Crear la orden de alquiler (exitosa o fallida para tracking)
+      // const order = await createRentalOrder({
+      //   auth_code: data?.transaction?.authorization_code || '',
+      //   bin: data?.card?.bin || '',
+      //   customer_id: customerId,
+      //   dev_reference: data?.transaction?.dev_reference || Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000,
+      //   start_date: rental.startDate,
+      //   start_time: rental.startTime,
+      //   end_date: rental.endDate,
+      //   end_time: rental.endTime,
+      //   return_island: rental.returnIsland || 'santa-cruz',
+      //   total_amount: data?.transaction?.amount || totalAmount,
+      //   tax_amount: taxAmount,
+      //   payment_method: data?.card?.type || 'card',
+      //   payment_status: isTransactionSuccessful ? 'paid' : 'pending',
+      //    status: isTransactionSuccessful ? 'completed' : 'cancelled',
+      //   status_detail: data?.transaction?.status_detail || '',
+      //   transaction_id: data?.transaction?.id || '',
+      //   notes: ''
+      // })
       
       // Crear los items de alquiler basados en los productos del carrito
       const rentalItems = rental.items.map((item: any) => ({
@@ -125,7 +158,7 @@ const PaymentButton = ({
       
       // Guardar los items
       // await createRentalItems(rentalItems)
-      await fetch("/api/rentals", {
+      await fetch("/api/rentals/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(rentalItems),
@@ -164,7 +197,7 @@ const PaymentButton = ({
           finalErrorMessage = 'Oops! There was a problem with your payment. Please try again with another credit/debit card or contact me via email or whatsapp so we can change to another payment method.'
         }
         
-        toast.error(finalErrorMessage, { description: transactionMessage })
+        toast.error(errorMessage, { description: finalErrorMessage })
       }
       
     } catch (error) {

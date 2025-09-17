@@ -7,14 +7,13 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!      // ¡NO exponer al cliente!
   );
 
-  const order = await req.json();
+  const items = await req.json();
 
   // TODO: valida los campos y el pago aquí
   const { data, error } = await supabaseAdmin
-    .from("rental_orders")
-    .insert([order])
-    .select()
-    .single();
+    .from("rental_items")
+    .insert(items)
+    .select();
 
   if (error) return NextResponse.json({ error }, { status: 400 });
   return NextResponse.json(data);
