@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,      // ok que sea NEXT_PUBLIC
-    process.env.SUPABASE_SERVICE_ROLE_KEY!      // ¡NO exponer al cliente!
-  );
-
   const order = await req.json();
 
   // TODO: valida los campos y el pago aquí

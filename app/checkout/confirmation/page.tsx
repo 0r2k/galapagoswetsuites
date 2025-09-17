@@ -102,14 +102,14 @@ function ConfirmationContent() {
     <div className="container mx-auto py-8">
       <Card className="max-w-3xl mx-auto">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">¡Gracias por tu compra!</CardTitle>
+          <CardTitle className="text-2xl">¡Gracias por confiar en ChokoTrip!</CardTitle>
           <p className="text-muted-foreground">Tu pedido ha sido confirmado</p>
         </CardHeader>
         
         <CardContent className="space-y-6">
           <div className="bg-green-50 p-4 rounded-md text-center">
             <p className="text-green-700 font-medium">ID único de Pedido: {order.id}</p>
-            <p className="text-sm text-green-600">Hemos enviado un correo electrónico de confirmación a {order.customer?.email || 'tu correo electrónico'}</p>
+            <p className="text-sm text-green-600">Hemos enviado un email de confirmación y detalle de la recogida a {order.customer?.email || 'tu correo electrónico'}</p>
           </div>
           
           <div>
@@ -155,7 +155,7 @@ function ConfirmationContent() {
           
           <div>
             <div className="flex justify-between">
-              <span>Productos</span>
+              <span>Total de lo alquilado</span>
               <span>${order.rental_items.reduce((total: number, item: any) => total + (item.unit_price * item.quantity * item.days), 0).toFixed(2)}</span>
             </div>
             {order.return_island === 'san-cristobal' && (
@@ -165,7 +165,7 @@ function ConfirmationContent() {
               </div>
             )}
             <div className="flex justify-between">
-              <span>Subtotal</span>
+              <span>Pago inicial</span>
               <span>${(order.total_amount - order.tax_amount).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
@@ -173,7 +173,7 @@ function ConfirmationContent() {
               <span>${order.tax_amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold mt-2">
-              <span>Total</span>
+              <span>Total pagado</span>
               <span>${order.total_amount.toFixed(2)}</span>
             </div>
             <div className="text-xs text-gray-500 mt-2">
@@ -184,9 +184,7 @@ function ConfirmationContent() {
           <div className="bg-blue-50 p-4 rounded-md">
             <h3 className="font-medium text-blue-700 mb-2">Instrucciones de Recogida</h3>
             <p className="text-sm text-blue-600">
-              Por favor, presenta tu número de pedido en nuestra tienda para recoger tu equipo de buceo.
-              Nuestra tienda está ubicada en Av. Charles Darwin, Puerto Ayora, Santa Cruz, Galápagos.
-              Horario: 8:00 AM - 6:00 PM todos los días.
+              Por favor, a tu email hemos enviado la informacion donde tendras que recoger tus equipos en la Isla Santa Cruz. Para personalizar tus equipos por favor envia los tamaños de las aletas y de los wetsuit al correo de la agencia, en caso de que hayas alquilado uno de estos equipos.
             </p>
           </div>
         </CardContent>

@@ -1,5 +1,4 @@
-// lib/templates.ts
-import { supabase } from './supabaseClient';
+import { supabaseAdmin } from './supabaseAdmin';
 
 export type TemplateType = 'customer' | 'business_owner' | 'supplier';
 
@@ -17,7 +16,7 @@ export type EmailTemplate = {
 };
 
 export async function listTemplates(): Promise<EmailTemplate[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .select('*')
     .order('updated_at', { ascending: false });
@@ -31,7 +30,7 @@ export async function createTemplate(
   templateType: TemplateType | null = null,
   recipientEmails: string[] | null = null
 ) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .insert({ 
       name, 
@@ -46,7 +45,7 @@ export async function createTemplate(
 }
 
 export async function getTemplate(id: string) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .select('*')
     .eq('id', id)
@@ -56,7 +55,7 @@ export async function getTemplate(id: string) {
 }
 
 export async function upsertProject(id: string, project: any) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .update({ project })
     .eq('id', id)
@@ -67,7 +66,7 @@ export async function upsertProject(id: string, project: any) {
 }
 
 export async function publishHtml(id: string, html: string) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .update({ html_published: html })
     .eq('id', id)
@@ -83,7 +82,7 @@ export async function updatePreviewData(id: string, preview: any, subject?: stri
     updateData.subject = subject;
   }
   
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .update(updateData)
     .eq('id', id)
@@ -98,7 +97,7 @@ export async function updateTemplateConfig(
   templateType: TemplateType | null, 
   recipientEmails: string[] | null
 ) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .update({ 
       template_type: templateType,
@@ -112,7 +111,7 @@ export async function updateTemplateConfig(
 }
 
 export async function getTemplatesByType(templateType: TemplateType): Promise<EmailTemplate[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('email_templates')
     .select('*')
     .eq('template_type', templateType)
@@ -122,7 +121,7 @@ export async function getTemplatesByType(templateType: TemplateType): Promise<Em
 }
 
 export async function deleteTemplate(id: string) {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('email_templates')
     .delete()
     .eq('id', id);

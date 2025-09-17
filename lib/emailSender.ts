@@ -183,7 +183,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
     
     // Procesar todas las plantillas
     for (const template of allTemplates) {
-      if (template.html_published && template.recipient_emails?.length && template.template_type) {
+      if (template.html_published && template.template_type) {
         const { default: mjml2html } = await import('mjml');
 
         let mjmlTemplate = template.html_published;
@@ -200,7 +200,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
         }
 
         const finalHtml = Handlebars.compile(mjmlTemplate)(handlebarsVars);
-        let recipients = [...template.recipient_emails];
+        let recipients = template.recipient_emails ? [...template.recipient_emails] : [];
         
         // Para plantillas de cliente, agregar el email del cliente
         if (template.template_type === 'customer' && orderData.order.customer?.email) {

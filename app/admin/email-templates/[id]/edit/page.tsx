@@ -41,7 +41,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
                   title: 'Toggle Data Sources',
                   icon: 'databaseOutlineOn',
                   onClick: ({ editor }) => {
-                    editor.runCommand('studio:toggleStateDataSource');
+                    editor.runCommand('studio:toggleDataSourcesPreview');
                   },
                   editorEvents: {
                     ['studio:toggleDataSourcesPreview']: ({ fromEvent, setState }) => {
@@ -209,22 +209,31 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
 
     setIsPublishing(true);
     try {
-      let html = editor.getHtml(); // HTML con {{variables}}
-      
-      // Remover todos los atributos id que el StudioEditor agrega automáticamente para evitar errores de validación MJML
-      html = html.replace(/\s+id="[^"]*"/g, '');
-      
+      // 1) Forzar placeholders en el preview/exports
+      // Nota: el comando correcto es *toggleDataSourcesPreview*
+      editor.runCommand('studio:toggleDataSourcesPreview', { showPlaceholder: true });
+
+      // 2) Exportar MJML tal cual con variables (sin IDs auto)
+      // getHtml soporta { cleanId: true } en GrapesJS
+      let mjml = editor.getHtml({ cleanId: true }) as string;
+
+      // (Si algo te agrega IDs raros, deja también tu fallback)
+      // mjml = mjml.replace(/\s+id="[^"]*"/g, '');
+
+      // 3) Publicar (guarda MJML o compílalo a HTML, según tu flujo)
       const res = await fetch(`/api/studio/templates/${templateId}/publish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html })
+        body: JSON.stringify({ mjml }) // <-- manda MJML, no HTML resuelto
       });
-      if (!res.ok) throw new Error("Error al publicar");
+      if (!res.ok) throw new Error(await res.text());
       alert("Publicado ✅");
-    } catch (error) {
+    } catch (e: any) {
+      console.error(e);
       alert("Error al publicar");
     } finally {
-      setIsPublishing(false);
+      // (Opcional) volver al modo de vista que quieras
+      // ed.runCommand('studio:toggleDataSourcesPreview', { showPlaceholder: false });
     }
   };
 

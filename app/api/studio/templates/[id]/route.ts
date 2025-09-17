@@ -1,7 +1,7 @@
 import { getTemplate, updatePreviewData, deleteTemplate } from "@/lib/templates";
 import { NextRequest } from "next/server";
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const item = await getTemplate(id);
   return Response.json({ item });
@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return Response.json({ item });
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     await deleteTemplate(id);
