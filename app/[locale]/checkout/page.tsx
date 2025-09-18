@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { supabase } from '@/lib/supabaseClient'
 import { differenceInDays } from 'date-fns'
 import { toast } from 'sonner'
@@ -16,8 +18,10 @@ import {
   getCurrentCustomer
 } from '@/lib/db'
 import PaymentButton from '@/components/payment-button'
+import { useTranslations } from 'next-intl'
 
 function CheckoutContent() {
+  const t = useTranslations()
   const router = useRouter()
   const searchParams = useSearchParams()
   const rentalData = searchParams.get('rentalData')
@@ -28,6 +32,7 @@ function CheckoutContent() {
   const [rental, setRental] = useState<any>(null)
   const [processingPayment, setProcessingPayment] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false)
   
   // Formulario de cliente - usando un objeto formData
   const [formData, setFormData] = useState({
@@ -117,16 +122,22 @@ function CheckoutContent() {
     
     setValidationErrors(errors)
     
+    // Validar que se hayan aceptado las políticas
+    if (!acceptedPolicies) {
+      toast.error(t('checkout.policiesRequired'))
+      return false
+    }
+    
     // Si hay errores, mostrar toast con los campos faltantes
     const hasErrors = Object.values(errors).some(error => error)
     if (hasErrors) {
       const missingFields = []
-      if (errors.firstName) missingFields.push('Nombre')
-      if (errors.lastName) missingFields.push('Apellido')
-      if (errors.email) missingFields.push('Email')
-      if (errors.phone) missingFields.push('Teléfono')
+      if (errors.firstName) missingFields.push(t('checkout.firstName'))
+      if (errors.lastName) missingFields.push(t('checkout.lastName'))
+      if (errors.email) missingFields.push(t('checkout.email'))
+      if (errors.phone) missingFields.push(t('checkout.phone'))
       
-      toast.error(`Por favor complete los siguientes campos: ${missingFields.join(', ')}`)
+      toast.error(t('checkout.validationError', { fields: missingFields.join(', ') }))
     }
     
     // Retorna true si no hay errores
@@ -264,11 +275,11 @@ function CheckoutContent() {
   }, [])
   
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Cargando...</div>
+    return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>
   }
   
   if (!rental) {
-    return <div className="flex items-center justify-center h-screen">No hay datos de alquiler disponibles</div>
+    return <div className="flex items-center justify-center h-screen">{t('checkout.noRentalData')}</div>
   }
   
   // Variables para el PaymentButton (después de verificar que rental existe)
@@ -288,19 +299,19 @@ function CheckoutContent() {
   
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8 px-4">Finalizar Compra</h1>
+      <h1 className="text-3xl font-bold mb-8 px-4">{t('checkout.title')}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
         <div className="lg:col-span-2">
           <form>
             <Card>
               <CardHeader>
-                <CardTitle>Información Personal</CardTitle>
+                <CardTitle>{t('checkout.personalInfo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">Nombre</Label>
+                    <Label htmlFor="firstName">{t('checkout.firstName')}</Label>
                     <Input 
                       id="firstName" 
                       value={formData.firstName} 
@@ -315,7 +326,7 @@ function CheckoutContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Apellido</Label>
+                    <Label htmlFor="lastName">{t('checkout.lastName')}</Label>
                     <Input 
                       id="lastName" 
                       value={formData.lastName} 
@@ -333,7 +344,7 @@ function CheckoutContent() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t('checkout.email')}</Label>
                     <Input 
                       id="email" 
                       type="email" 
@@ -349,7 +360,7 @@ function CheckoutContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
+                    <Label htmlFor="phone">{t('checkout.phone')}</Label>
                     <Input 
                       id="phone" 
                       value={formData.phone} 
@@ -365,13 +376,13 @@ function CheckoutContent() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="nationality">Nacionalidad</Label>
+                  <Label htmlFor="nationality">{t('checkout.nationality')}</Label>
                   <ReactFlagsSelect
                     selected={formData.nationality}
                     onSelect={(code: string) => setFormData(prev => ({ ...prev, nationality: code }))}
                     searchable
-                    searchPlaceholder="Buscar país..."
-                    placeholder="Selecciona tu país"
+                    searchPlaceholder={t('checkout.searchCountry')}
+                    placeholder={t('checkout.selectCountry')}
                     className="bg-white"
                     selectButtonClassName="bg-white border border-input rounded-md px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full justify-start"
                   />
@@ -379,10 +390,47 @@ function CheckoutContent() {
               </CardContent>
             </Card>
 
+            {/* Checkbox para aceptar políticas de cancelación */}
+            <div>
+              <div className="pt-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="accept-policies"
+                    checked={acceptedPolicies}
+                    onCheckedChange={(checked) => setAcceptedPolicies(checked === true)}
+                    className="mt-1 border-2 border-gray-300 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 h-6 w-6"
+                  />
+                  <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t('checkout.acceptPolicies')}{' '}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button 
+                          type="button"
+                          className="text-blue-600 hover:text-blue-800 underline font-medium"
+                        >
+                          {t('checkout.acceptPoliciesLink')}
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>{t('checkout.cancellationPolicies')}</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                            {t('checkout.cancellationPoliciesText')}
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {errorMessage && 
               <Card className="text-red-500">
                 <CardHeader>
-                  <CardTitle>Hubo un problema con su pago</CardTitle>
+                  <CardTitle>{t('checkout.paymentProblem')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {errorMessage}
@@ -396,21 +444,21 @@ function CheckoutContent() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Resumen del Pedido</CardTitle>
+              <CardTitle>{t('checkout.orderSummary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="font-medium mb-2">Detalles del Alquiler</h3>
-                <p><strong>Fecha Inicio:</strong> {rental.startDate instanceof Date ? rental.startDate.toLocaleDateString() : rental.startDate} {rental.startTime}</p>
-                <p><strong>Fecha Fin:</strong> {rental.endDate instanceof Date ? rental.endDate.toLocaleDateString() : rental.endDate} {rental.endTime}</p>
-                <p><strong>Días:</strong> {rental.rentalDays}</p>
-                <p><strong>Isla de Devolución:</strong> {rental.returnIsland === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</p>
+                <h3 className="font-medium mb-2">{t('checkout.rentalDetails')}</h3>
+                <p><strong>{t('checkout.startDate')}:</strong> {rental.startDate instanceof Date ? rental.startDate.toLocaleDateString() : rental.startDate} {rental.startTime}</p>
+                <p><strong>{t('checkout.endDate')}:</strong> {rental.endDate instanceof Date ? rental.endDate.toLocaleDateString() : rental.endDate} {rental.endTime}</p>
+                <p><strong>{t('checkout.days')}:</strong> {rental.rentalDays}</p>
+                <p><strong>{t('checkout.returnIsland')}:</strong> {rental.returnIsland === 'santa-cruz' ? t('cart.santaCruz') : t('cart.sanCristobal')}</p>
               </div>
               
               <Separator />
               
               <div>
-                <h3 className="font-medium mb-2">Productos</h3>
+                <h3 className="font-medium mb-2">{t('checkout.products')}</h3>
                 <ul className="space-y-2">
                   {rental.items && rental.items.map((item: any, index: number) => (
                     <li key={index} className="flex justify-between">
@@ -425,23 +473,23 @@ function CheckoutContent() {
               
               <div>
                 <div className="flex justify-between">
-                  <span>Productos ({rental.rentalDays} días de alquiler)</span>
+                  <span>{t('checkout.productsSubtotal', { days: rental.rentalDays })}</span>
                   <span>${calculateProductsSubtotal(rental)}</span>
                 </div>
                 {rental.returnFeeAmount > 0 && (
                   <div className="flex justify-between">
-                    <span>Devolución en {rental.returnIsland === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</span>
+                    <span>{t('checkout.returnFeeLabel', { island: rental.returnIsland === 'santa-cruz' ? t('cart.santaCruz') : t('cart.sanCristobal') })}</span>
                     <span>${calculateReturnFee(rental)}</span>
                   </div>
                 )}
                 {parseFloat(calculateTaxes(rental)) > 0 && (
                 <>
                   <div className="flex justify-between">
-                    <span>Subtotal</span>
+                    <span>{t('cart.subtotal')}</span>
                     <span>${calculateSubtotal(rental)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Impuestos</span>
+                    <span>{t('cart.taxes')}</span>
                     <span>${calculateTaxes(rental)}</span>
                   </div>
                 </>
@@ -450,15 +498,15 @@ function CheckoutContent() {
               <Separator />
               <div>
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Pago inicial:</span>
+                  <span>{t('cart.initialPayment')}</span>
                   <span>${calculateInitialPayment(rental).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Pagar al recoger:</span>
+                  <span>{t('cart.payOnPickup')}</span>
                   <span>${(parseFloat(calculateTotal(rental)) - calculateInitialPayment(rental)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Total:</span>
+                  <span>{t('cart.total')}</span>
                   <span>${calculateTotal(rental)}</span>
                 </div>
               </div>
@@ -483,13 +531,15 @@ function CheckoutContent() {
 }
 
 export default function CheckoutPage() {
+  const t = useTranslations()
+  
   return (
     <>
       {/* Paymentez Libraries - Solo cargados en checkout */}
       <Script src="https://code.jquery.com/jquery-3.5.0.min.js" />
       <Script src="https://cdn.paymentez.com/ccapi/sdk/payment_checkout_3.0.0.min.js" />
       
-      <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
+      <Suspense fallback={<div className="flex items-center justify-center h-screen">{t('common.loading')}</div>}>
         <CheckoutContent />
       </Suspense>
     </>

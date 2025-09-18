@@ -1,7 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse, NextRequest } from 'next/server'
+import createIntlMiddleware from 'next-intl/middleware';
+
+// Configuración de i18n
+const intlMiddleware = createIntlMiddleware({
+  locales: ['es', 'en'],
+  defaultLocale: 'es'
+});
 
 export async function middleware(req: NextRequest) {
+  // Primero ejecutar el middleware de internacionalización
+  const intlResponse = intlMiddleware(req);
+  if (intlResponse) {
+    return intlResponse;
+  }
+  
   const res = NextResponse.next()
   
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -58,8 +71,11 @@ export async function middleware(req: NextRequest) {
 // Configurar las rutas que deben pasar por el middleware
 export const config = {
   matcher: [
+    '/',
+    '/(es|en)/:path*',
     '/dashboard/:path*',
     '/admin/:path*',
-    // '/checkout/confirmation/:path*', // Ya no requiere autenticación
+    '/checkout/:path*',
+    '/checkout/confirmation/:path*',
   ],
 }

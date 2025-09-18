@@ -2,15 +2,17 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabaseClient'
-import { getRentalOrderById } from '@/lib/db'
 
 function ConfirmationContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations('confirmation')
+  const tCommon = useTranslations('common')
   const orderId = searchParams.get('orderId')
   
   const [loading, setLoading] = useState(true)
@@ -50,23 +52,42 @@ function ConfirmationContent() {
         })
         
         // Enviar emails automáticos después de cargar el pedido
-        try {
-          const emailResponse = await fetch('/api/send-order-emails', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ orderId })
-          })
-          
-          if (emailResponse.ok) {
-            const emailResult = await emailResponse.json()
-            console.log('Emails enviados:', emailResult.message)
-          } else {
-            console.error('Error enviando emails:', await emailResponse.text())
+        if (!orderData.sent_email) {
+          try {
+            const emailResponse = await fetch('/api/send-order-emails', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ orderId })
+            })
+            
+            if (emailResponse.ok) {
+              const emailResult = await emailResponse.json()
+              // console.log('Emails enviados:', emailResult.message)
+              // Actualizar sent_email a true después de enviar correctamente
+              const updateResponse = await fetch('/api/rentals', {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ orderId, sent_email: true })
+              })
+               
+              if (updateResponse.ok) {
+                console.log('Campo sent_email actualizado a true')
+              } else {
+                const updateError = await updateResponse.json()
+                console.error('Error actualizando sent_email:', updateError)
+              }
+            } else {
+              console.error('Error enviando emails:', await emailResponse.text())
+            }
+          } catch (emailError) {
+            console.error('Error al enviar emails automáticos:', emailError)
           }
-        } catch (emailError) {
-          console.error('Error al enviar emails automáticos:', emailError)
+        } else {
+          console.log('Los emails ya fueron enviados para este pedido')
         }
         
       } catch (error) {
@@ -126,37 +147,37 @@ function ConfirmationContent() {
   }
   
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Cargando...</div>
+    return <div className="flex items-center justify-center h-screen">{tCommon('loading')}</div>
   }
   
   if (!order) {
-    return <div className="flex items-center justify-center h-screen">No se encontró el pedido</div>
+    return <div className="flex items-center justify-center h-screen">{t('orderNotFound')}</div>
   }
   
   return (
     <div className="container mx-auto py-8">
       <Card className="max-w-3xl mx-auto">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">¡Gracias por confiar en ChokoTrip!</CardTitle>
-          <p className="text-muted-foreground">Tu pedido ha sido confirmado</p>
+          <CardTitle className="text-2xl">{t('title')}</CardTitle>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </CardHeader>
         
         <CardContent className="space-y-6">
           <div className="bg-green-50 p-4 rounded-md text-center">
-            <p className="text-green-700 font-medium">Número de Pedido: {order.order_number}</p>
-            <p className="text-sm text-green-600">Hemos enviado un email de confirmación y detalle de la recogida a {order.customer?.email || 'tu correo electrónico'}</p>
+            <p className="text-green-700 font-medium">{t('orderNumber', {number: order.order_number})}</p>
+            <p className="text-sm text-green-600">{t('emailSent', {email: order.customer?.email || 'email'})}</p>
           </div>
           
           <div>
-            <h3 className="font-medium mb-2">Detalles del Alquiler</h3>
+            <h3 className="font-medium mb-2">{t('rentalDetails')}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p><strong>Fecha Inicio:</strong> {formatDate(order.start_date)} {order.start_time}</p>
-                <p><strong>Fecha Fin:</strong> {formatDate(order.end_date)} {order.end_time}</p>
+                <p><strong>{t('startDate')}:</strong> {formatDate(order.start_date)} {order.start_time}</p>
+                <p><strong>{t('endDate')}:</strong> {formatDate(order.end_date)} {order.end_time}</p>
               </div>
               <div>
-                <p><strong>Isla de Devolución:</strong> {order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</p>
-                <p><strong>Estado:</strong> Confirmado</p>
+                <p><strong>{t('returnIsland')}:</strong> {order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</p>
+                <p><strong>{t('status')}:</strong> {t('confirmed')}</p>
               </div>
             </div>
           </div>
@@ -164,17 +185,17 @@ function ConfirmationContent() {
           <Separator />
           
           <div>
-            <h3 className="font-medium mb-2">Productos Alquilados</h3>
+            <h3 className="font-medium mb-2">{t('rentedProducts')}</h3>
             <ul className="space-y-2">
               {order.rental_items.map((item: any) => {
-                console.log('item', item)
+                // console.log('item', item)
                 const productName = item.product_config?.product_type === 'wetsuit' 
-                  ? `Traje de buceo ${item.product_config?.product_subtype || ''}`.trim()
+                  ? `${t(item.product_config?.product_subtype === 'short' ? 'wetsuitShort' : 'wetsuitLong')}`
                   : item.product_config?.product_type === 'snorkel'
-                  ? 'Snorkel'
+                  ? t('snorkel')
                   : item.product_config?.product_type === 'fins'
-                  ? `Aletas`.trim()
-                  : `Producto ${item.product_config?.id || 'desconocido'}`
+                  ? t('fins')
+                  : t('unknownProduct')
                 
                 return (
                   <li key={item.id} className="flex justify-between">
@@ -190,42 +211,42 @@ function ConfirmationContent() {
           
           <div>
             <div className="flex justify-between">
-              <span>Total de lo alquilado</span>
+              <span>{t('totalRented')}</span>
               <span>${order.rental_items.reduce((total: number, item: any) => total + (item.unit_price * item.quantity * item.days), 0).toFixed(2)}</span>
             </div>
             {order.return_island === 'san-cristobal' && (
               <div className="flex justify-between">
-                <span>Tarifa de devolución (San Cristóbal)</span>
+                <span>{t('returnFee')}</span>
                 <span>${calculateReturnFee().toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span>Pago inicial</span>
+              <span>{t('initialPayment')}</span>
               <span>${(order.total_amount - order.tax_amount).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Impuestos</span>
+              <span>{t('taxes')}</span>
               <span>${order.tax_amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold mt-2">
-              <span>Total pagado</span>
+              <span>{t('totalPaid')}</span>
               <span>${order.total_amount.toFixed(2)}</span>
             </div>
             <div className="text-xs text-gray-500 mt-2">
-              <p>Precio por {order.rental_items[0]?.days || 1} día(s) de alquiler</p>
+              <p>{t('priceFor', {days: order.rental_items[0]?.days || 1})}</p>
             </div>
           </div>
           
           <div className="bg-blue-50 p-4 rounded-md">
-            <h3 className="font-medium text-blue-700 mb-2">Instrucciones de Recogida</h3>
+            <h3 className="font-medium text-blue-700 mb-2">{t('pickupInstructions')}</h3>
             <p className="text-sm text-blue-600">
-              Por favor, a tu email hemos enviado la informacion donde tendras que recoger tus equipos en la Isla Santa Cruz. Para personalizar tus equipos por favor envia los tamaños de las aletas y de los wetsuit al correo de la agencia, en caso de que hayas alquilado uno de estos equipos.
+              {t('pickupInstructionsText')}
             </p>
           </div>
         </CardContent>
         
         <CardFooter className="flex justify-center">
-          <Button onClick={() => router.push('/')}>Volver al Inicio</Button>
+          <Button onClick={() => router.push('/')}>{t('backToHome')}</Button>
         </CardFooter>
       </Card>
     </div>
@@ -233,8 +254,9 @@ function ConfirmationContent() {
 }
 
 export default function ConfirmationPage() {
+  const t = useTranslations('common')
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">{t('loading')}</div>}>
       <ConfirmationContent />
     </Suspense>
   )

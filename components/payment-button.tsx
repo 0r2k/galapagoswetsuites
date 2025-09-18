@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useTranslations } from 'next-intl'
 import { Button } from "./ui/button";
 import { toast } from "sonner"
 import { 
@@ -24,11 +26,14 @@ const PaymentButton = ({
   onValidate,
 }: any) => {
 
+  const t = useTranslations('payment');
   const paymentCheckoutRef = useRef<any>(null);
   const [paymentEnvironment, setPaymentEnvironment] = useState<string | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
   const capturedFormDataRef = useRef<any>(null);
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale || 'es';
 
   // Función para crear la orden (movida desde checkout)
   const createOrder = async (data: any, capturedFormData: any) => {
@@ -166,7 +171,7 @@ const PaymentButton = ({
       
       if (isTransactionSuccessful) {
         // Redirigir a la página de confirmación solo si la transacción fue exitosa
-        router.push(`/checkout/confirmation?orderId=${order.id}`)
+        router.push(`/${locale}/checkout/confirmation?orderId=${order.id}`)
       } else {
         // Mostrar error pero permitir que se registre el intento fallido
         const errorMessage = transactionStatusDetail === 1 ? 'Verificación requerida' :
@@ -359,7 +364,7 @@ const PaymentButton = ({
         onClick={handleButtonClick}
         disabled={disabled || !configLoaded || !paymentEnvironment}
       >
-        {!configLoaded ? 'Cargando configuración...' : 'Pagar con tarjeta de crédito/débito'}
+        {!configLoaded ? t('loadingConfig') : t('payWithCard')}
       </Button>
     </div>
   );

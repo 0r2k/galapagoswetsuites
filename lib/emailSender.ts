@@ -245,9 +245,9 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
     
     // Procesar todas las plantillas
     for (const template of allTemplates) {
-      console.log(`🔍 Procesando plantilla: "${template.name}" (${template.template_type})`);
-      console.log(`📧 Recipients: ${JSON.stringify(template.recipient_emails)}`);
-      console.log(`📝 Tiene HTML: ${!!template.html_published}`);
+      // console.log(`🔍 Procesando plantilla: "${template.name}" (${template.template_type})`);
+      // console.log(`📧 Recipients: ${JSON.stringify(template.recipient_emails)}`);
+      // console.log(`📝 Tiene HTML: ${!!template.html_published}`);
       
       if (template.html_published && template.template_type) {
         const { default: mjml2html } = await import('mjml');
@@ -275,7 +275,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
           }
         }
         
-        console.log(`📬 Recipients finales para "${template.name}": ${JSON.stringify(recipients)}`);
+        // console.log(`📬 Recipients finales para "${template.name}": ${JSON.stringify(recipients)}`);
         
         // Usar el subject de la plantilla si existe, sino usar el por defecto
         const emailSubject = template.subject && template.subject.trim() 
@@ -307,14 +307,14 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
     
     for (let i = 0; i < emailPromises.length; i++) {
       try {
-        console.log(`📧 Enviando email ${i + 1}/${emailPromises.length}...`);
+        // console.log(`📧 Enviando email ${i + 1}/${emailPromises.length}...`);
         const result = await emailPromises[i](); // Ejecutar la función para obtener la promesa
         results.push({ status: 'fulfilled', value: result });
-        console.log(`✅ Email ${i + 1} enviado exitosamente:`, result);
+        // console.log(`✅ Email ${i + 1} enviado exitosamente:`, result);
         
         // Delay de 600ms entre emails (permite ~1.6 emails/segundo, bajo el límite de 2/segundo)
         if (i < emailPromises.length - 1) {
-          console.log(`⏳ Esperando 600ms antes del siguiente email...`);
+          // console.log(`⏳ Esperando 600ms antes del siguiente email...`);
           await delay(600);
         }
       } catch (error) {
@@ -323,7 +323,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
         
         // Mantener el delay incluso si hay error
         if (i < emailPromises.length - 1) {
-          console.log(`⏳ Esperando 600ms antes del siguiente email...`);
+          // console.log(`⏳ Esperando 600ms antes del siguiente email...`);
           await delay(600);
         }
       }

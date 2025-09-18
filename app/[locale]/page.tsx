@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense, useCallback, useRef } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -13,16 +13,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SheetPopoverContent } from "@/components/ui/sheet-popover-content"
 import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2 } from "lucide-react"
 import { format, differenceInDays } from "date-fns"
-import { es } from "date-fns/locale"
+import { es, enUS } from "date-fns/locale"
 import { toast } from 'sonner'
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { useTranslations } from 'next-intl'
 
 interface Product {
   id: string
   product_type: string
   name: string
   description: string
+  name_en?: string
+  description_en?: string
   public_price: number
   supplier_cost: number
   image: string
@@ -61,6 +65,10 @@ function loadCartFromLocalStorage(): CartItem[] {
 
 function RentalPageContent() {
   const searchParams = useSearchParams()
+  const params = useParams()
+  const router = useRouter()
+  const locale = params.locale || 'es'
+  const t = useTranslations()
   const [loading, setLoading] = useState(true)
   const today = new Date()
   const [startDate, setStartDate] = useState<Date>()
@@ -74,6 +82,9 @@ function RentalPageContent() {
   const [quantity, setQuantity] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
+  const [dateTimePopoverOpen, setDateTimePopoverOpen] = useState(false)
+  const [endDateTimePopoverOpen, setEndDateTimePopoverOpen] = useState(false)
+  const [hasDateConflict, setHasDateConflict] = useState(false)
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
 
@@ -145,7 +156,7 @@ function RentalPageContent() {
       try {
         const { data, error } = await supabase
           .from('product_config')
-          .select('id, product_type, name, description, public_price, supplier_cost, image, tax_percentage')
+          .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage')
           .eq('active', true)
           
         if (error) {
@@ -158,6 +169,8 @@ function RentalPageContent() {
             product_type: item.product_type,
             name: item.name,
             description: item.description,
+            name_en: item.name_en,
+            description_en: item.description_en,
             public_price: item.public_price,
             supplier_cost: item.supplier_cost,
             image: item.image,
@@ -168,7 +181,7 @@ function RentalPageContent() {
         }
       } catch (error) {
         console.error('Error al cargar productos:', error)
-        toast.error('Error', { description: "No se pudieron cargar los productos. Por favor, intenta de nuevo más tarde." })
+        toast.error(t('common.error'), { description: t('notifications.loadError') })
       } finally {
         setLoading(false)
       }
@@ -204,7 +217,7 @@ function RentalPageContent() {
   useEffect(() => {
     const error = searchParams.get('error')
     if (error === 'access_denied') {
-      toast.error('Acceso denegado', { description: "No tienes permisos para acceder al área de administración." })
+      toast.error(t('common.error'), { description: t('notifications.accessDenied') })
     }
   }, [searchParams])
   
@@ -236,7 +249,9 @@ function RentalPageContent() {
     localStorage.setItem('galapagosCart', JSON.stringify(updatedCart))
     setModalOpen(false)
     
-    toast.success("Producto añadido", { description: `${qty} ${product.name} añadido al carrito` })
+    // Usar nombre traducido en la notificación
+    const productName = locale === 'en' && product.name_en ? product.name_en : product.name
+    toast.success(t('notifications.productAdded'), { description: t('notifications.productAddedDescription', {qty, productName}) })
   }
   
   const removeFromCart = (index: number) => {
@@ -358,43 +373,47 @@ function RentalPageContent() {
   
   const proceedToCheckout = () => {
     if (cartItems.length === 0) {
-      toast.error("Carrito vacío", { description: "Añade productos al carrito antes de continuar" })
+      toast.error(t('notifications.emptyCart'), { description: t('notifications.emptyCartDescription') })
       return
     }
     
     if (!cartItems[0].startDate) {
-      toast.error("Fecha de inicio requerida", { description: "Por favor selecciona una fecha de inicio para el alquiler" })
+      toast.error(t('notifications.startDateRequired'), { description: t('notifications.startDateRequiredDescription') })
       return
     }
     
     if (!cartItems[0].startTime) {
-      toast.error("Hora de inicio requerida", { description: "Por favor selecciona una hora de inicio para el alquiler" })
+      toast.error(t('notifications.startTimeRequired'), { description: t('notifications.startTimeRequiredDescription') })
       return
     }
     
     if (!cartItems[0].endDate) {
-      toast.error("Fecha de devolución requerida", { description: "Por favor selecciona una fecha de devolución para el alquiler" })
+      toast.error(t('notifications.endDateRequired'), { description: t('notifications.endDateRequiredDescription') })
       return
     }
     
     if (!cartItems[0].endTime) {
-      toast.error("Hora de devolución requerida", { description: "Por favor selecciona una hora de devolución para el alquiler" })
+      toast.error(t('notifications.endTimeRequired'), { description: t('notifications.endTimeRequiredDescription') })
       return
     }
     
     if (!cartItems[0].returnIsland) {
-      toast.error("Isla de devolución requerida", { description: "Por favor selecciona una isla donde devolverás el equipo" })
+      toast.error(t('notifications.returnIslandRequired'), { description: t('notifications.returnIslandRequiredDescription') })
       return
     }
     
     // Los datos ya están en localStorage, así que podemos navegar directamente a checkout
-    window.location.href = '/checkout'
+    router.push(`/${locale}/checkout`)
   }
 
   const renderProduct = (product: Product) => {
     const productQuantity = cartItems.reduce((total: number, item: CartItem) => {
       return item.product.id === product.id ? total + item.quantity : total
     }, 0)
+    
+    // Obtener nombre y descripción según el idioma
+    const productName = locale === 'en' && product.name_en ? product.name_en : product.name
+    const productDescription = locale === 'en' && product.description_en ? product.description_en : product.description
     
     return (
       <Card key={product.id} className="gap-4 relative">
@@ -407,19 +426,19 @@ function RentalPageContent() {
           </Badge>
         )}
         <CardHeader className="text-center">
-          <CardTitle className="text-xl flex justify-center gap-2">{product.name} <Badge variant="secondary">${product.public_price}/día</Badge></CardTitle>
+          <CardTitle className="text-xl flex justify-center gap-2">{productName} <Badge variant="secondary">${product.public_price}{t('products.perDay')}</Badge></CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center gap-2">
             <div className="text-4xl mb-2">
               <Image 
                 src={product.image}
-                alt={product.name}
+                alt={productName}
                 width={40}
                 height={40}
               />
             </div>
-            <p className="text-sm text-muted-foreground text-center">{product.description}</p>
+            <p className="text-sm text-muted-foreground text-center">{productDescription}</p>
           </div>
         </CardContent>
         <CardFooter className="pt-0">
@@ -429,7 +448,7 @@ function RentalPageContent() {
             variant="outline"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
-            Rentar
+            {t('products.rent')}
           </Button>
         </CardFooter>
       </Card>
@@ -440,12 +459,15 @@ function RentalPageContent() {
   const renderQuantityModal = () => {
     if (!selectedProduct) return null;
     
+    // Obtener nombre según el idioma para el modal
+    const productName = locale === 'en' && selectedProduct.name_en ? selectedProduct.name_en : selectedProduct.name
+    
     return (
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              ¿{selectedProduct.product_type === "fins" ? "Cuántas" : "Cuántos"} {selectedProduct.name}?
+              {selectedProduct.product_type === "fins" ? t('products.howManyFeminine', {productName}) : t('products.howMany', {productName})}
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center justify-center gap-4 py-4">
@@ -472,14 +494,14 @@ function RentalPageContent() {
           </div>
           <DialogFooter className="sm:justify-between">
             <Button variant="ghost" onClick={() => setModalOpen(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={() => {
               if (selectedProduct) {
                 addToCart(selectedProduct, quantity);
               }
             }}>
-              Continuar
+              {t('common.continue')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -495,54 +517,59 @@ function RentalPageContent() {
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
-              Carrito
+              {t('cart.title')}
             </span>
-            <Badge variant="outline" className="bg-white border border-accent text-accent">{cartItems.reduce((total, item) => total + item.quantity, 0)} items</Badge>
+            <Badge variant="outline" className="bg-white border border-accent text-accent">{cartItems.reduce((total, item) => total + item.quantity, 0)} {t('cart.items')}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           {cartItems.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <ShoppingCart className="mx-auto h-8 w-8 mb-2 opacity-50" />
-              <p>Tu carrito está vacío</p>
-              <p className="text-sm">Añade productos desde el catálogo</p>
+              <p>{t('cart.empty')}</p>
+              <p className="text-sm">{t('cart.emptyDescription')}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Lista de productos en el carrito */}
               <div className="space-y-3">
-                {cartItems.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between gap-2 pb-2 border-b">
-                    <div className="flex items-center gap-2">
-                      <div className="text-xl">
-                        <Image 
-                          src={item.product.image}
-                          alt={item.product.name}
-                          width={20}
-                          height={20}
-                        />
+                {cartItems.map((item, index) => {
+                  // Obtener nombre según el idioma para cada item del carrito
+                  const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between gap-2 pb-2 border-b">
+                      <div className="flex items-center gap-2">
+                        <div className="text-xl">
+                          <Image 
+                            src={item.product.image}
+                            alt={itemName}
+                            width={20}
+                            height={20}
+                          />
+                        </div>
+                        <div>
+                          <p className="font-medium">{itemName}</p>
+                          <p className="text-sm text-muted-foreground">${item.product.public_price}{t('products.perDay')} × {item.quantity}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-muted-foreground">${item.product.public_price}/día × {item.quantity}</p>
+                      <div className="flex items-center gap-1">
+                        <div className="text-right font-medium">
+                          ${item.product.public_price * item.quantity}
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => removeFromCart(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <div className="text-right font-medium">
-                        ${item.product.public_price * item.quantity}
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(index)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               
               {/* Total por dia */}
               <div>
                 <div className="flex justify-between font-medium">
-                  <span>Total/día</span>
+                  <span>{t('cart.totalPerDay')}</span>
                   <span>${calculateCartTotal().baseTotal}</span>
                 </div>
               </div>
@@ -551,18 +578,17 @@ function RentalPageContent() {
               {cartItems.length > 0 && (
                 <div className="mt-12 space-y-3">
                   <div className="space-y-2">
-                    <label className="font-bold">Fecha y hora de recogida</label>
-                    <Popover modal={false}>
+                    <label className="font-bold">{t('cart.pickupDate')}</label>
+                    <Popover modal={false} open={dateTimePopoverOpen} onOpenChange={setDateTimePopoverOpen}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
                           className="justify-start text-left font-normal"
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, "MMM d, yy", { locale: es }) + 
-                          (startTime ? ` a las ${startTime}` : '')
-                          : (
-                            <span>Seleccionar fecha</span>
+                          {startDate ? format(startDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
+                          (startTime ? ` ${t('time.at')} ${startTime}` : '') : (
+                            <span>{t('time.selectTime')}</span>
                           )}
                         </Button>
                       </PopoverTrigger>
@@ -576,6 +602,12 @@ function RentalPageContent() {
                                 setStartDate(newDate)
                                 setStartTime(null)
                                 updateCartDetails('startDate', newDate)
+                                
+                                if (endDate && newDate > endDate) {
+                                  setHasDateConflict(true)
+                                } else {
+                                  setHasDateConflict(false)
+                                }
                               }
                             }}
                             className="p-2 sm:pe-5"
@@ -588,7 +620,7 @@ function RentalPageContent() {
                               <div className="space-y-3">
                                 <div className="flex h-5 shrink-0 items-center px-5">
                                   <p className="text-sm font-medium">
-                                    {startDate ? format(startDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
+                                    {startDate ? format(startDate, "EEEE, d", { locale: locale === 'en' ? enUS : es }) : t('time.selectTime')}
                                   </p>
                                 </div>
                                 <div
@@ -608,6 +640,8 @@ function RentalPageContent() {
                                           onClick={() => {
                                             setStartTime(timeSlot)
                                             updateCartDetails('startTime', timeSlot)
+                                            // Cerrar el popover automáticamente cuando se selecciona una hora
+                                            setDateTimePopoverOpen(false)
                                           }}
                                           disabled={!isAvailable}
                                         >
@@ -626,7 +660,7 @@ function RentalPageContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="font-bold">Isla de recogida</label>
+                    <label className="font-bold">{t('cart.pickupIsland')}</label>
                     <div className="">
                       Santa Cruz
                     </div>
@@ -634,16 +668,16 @@ function RentalPageContent() {
 
                   
                   <div className="space-y-2">
-                    <label className="font-bold">Fecha y hora de devolución</label>
-                    <Popover modal={false}>
+                    <label className="font-bold">{t('cart.returnDate')}</label>
+                    <Popover modal={false} open={endDateTimePopoverOpen} onOpenChange={setEndDateTimePopoverOpen}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
-                          className="justify-start text-left font-normal"
+                          className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, "MMM d, yy", { locale: es }) + 
-                          (endTime ? ` a las ${endTime}` : '')
+                          {endDate ? format(endDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
+                          (endTime ? ` ${t('time.at')} ${endTime}` : '')
                           : (
                             <span>Seleccionar fecha</span>
                           )}
@@ -659,6 +693,12 @@ function RentalPageContent() {
                                 setEndDate(newDate)
                                 setEndTime(null)
                                 updateCartDetails('endDate', newDate)
+
+                                if (startDate && newDate < startDate) {
+                                  setHasDateConflict(true)
+                                } else {
+                                  setHasDateConflict(false)
+                                }
                               }
                             }}
                             className="p-2 sm:pe-5"
@@ -671,7 +711,7 @@ function RentalPageContent() {
                               <div className="space-y-3">
                                 <div className="flex h-5 shrink-0 items-center px-5">
                                   <p className="text-sm font-medium">
-                                    {endDate ? format(endDate, "EEEE, d", { locale: es }) : 'Seleccionar fecha'}
+                                    {endDate ? format(endDate, "EEEE, d", { locale: locale === 'en' ? enUS : es }) : t('time.selectTime')}
                                   </p>
                                 </div>
                                 <div
@@ -689,6 +729,8 @@ function RentalPageContent() {
                                         onClick={() => {
                                           setEndTime(timeSlot)
                                           updateCartDetails('endTime', timeSlot)
+                                          // Cerrar el popover automáticamente cuando se selecciona una hora
+                                          setEndDateTimePopoverOpen(false)
                                         }}
                                         disabled={!available}
                                       >
@@ -706,7 +748,7 @@ function RentalPageContent() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="font-bold">Isla de devolución</label>
+                    <label className="font-bold">{t('cart.returnIsland')}</label>
                     <Select
                       value={cartItems.length > 0 && cartItems[0].returnIsland ? cartItems[0].returnIsland : undefined}
                       onValueChange={(value) => {
@@ -714,7 +756,7 @@ function RentalPageContent() {
                       }}
                     >
                       <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder="Seleccionar isla" />
+                        <SelectValue placeholder={t('common.select')} />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         {returnFees.map((fee) => {
@@ -725,7 +767,7 @@ function RentalPageContent() {
                           
                           return (
                             <SelectItem key={fee.id} value={fee.location}>
-                              {fee.name} {fee.amount > 0 && `(+$${calculatedDeliveryAmount})`}
+                              {t(`cart.${fee.location}`)} {fee.amount > 0 && `(+$${calculatedDeliveryAmount})`}
                             </SelectItem>
                           )
                         })}
@@ -739,19 +781,19 @@ function RentalPageContent() {
               {cartItems.length > 0 && startDate && endDate && (
                 <div className="mt-4 border-t pt-4">
                   <div className="flex justify-between text-sm mb-2">
-                    <span>Días de alquiler:</span>
+                    <span>{t('cart.rentalDays')}</span>
                     <span>{calculateRentalDays()} días</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
-                    <span>Pago inicial:</span>
+                    <span>{t('cart.initialPayment')}</span>
                     <span>${calculateInitialPayment().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
-                    <span>Pagar al recoger:</span>
+                    <span>{t('cart.payOnPickup')}</span>
                     <span>${(calculateFinalTotal().totalWithTax - calculateInitialPayment()).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
+                    <span>{t('cart.total')}</span>
                     <span>${calculateFinalTotal().totalWithTax.toFixed(2)}</span>
                   </div>
                 </div>
@@ -761,9 +803,9 @@ function RentalPageContent() {
               <Button 
                 className="w-full mt-4" 
                 onClick={proceedToCheckout}
-                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland}
+                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland || hasDateConflict}
               >
-                Continuar
+                {t('cart.proceedToCheckout')}
               </Button>
             </div>
           )}
@@ -783,24 +825,29 @@ function RentalPageContent() {
               <h1 className="text-xl font-bold">Galápagos - Wetsuit & Snorkeling</h1>
             </div>
             
-            {/* Mobile Cart Button */}
-            <div className="sm:hidden">
-              <Button
-                variant="outline"
-                size="icon"
-                className="relative"
-                onClick={() => setCartDrawerOpen(true)}
-              >
-                <ShoppingCart className="h-4 w-4" />
-                {cartItems.length > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute rounded-full -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {cartItems.reduce((total, item) => total + item.quantity, 0)}
-                  </Badge>
-                )}
-              </Button>
+            <div className="flex items-center gap-2">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+              
+              {/* Mobile Cart Button */}
+              <div className="sm:hidden">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="relative"
+                  onClick={() => setCartDrawerOpen(true)}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {cartItems.length > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute rounded-full -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {cartItems.reduce((total, item) => total + item.quantity, 0)}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -809,12 +856,12 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-balance mb-4">Renta de wetsuits y equipo de snorkeling</h2>
+          <h2 className="text-3xl font-bold text-balance mb-4">{t('hero.title')}</h2>
           <p className="text-muted-foreground text-pretty">
-            ¡Una preocupacion menos en tu viaje a Galapagos! En ChokoTrip pensamos en todo.<br /><strong>Tenemos para alaquilar mas de 100 equipos de snorkeling, aletas, wetsuit</strong> cortos y largos (3mm) para explorar la vida marina en cada playa y tour diario.
+            {t('hero.subtitle')}
           </p>
           <p className="text-muted-foreground text-pretty mt-4">
-            <strong>Alquílalo por dia o por todo el tiempo que desees</strong>, lo recoges en la Isla Santa Cruz y lo puedes devolver en la Isla de Santa Cruz o San Cristobal.
+            {t('hero.description')}
           </p>
         </div>
       </section>
@@ -828,13 +875,13 @@ function RentalPageContent() {
               {loading ? (
                 <div className="col-span-2 flex justify-center items-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <span className="ml-2">Cargando productos...</span>
+                  <span className="ml-2">{t('products.loading')}</span>
                 </div>
               ) : products.length > 0 ? (
                 products.map(product => renderProduct(product))
               ) : (
                 <div className="col-span-2 text-center py-12 text-muted-foreground">
-                  <p>No hay productos disponibles en este momento.</p>
+                  <p>{t('products.noProducts')}</p>
                 </div>
               )}
             </div>
@@ -855,7 +902,7 @@ function RentalPageContent() {
         <DrawerContent className="max-h-[85vh]">
           <div id="sheet-portal" ref={portalRefCb} className="contents" />
           <DrawerHeader>
-            <DrawerTitle>Tu Carrito</DrawerTitle>
+            <DrawerTitle>{t('cart.title')}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 overflow-y-auto">
             {renderCart()}
@@ -878,8 +925,10 @@ function RentalPageContent() {
 }
 
 export default function GalapagosRentalPage() {
+  const t = useTranslations()
+  
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">{t('common.loading')}</div>}>
       <RentalPageContent />
     </Suspense>
   )
