@@ -7,6 +7,7 @@ import type { Editor } from 'grapesjs';
 import StudioEditor, { CreateEditorOptions } from "@grapesjs/studio-sdk/react";
 import { rteTinyMce, dataSourceHandlebars, layoutSidebarButtons } from "@grapesjs/studio-sdk-plugins";
 import "@grapesjs/studio-sdk/style";
+import { toast } from "sonner";
 
 export default function EditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: templateId } = use(params);
@@ -41,15 +42,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
                   title: 'Toggle Data Sources',
                   icon: 'databaseOutlineOn',
                   onClick: ({ editor }) => {
-                    editor.runCommand('studio:toggleDataSourcesPreview');
-                  },
-                  editorEvents: {
-                    ['studio:toggleDataSourcesPreview']: ({ fromEvent, setState }) => {
-                      setState({ active: fromEvent.showPlaceholder });
-                    },
-                    ['studio:layoutToggle']: ({ fromEvent, setState }) => {
-                      setState({ active: fromEvent.showPlaceholder });
-                    }
+                    editor.runCommand('studio:toggleStateDataSource');
                   }
                 },
                 {
@@ -64,14 +57,6 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
                       header: { label: 'Layers' },
                       placer: { type: 'absolute', position: 'left' }
                     });
-                  },
-                  editorEvents: {
-                    ['studio:toggleDataSourcesPreview']: ({ fromEvent, setState }) => {
-                      setState({ active: fromEvent.showPlaceholder });
-                    },
-                    ['studio:layoutToggle']: ({ fromEvent, setState }) => {
-                      setState({ active: fromEvent.showPlaceholder });
-                    }
                   }
                 }
               ]
@@ -211,7 +196,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
     try {
       // 1) Forzar placeholders en el preview/exports
       // Nota: el comando correcto es *toggleDataSourcesPreview*
-      editor.runCommand('studio:toggleDataSourcesPreview', { showPlaceholder: true });
+      editor.runCommand('studio:toggleStateDataSource', { showPlaceholder: true });
 
       // 2) Exportar MJML tal cual con variables (sin IDs auto)
       // getHtml soporta { cleanId: true } en GrapesJS
@@ -227,13 +212,14 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
         body: JSON.stringify({ mjml }) // <-- manda MJML, no HTML resuelto
       });
       if (!res.ok) throw new Error(await res.text());
-      alert("Publicado ✅");
+      toast.success("Publicado ✅");
     } catch (e: any) {
       console.error(e);
-      alert("Error al publicar");
+      toast.error("Error al publicar");
     } finally {
       // (Opcional) volver al modo de vista que quieras
-      // ed.runCommand('studio:toggleDataSourcesPreview', { showPlaceholder: false });
+      editor.runCommand('studio:toggleStateDataSource', { showPlaceholder: false });
+      setIsPublishing(false);
     }
   };
 
