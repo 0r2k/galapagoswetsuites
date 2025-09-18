@@ -9,10 +9,18 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export async function middleware(req: NextRequest) {
-  // Primero ejecutar el middleware de internacionalización
-  const intlResponse = intlMiddleware(req);
-  if (intlResponse) {
-    return intlResponse;
+  // Rutas que no deben pasar por internacionalización
+  const adminRoutes = ['/admin']
+  const isAdminRoute = adminRoutes.some(route => 
+    req.nextUrl.pathname.startsWith(route)
+  )
+  
+  // Solo aplicar middleware de internacionalización si NO es una ruta de admin
+  if (!isAdminRoute) {
+    const intlResponse = intlMiddleware(req);
+    if (intlResponse) {
+      return intlResponse;
+    }
   }
   
   const res = NextResponse.next()
@@ -41,18 +49,18 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Rutas que requieren ser administrador
-  const adminRoutes = [
-    '/admin',
-  ]
+  // Rutas que requieren ser administrador (reutilizando la variable anterior)
+  // const adminRoutes = [
+  //   '/admin',
+  // ]
 
   // Verificar si la ruta actual está en las rutas de administrador
-  const isAdminRoute = adminRoutes.some(route => 
+  const isAdminRouteCheck = adminRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
   )
 
   // Si es una ruta de administrador, verificar si el usuario es administrador
-  if (isAdminRoute && session) {
+  if (isAdminRouteCheck && session) {
     // El usuario ya está en la sesión, no necesitamos obtenerlo de nuevo
     const user = session.user
     
