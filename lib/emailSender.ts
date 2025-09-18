@@ -240,7 +240,7 @@ function convertVariablesToHandlebarsFormat(variables: EmailVariables) {
   };
 }
 
-export async function sendAutomaticEmails(orderData: OrderEmailData) {
+export async function sendAutomaticEmails(orderData: OrderEmailData, templateType?: string) {
   try {
     const variables = await prepareEmailVariables(orderData);
     const handlebarsVars = convertVariablesToHandlebarsFormat(variables);
@@ -264,8 +264,13 @@ export async function sendAutomaticEmails(orderData: OrderEmailData) {
       }
     };
     
-    // Procesar todas las plantillas
-    for (const template of allTemplates) {
+    // Filtrar plantillas por tipo si se especifica
+    const filteredTemplates = templateType 
+      ? allTemplates.filter(template => template.template_type === templateType)
+      : allTemplates;
+    
+    // Procesar plantillas filtradas
+    for (const template of filteredTemplates) {
       // console.log(`🔍 Procesando plantilla: "${template.name}" (${template.template_type})`);
       // console.log(`📧 Recipients: ${JSON.stringify(template.recipient_emails)}`);
       // console.log(`📝 Tiene HTML: ${!!template.html_published}`);

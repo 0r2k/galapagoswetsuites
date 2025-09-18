@@ -3,7 +3,7 @@ import { sendAutomaticEmails, getOrderDataForEmails } from '@/lib/emailSender';
 
 export async function POST(req: NextRequest) {
   try {
-    const { orderId } = await req.json();
+    const { orderId, templateType } = await req.json();
     
     if (!orderId) {
       return NextResponse.json(
@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Enviar emails automáticos
-    const result = await sendAutomaticEmails(orderData);
+    // Enviar emails automáticos con filtro opcional por tipo de template
+    const result = await sendAutomaticEmails(orderData, templateType);
     
     return NextResponse.json({
       message: `Emails sent successfully. Sent: ${result.emailsSent}, Failed: ${result.emailsFailed}`,

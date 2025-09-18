@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Edit } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { 
@@ -114,6 +115,7 @@ export default function AdminPage() {
   const [editingPaymentConfig, setEditingPaymentConfig] = useState<PaymentConfig | null>(null)
   const [isPaymentConfigModalOpen, setIsPaymentConfigModalOpen] = useState(false)
   const [loadingRefund, setLoadingRefund] = useState<string | null>(null)
+  const [loadingResendEmail, setLoadingResendEmail] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   
   // Estados para el modal de edición
@@ -197,6 +199,35 @@ export default function AdminPage() {
     const hour = ecuadorTime.getHours()
     
     return hour < 17 // Antes de las 5pm
+  }
+
+  // Función para reenviar email al cliente
+  const handleResendEmail = async (order: RentalOrder) => {
+    setLoadingResendEmail(order.id)
+    try {
+      const response = await fetch('/api/send-order-emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          templateType: 'customer' // Solo enviar templates de tipo customer
+        }),
+      })
+
+      if (response.ok) {
+        toast.success('Email reenviado exitosamente al cliente')
+      } else {
+        const errorText = await response.text()
+        toast.error('Error al reenviar email: ' + errorText)
+      }
+    } catch (error) {
+      console.error('Error resending email:', error)
+      toast.error('Error al reenviar email')
+    } finally {
+      setLoadingResendEmail(null)
+    }
   }
 
   // Función para manejar el reembolso
@@ -730,13 +761,14 @@ export default function AdminPage() {
                        <TableHead>Isla de Devolución</TableHead>
                        <TableHead>Estado</TableHead>
                        <TableHead>Total</TableHead>
+                       <TableHead>Fecha renta</TableHead>
                        <TableHead>Acciones</TableHead>
                      </TableRow>
                    </TableHeader>
                   <TableBody>
                      {orders.length === 0 ? (
                        <TableRow>
-                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                         <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                            No hay pedidos registrados
                          </TableCell>
                        </TableRow>
@@ -768,26 +800,60 @@ export default function AdminPage() {
                            <TableCell className="font-semibold">
                              ${order.total_amount.toFixed(2)}
                            </TableCell>
+                           <TableCell className="text-sm text-muted-foreground">
+                             {new Date(order.created_at).toLocaleDateString('es-ES')} {new Date(order.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                           </TableCell>
                            <TableCell>
                              <div className="flex gap-2">
-                               <Button 
-                                 variant="outline" 
-                                 size="sm"
-                                 onClick={() => loadOrderItems(order.id, order.order_number)}
-                                 disabled={loadingItems}
-                               >
-                                 Ver Items
-                               </Button>
-                               {isRefundAvailable(order) && (
-                                 <Button 
-                                   variant="destructive" 
-                                   size="sm"
-                                   onClick={() => handleRefund(order)}
-                                   disabled={loadingRefund === order.id}
-                                 >
-                                   {loadingRefund === order.id ? 'Procesando...' : 'Reembolso'}
-                                 </Button>
-                               )}
+                               <TooltipProvider>
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <Button 
+                                       variant="outline" 
+                                       size="sm"
+                                       onClick={() => loadOrderItems(order.id, order.order_number)}
+                                       disabled={loadingItems}
+                                     >
+                                       {loadingItems ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                                     </Button>
+                                   </TooltipTrigger>
+                                   <TooltipContent>
+                                     <p>Ver items del pedido</p>
+                                   </TooltipContent>
+                                 </Tooltip>
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <Button 
+                                       variant="secondary" 
+                                       size="sm"
+                                       onClick={() => handleResendEmail(order)}
+                                       disabled={loadingResendEmail === order.id}
+                                     >
+                                       {loadingResendEmail === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                                     </Button>
+                                   </TooltipTrigger>
+                                   <TooltipContent>
+                                     <p>Reenviar email de confirmación al cliente</p>
+                                   </TooltipContent>
+                                 </Tooltip>
+                                 {isRefundAvailable(order) && (
+                                   <Tooltip>
+                                     <TooltipTrigger asChild>
+                                       <Button 
+                                         variant="destructive" 
+                                         size="sm"
+                                         onClick={() => handleRefund(order)}
+                                         disabled={loadingRefund === order.id}
+                                       >
+                                         {loadingRefund === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
+                                       </Button>
+                                     </TooltipTrigger>
+                                     <TooltipContent>
+                                       <p>Procesar reembolso del pedido</p>
+                                     </TooltipContent>
+                                   </Tooltip>
+                                 )}
+                               </TooltipProvider>
                              </div>
                            </TableCell>
                          </TableRow>
