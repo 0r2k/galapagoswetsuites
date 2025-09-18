@@ -35,13 +35,16 @@ import {
   initializePaymentConfigs
 } from '@/lib/paymentConfig'
 import refundPaymentez from '@/lib/refund-paymentez'
+import { Separator } from '@/components/ui/separator'
 
 // Interface para productos con información completa
 interface Product {
   id: string
   product_type: string
   name: string
+  name_en: string
   description: string
+  description_en: string
   public_price: number
   supplier_cost: number
   image: string
@@ -119,6 +122,8 @@ export default function AdminPage() {
   const [editForm, setEditForm] = useState<Partial<Product>>({
     name: '',
     description: '',
+    name_en: '',
+    description_en: '',
     supplier_cost: 0,
     public_price: 0,
     tax_percentage: 0,
@@ -302,7 +307,7 @@ export default function AdminPage() {
       // Cargar productos con información completa
       const { data: productsData, error: productsError } = await supabase
         .from('product_config')
-        .select('id, product_type, name, description, public_price, supplier_cost, image, tax_percentage, active')
+        .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage, active')
         .eq('active', true)
       
       if (productsError) throw productsError
@@ -332,6 +337,8 @@ export default function AdminPage() {
     setEditForm({
       name: product.name,
       description: product.description,
+      name_en: product.name_en,
+      description_en: product.description_en,
       supplier_cost: product.supplier_cost,
       public_price: product.public_price,
       tax_percentage: product.tax_percentage,
@@ -533,10 +540,10 @@ export default function AdminPage() {
                     value={newFee.fee_type || ''} 
                     onValueChange={(value) => setNewFee({...newFee, fee_type: value})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className='bg-white'>
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className='bg-white'>
                       <SelectItem value="island_return_fee">Tarifa de Devolución en Otra Isla</SelectItem>
                       <SelectItem value="late_return_fee">Tarifa por Devolución Tardía</SelectItem>
                     </SelectContent>
@@ -550,10 +557,10 @@ export default function AdminPage() {
                       value={newFee.location || ''} 
                       onValueChange={(value) => setNewFee({...newFee, location: value as Island})}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className='bg-white'>
                         <SelectValue placeholder="Seleccionar ubicación" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className='bg-white'>
                         <SelectItem value="san-cristobal">San Cristóbal</SelectItem>
                         <SelectItem value="santa-cruz">Santa Cruz</SelectItem>
                       </SelectContent>
@@ -567,6 +574,7 @@ export default function AdminPage() {
                     type="number" 
                     value={newFee.amount?.toString()} 
                     onChange={(e) => setNewFee({...newFee, amount: parseFloat(e.target.value)})}
+                     className='bg-white'
                   />
                 </div>
 
@@ -800,28 +808,51 @@ export default function AdminPage() {
             <DialogTitle>Editar Producto</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-right">
-                Nombre
-              </Label>
-              <Input
-                id="name"
-                value={editForm.name}
-                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                className="col-span-3 border border-gray-300"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <strong>Español</strong>
+                <Label htmlFor="name" className="text-right">
+                  Nombre
+                </Label>
+                <Input
+                  id="name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  className="col-span-3 border border-gray-300"
+                />
+                <Label htmlFor="description" className="text-right">
+                  Descripción
+                </Label>
+                <Input
+                  id="description"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                  className="col-span-3 border border-gray-300"
+                />
+              </div>
+              <div className="space-y-2">
+                <strong>Inglés</strong>
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={editForm.name_en}
+                  onChange={(e) => setEditForm({...editForm, name_en: e.target.value})}
+                  className="col-span-3 border border-gray-300"
+                />
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
+                <Input
+                  id="description"
+                  value={editForm.description_en}
+                  onChange={(e) => setEditForm({...editForm, description_en: e.target.value})}
+                  className="col-span-3 border border-gray-300"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-right">
-                Descripción
-              </Label>
-              <Input
-                id="description"
-                value={editForm.description}
-                onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                className="col-span-3 border border-gray-300"
-              />
-            </div>
+            <Separator />
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="supplier_cost" className="text-right">
