@@ -7,6 +7,27 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const FROM = process.env.RESEND_FROM || 'noreply@galapagos.viajes';
 
+// Registrar helpers personalizados de Handlebars
+Handlebars.registerHelper('strContains', function(str: string, substring: string) {
+  return str && str.toString().includes(substring);
+});
+
+Handlebars.registerHelper('eq', function(a: any, b: any) {
+  return a === b;
+});
+
+Handlebars.registerHelper('ne', function(a: any, b: any) {
+  return a !== b;
+});
+
+Handlebars.registerHelper('gt', function(a: any, b: any) {
+  return a > b;
+});
+
+Handlebars.registerHelper('lt', function(a: any, b: any) {
+  return a < b;
+});
+
 export interface OrderEmailData {
   order: RentalOrder & { 
     rental_items: (RentalItem & { 
