@@ -15,6 +15,7 @@ function ConfirmationContent() {
   
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState<any>(null)
+  const [returnFees, setReturnFees] = useState<{id: string, name: string, location: string, amount: number}[]>([])
   
   useEffect(() => {
     const loadOrder = async () => {
@@ -77,10 +78,51 @@ function ConfirmationContent() {
     
     loadOrder()
   }, [orderId, router])
+
+  useEffect(() => {
+    const fetchReturnFees = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('additional_fees')
+          .select('id, name, location, amount')
+          .eq('fee_type', 'island_return_fee')
+          .eq('active', true)
+          
+        if (error) {
+          throw error
+        }
+        
+        if (data) {
+          setReturnFees(data)
+        }
+      } catch (error) {
+        console.error('Error al cargar tarifas de devolución:', error)
+      }
+    }
+    
+    fetchReturnFees()
+  }, [])
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  const calculateReturnFee = () => {
+    if (!order || order.return_island !== 'san-cristobal' || !returnFees.length) {
+      return 0
+    }
+    
+    const returnFee = returnFees.find(fee => fee.location === 'san-cristobal')
+    if (!returnFee) {
+      return 0
+    }
+    
+    // Calcular cantidad total de items
+    const totalItems = order.rental_items.reduce((total: number, item: any) => total + item.quantity, 0)
+    // Multiplicar por cada grupo de 3 items (redondeado hacia arriba)
+    const multiplier = Math.ceil(totalItems / 3)
+    return returnFee.amount * multiplier
   }
   
   if (loading) {
@@ -154,7 +196,7 @@ function ConfirmationContent() {
             {order.return_island === 'san-cristobal' && (
               <div className="flex justify-between">
                 <span>Tarifa de devolución (San Cristóbal)</span>
-                <span>$5.00</span>
+                <span>${calculateReturnFee().toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between">
