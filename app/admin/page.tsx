@@ -52,6 +52,7 @@ interface Product {
 // Interface para pedidos de alquiler
 interface RentalOrder {
   id: string
+  order_number: number
   customer_id: string
   total_amount: number
   tax_amount: number
@@ -105,6 +106,7 @@ export default function AdminPage() {
   const [isItemsModalOpen, setIsItemsModalOpen] = useState(false)
   const [selectedOrderItems, setSelectedOrderItems] = useState<RentalItem[]>([])
   const [selectedOrderId, setSelectedOrderId] = useState<string>('')
+  const [selectedOrderNumber, setSelectedOrderNumber] = useState<number | null>(null)
   const [loadingItems, setLoadingItems] = useState(false)
   const [editingPaymentConfig, setEditingPaymentConfig] = useState<PaymentConfig | null>(null)
   const [isPaymentConfigModalOpen, setIsPaymentConfigModalOpen] = useState(false)
@@ -256,7 +258,7 @@ export default function AdminPage() {
   }
 
   // Función para cargar items de un pedido específico
-  const loadOrderItems = async (orderId: string) => {
+  const loadOrderItems = async (orderId: string, orderNumber: number) => {
     setLoadingItems(true)
     try {
       const { data, error } = await supabase
@@ -284,6 +286,7 @@ export default function AdminPage() {
       
       setSelectedOrderItems(mappedItems)
       setSelectedOrderId(orderId)
+      setSelectedOrderNumber(orderNumber)
       setIsItemsModalOpen(true)
     } catch (error) {
       console.error('Error loading order items:', error)
@@ -733,7 +736,7 @@ export default function AdminPage() {
                        orders.map((order) => (
                          <TableRow key={order.id}>
                            <TableCell className="font-mono text-sm">
-                             {order.id.slice(0, 8)}...
+                             {order.order_number}
                            </TableCell>
                            <TableCell>{order.customer_name}</TableCell>
                            <TableCell>
@@ -762,7 +765,7 @@ export default function AdminPage() {
                                <Button 
                                  variant="outline" 
                                  size="sm"
-                                 onClick={() => loadOrderItems(order.id)}
+                                 onClick={() => loadOrderItems(order.id, order.order_number)}
                                  disabled={loadingItems}
                                >
                                  Ver Items
@@ -960,7 +963,7 @@ export default function AdminPage() {
         <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle>
-              Items del Pedido {selectedOrderId ? selectedOrderId.slice(0, 8) + '...' : ''}
+              Items del Pedido {selectedOrderNumber ? selectedOrderNumber : ''}
             </DialogTitle>
           </DialogHeader>
           

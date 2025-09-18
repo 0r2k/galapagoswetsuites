@@ -51,6 +51,7 @@ export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 
 export interface RentalOrder {
   id: string;
+  order_number: number;
   auth_code: string;
   bin: string;
   customer_id: string;

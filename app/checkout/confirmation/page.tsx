@@ -36,7 +36,7 @@ function ConfirmationContent() {
         }
         const items = await rentalItemsData.json()
 
-        const customerData = await fetch('/api/rentals/customer?order_id=' + orderId)
+        const customerData = await fetch('/api/customer/' + orderData.customer_id)
         if (!customerData.ok) {
           throw new Error('Failed to fetch customer')
         }
@@ -101,7 +101,7 @@ function ConfirmationContent() {
         
         <CardContent className="space-y-6">
           <div className="bg-green-50 p-4 rounded-md text-center">
-            <p className="text-green-700 font-medium">ID único de Pedido: {order.id}</p>
+            <p className="text-green-700 font-medium">Número de Pedido: {order.order_number}</p>
             <p className="text-sm text-green-600">Hemos enviado un email de confirmación y detalle de la recogida a {order.customer?.email || 'tu correo electrónico'}</p>
           </div>
           
