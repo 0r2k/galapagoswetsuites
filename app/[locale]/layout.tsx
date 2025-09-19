@@ -1,37 +1,44 @@
 import type { Metadata } from 'next'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 import '../globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
+import { getMessages, getTranslations } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'Galápagos - Wetsuit & Snorkeling by Chokotrip',
-  description: 'Alquiler de equipos de snorkeling y wetsuits en Galápagos. Más de 100 equipos disponibles para explorar la vida marina. Recogida en Santa Cruz, devolución en Santa Cruz o San Cristóbal.',
-  icons: "/favicon.webp",
-  openGraph: {
-    title: 'Galápagos - Wetsuit & Snorkeling by ChokoTrip',
-    description: 'Alquiler de equipos de snorkeling y wetsuits en Galápagos. Más de 100 equipos disponibles para explorar la vida marina. Recogida en Santa Cruz, devolución en Santa Cruz o San Cristóbal.',
-    url: 'https://galapagos.viajes',
-    siteName: 'ChokoTrip Galápagos',
-    images: [
-      {
-        url: '/wetsuits-snorkel.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Equipos de snorkeling y wetsuits para alquilar en Galápagos',
-      },
-    ],
-    locale: 'es_EC',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Galápagos - Wetsuit & Snorkeling by ChokoTrip',
-    description: 'Alquiler de equipos de snorkeling y wetsuits en Galápagos. Más de 100 equipos disponibles para explorar la vida marina.',
-    images: ['/wetsuits-snorkel.jpg'],
-  },
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'metadata' })
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    icons: "/favicon.webp",
+    openGraph: {
+      title: t('openGraph.title'),
+      description: t('openGraph.description'),
+      url: 'https://galapagos.viajes',
+      siteName: t('openGraph.siteName'),
+      images: [
+        {
+          url: '/wetsuits-snorkel.jpg',
+          width: 1200,
+          height: 630,
+          alt: t('openGraph.imageAlt'),
+        },
+      ],
+      locale: locale === 'es' ? 'es_EC' : 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('twitter.title'),
+      description: t('twitter.description'),
+      images: ['/wetsuits-snorkel.jpg'],
+    },
+  }
 }
 
 export default async function LocaleLayout({
