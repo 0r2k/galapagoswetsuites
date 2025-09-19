@@ -583,7 +583,7 @@ function RentalPageContent() {
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
-                          className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
+                          className="justify-start text-left font-normal"
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {startDate ? format(startDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
