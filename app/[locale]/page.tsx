@@ -680,7 +680,7 @@ function RentalPageContent() {
                           {endDate ? format(endDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
                           (endTime ? ` ${t('time.at')} ${endTime}` : '')
                           : (
-                            <span>Seleccionar fecha</span>
+                            <span>{t('time.selectTime')}</span>
                           )}
                         </Button>
                       </PopoverTrigger>
@@ -852,12 +852,14 @@ function RentalPageContent() {
       <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-balance mb-4">{t('hero.title')}</h2>
-          <p className="text-muted-foreground text-pretty">
-            {t('hero.subtitle')}
-          </p>
-          <p className="text-muted-foreground text-pretty mt-4">
-            {t('hero.description')}
-          </p>
+          <p 
+            className="text-muted-foreground text-pretty"
+            dangerouslySetInnerHTML={{ __html: t('hero.subtitle') }}
+          />
+          <p
+            className="text-muted-foreground text-pretty mt-4"
+            dangerouslySetInnerHTML={{ __html: t('hero.description') }}
+          />
         </div>
       </section>
 
