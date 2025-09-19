@@ -240,7 +240,7 @@ function convertVariablesToHandlebarsFormat(variables: EmailVariables) {
   };
 }
 
-export async function sendAutomaticEmails(orderData: OrderEmailData, templateType?: string) {
+export async function sendAutomaticEmails(orderData: OrderEmailData, templateType?: string, language: string = 'es') {
   try {
     const variables = await prepareEmailVariables(orderData);
     const handlebarsVars = convertVariablesToHandlebarsFormat(variables);
@@ -250,24 +250,44 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
     const allTemplates = await listTemplates();
     const emailPromises: (() => Promise<any>)[] = [];
     
-    // Función para obtener el subject según el tipo de plantilla
-    const getSubjectByType = (templateType: string) => {
-      switch (templateType) {
-        case 'customer':
-          return `En hora buena, haz confirmado el alquiler de tus equipos`;
-        case 'business_owner':
-          return `Nueva Reserva - Pedido #${orderData.order.order_number} - Comisión: $${variables.commission?.toFixed(2)}`;
-        case 'supplier':
-          return `Nueva Reserva de Equipos - Pedido #${orderData.order.order_number}`;
-        default:
-          return `Notificación - Pedido #${orderData.order.order_number}`;
+    // Función para obtener el subject según el tipo de plantilla y idioma
+    const getSubjectByType = (templateType: string, lang: string) => {
+      if (lang === 'en') {
+        switch (templateType) {
+          case 'customer':
+            return `Congratulations! You have confirmed your equipment rental`;
+          case 'business_owner':
+            return `New Reservation - Order #${orderData.order.order_number} - Commission: $${variables.commission?.toFixed(2)}`;
+          case 'supplier':
+            return `New Equipment Reservation - Order #${orderData.order.order_number}`;
+          default:
+            return `Notification - Order #${orderData.order.order_number}`;
+        }
+      } else {
+        switch (templateType) {
+          case 'customer':
+            return `En hora buena, haz confirmado el alquiler de tus equipos`;
+          case 'business_owner':
+            return `Nueva Reserva - Pedido #${orderData.order.order_number} - Comisión: $${variables.commission?.toFixed(2)}`;
+          case 'supplier':
+            return `Nueva Reserva de Equipos - Pedido #${orderData.order.order_number}`;
+          default:
+            return `Notificación - Pedido #${orderData.order.order_number}`;
+        }
       }
     };
     
-    // Filtrar plantillas por tipo si se especifica
-    const filteredTemplates = templateType 
-      ? allTemplates.filter(template => template.template_type === templateType)
-      : allTemplates;
+    // Filtrar plantillas por tipo e idioma si se especifica
+    let filteredTemplates = allTemplates;
+    
+    if (templateType) {
+      filteredTemplates = filteredTemplates.filter(template => template.template_type === templateType);
+    }
+    
+    // Filtrar por idioma
+    filteredTemplates = filteredTemplates.filter(template => 
+      (template as any).language === language || !(template as any).language
+    );
     
     // Procesar plantillas filtradas
     for (const template of filteredTemplates) {
@@ -306,7 +326,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
         // Usar el subject de la plantilla si existe, sino usar el por defecto
         const emailSubject = template.subject && template.subject.trim() 
           ? template.subject 
-          : getSubjectByType(template.template_type);
+          : getSubjectByType(template.template_type, language);
           
         console.log(`📋 Subject: "${emailSubject}"`);
         

@@ -3,7 +3,7 @@ import { sendAutomaticEmails, getOrderDataForEmails } from '@/lib/emailSender';
 
 export async function POST(req: NextRequest) {
   try {
-    const { orderId, templateType } = await req.json();
+    const { orderId, templateType, language } = await req.json();
     
     if (!orderId) {
       return NextResponse.json(
@@ -22,8 +22,11 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Enviar emails automáticos con filtro opcional por tipo de template
-    const result = await sendAutomaticEmails(orderData, templateType);
+    // Usar el idioma proporcionado o 'es' por defecto
+    const emailLanguage = language || 'es';
+    
+    // Enviar emails automáticos con filtro opcional por tipo de template y idioma
+    const result = await sendAutomaticEmails(orderData, templateType, emailLanguage);
     
     return NextResponse.json({
       message: `Emails sent successfully. Sent: ${result.emailsSent}, Failed: ${result.emailsFailed}`,

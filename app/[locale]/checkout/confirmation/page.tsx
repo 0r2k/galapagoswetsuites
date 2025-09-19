@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabaseClient'
 function ConfirmationContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const locale = useLocale()
   const t = useTranslations('confirmation')
   const tCommon = useTranslations('common')
   const orderId = searchParams.get('orderId')
@@ -59,7 +60,10 @@ function ConfirmationContent() {
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ orderId })
+              body: JSON.stringify({ 
+                orderId,
+                language: locale 
+              })
             })
             
             if (emailResponse.ok) {

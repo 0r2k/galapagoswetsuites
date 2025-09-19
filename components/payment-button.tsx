@@ -9,8 +9,6 @@ import {
   createCustomer, 
   updateCustomer, 
   getCurrentCustomer,
-  createRentalOrder,
-  createRentalItems,
   RentalOrder
 } from '@/lib/db'
 
@@ -115,7 +113,8 @@ const PaymentButton = ({
          status: isTransactionSuccessful ? 'completed' : 'cancelled',
         status_detail: data?.transaction?.status_detail || '',
         transaction_id: data?.transaction?.id || '',
-        notes: ''
+        notes: '',
+        language: locale
       };
 
       const response = await fetch("/api/rentals", {

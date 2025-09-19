@@ -76,6 +76,7 @@ interface RentalOrder {
   dev_reference: string | null
   status_detail: string | null
   transaction_id: string | null
+  language: string
   // Campos del JOIN con users
   customer_name: string
   customer_email: string
@@ -205,6 +206,9 @@ export default function AdminPage() {
   const handleResendEmail = async (order: RentalOrder) => {
     setLoadingResendEmail(order.id)
     try {
+      // Usar el idioma del pedido o 'es' por defecto
+      const orderLanguage = order.language || 'es';
+      
       const response = await fetch('/api/send-order-emails', {
         method: 'POST',
         headers: {
@@ -212,7 +216,8 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           orderId: order.id,
-          templateType: 'customer' // Solo enviar templates de tipo customer
+          templateType: 'customer', // Solo enviar templates de tipo customer
+          language: orderLanguage // Enviar el idioma del pedido
         }),
       })
 

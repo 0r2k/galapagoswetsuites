@@ -11,6 +11,7 @@ export type EmailTemplate = {
   html_published: string | null;
   preview_data: any | null;
   subject: string | null;
+  language: string;
   created_at: string;
   updated_at: string;
 };
