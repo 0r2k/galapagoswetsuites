@@ -284,10 +284,17 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
       filteredTemplates = filteredTemplates.filter(template => template.template_type === templateType);
     }
     
-    // Filtrar por idioma
-    filteredTemplates = filteredTemplates.filter(template => 
-      (template as any).language === language || !(template as any).language
-    );
+    // Filtrar por idioma: solo para plantillas de customer usar el idioma del pedido,
+    // para business_owner y supplier siempre usar español
+    filteredTemplates = filteredTemplates.filter(template => {
+      if (template.template_type === 'customer') {
+        // Para customer, usar el idioma del pedido
+        return (template as any).language === language || !(template as any).language;
+      } else {
+        // Para business_owner y supplier, siempre usar español
+        return (template as any).language === 'es' || !(template as any).language;
+      }
+    });
     
     // Procesar plantillas filtradas
     for (const template of filteredTemplates) {
@@ -324,9 +331,11 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
         // console.log(`📬 Recipients finales para "${template.name}": ${JSON.stringify(recipients)}`);
         
         // Usar el subject de la plantilla si existe, sino usar el por defecto
+        // Para customer usar el idioma del pedido, para otros tipos siempre español
+        const subjectLanguage = template.template_type === 'customer' ? language : 'es';
         const emailSubject = template.subject && template.subject.trim() 
           ? template.subject 
-          : getSubjectByType(template.template_type, language);
+          : getSubjectByType(template.template_type, subjectLanguage);
           
         console.log(`📋 Subject: "${emailSubject}"`);
         
