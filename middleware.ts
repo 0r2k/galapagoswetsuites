@@ -5,7 +5,7 @@ import createIntlMiddleware from 'next-intl/middleware';
 // Configuración de i18n
 const intlMiddleware = createIntlMiddleware({
   locales: ['es', 'en'],
-  defaultLocale: 'es'
+  defaultLocale: 'en'
 });
 
 export async function middleware(req: NextRequest) {
