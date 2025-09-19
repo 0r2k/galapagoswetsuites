@@ -388,6 +388,10 @@ export default function AdminPage() {
           name: editForm.name,
           description: editForm.description,
           supplier_cost: editForm.supplier_cost,
+          name_en: editForm.name_en,
+          description_en: editForm.description_en,
+          tax_percentage: editForm.tax_percentage,
+          active: editForm.active,
           public_price: editForm.public_price
         })
         .eq('id', editingProduct.id)

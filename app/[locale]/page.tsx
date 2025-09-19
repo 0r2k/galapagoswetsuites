@@ -583,7 +583,7 @@ function RentalPageContent() {
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
-                          className="justify-start text-left font-normal"
+                          className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {startDate ? format(startDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
@@ -603,6 +603,7 @@ function RentalPageContent() {
                                 setStartTime(null)
                                 updateCartDetails('startDate', newDate)
                                 
+                                // Check if new start date is after end date
                                 if (endDate && newDate > endDate) {
                                   setHasDateConflict(true)
                                 } else {
@@ -673,7 +674,7 @@ function RentalPageContent() {
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
-                          className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
+                          className="justify-start text-left font-normal"
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {endDate ? format(endDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
@@ -693,12 +694,6 @@ function RentalPageContent() {
                                 setEndDate(newDate)
                                 setEndTime(null)
                                 updateCartDetails('endDate', newDate)
-
-                                if (startDate && newDate < startDate) {
-                                  setHasDateConflict(true)
-                                } else {
-                                  setHasDateConflict(false)
-                                }
                               }
                             }}
                             className="p-2 sm:pe-5"
@@ -803,7 +798,7 @@ function RentalPageContent() {
               <Button 
                 className="w-full mt-4" 
                 onClick={proceedToCheckout}
-                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland || hasDateConflict}
+                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland}
               >
                 {t('cart.proceedToCheckout')}
               </Button>
