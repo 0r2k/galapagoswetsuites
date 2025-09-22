@@ -7,7 +7,10 @@ import { Toaster } from '@/components/ui/sonner'
 export const metadata: Metadata = {
   title: 'Galápagos - Wetsuit & Snorkeling',
   description: 'By Chokotrip',
-  icons: "/favicon.webp"
+  icons: "/favicon.webp",
+  metadataBase: new URL(process.env.NODE_ENV === 'production' 
+    ? 'https://galapagos.viajes' 
+    : 'http://localhost:3001')
 }
 
 export default function RootLayout({

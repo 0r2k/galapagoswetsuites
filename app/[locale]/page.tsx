@@ -82,8 +82,8 @@ function RentalPageContent() {
   const [quantity, setQuantity] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
-  const [dateTimePopoverOpen, setDateTimePopoverOpen] = useState(false)
-  const [endDateTimePopoverOpen, setEndDateTimePopoverOpen] = useState(false)
+  // const [dateTimePopoverOpen, setDateTimePopoverOpen] = useState(false)
+  // const [endDateTimePopoverOpen, setEndDateTimePopoverOpen] = useState(false)
   const [hasDateConflict, setHasDateConflict] = useState(false)
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
@@ -510,18 +510,41 @@ function RentalPageContent() {
   };
 
   // Renderizar el carrito de compras
-  const renderCart = () => {
+  const renderCart = (hideHeader = false) => {
+    const [popoverStates, setPopoverStates] = useState<Record<string, boolean>>({})
+    const handlePopoverState = (id: string, isOpen?: boolean) => {
+      if (isOpen !== undefined) {
+        // Si se proporciona un valor, establecer ese valor
+        setPopoverStates(prev => ({
+          ...prev,
+          [id]: isOpen
+        }))
+      } else {
+        // Si no se proporciona un valor, alternar el estado actual
+        setPopoverStates(prev => ({
+          ...prev,
+          [id]: !prev[id]
+        }))
+      }
+    }
+
+    // Función para obtener el estado de un popover específico
+    const getPopoverState = (id: string) => {
+      return popoverStates[id] || false
+    }
     return (
       <Card className="bg-primary/5 border-primary/20 shadow-md">
-        <CardHeader className="">
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              {t('cart.title')}
-            </span>
-            <Badge variant="outline" className="bg-white border border-accent text-accent">{cartItems.reduce((total, item) => total + item.quantity, 0)} {t('cart.items')}</Badge>
-          </CardTitle>
-        </CardHeader>
+        {!hideHeader && (
+          <CardHeader className="">
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                {t('cart.title')}
+              </span>
+              <Badge variant="outline" className="bg-white border border-accent text-accent">{cartItems.reduce((total, item) => total + item.quantity, 0)} {t('cart.items')}</Badge>
+            </CardTitle>
+          </CardHeader>
+        )}
         <CardContent className="space-y-4 pt-6">
           {cartItems.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
@@ -579,7 +602,7 @@ function RentalPageContent() {
                 <div className="mt-12 space-y-3">
                   <div className="space-y-2">
                     <label className="font-bold">{t('cart.pickupDate')}</label>
-                    <Popover modal={false} open={dateTimePopoverOpen} onOpenChange={setDateTimePopoverOpen}>
+                    <Popover modal={false} open={getPopoverState('startDate')} onOpenChange={(open) => handlePopoverState('startDate', open)}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
@@ -605,8 +628,10 @@ function RentalPageContent() {
                                 
                                 // Check if new start date is after end date
                                 if (endDate && newDate > endDate) {
+                                  console.log('Esta mal')
                                   setHasDateConflict(true)
                                 } else {
+                                  console.log('Esta bien')
                                   setHasDateConflict(false)
                                 }
                               }
@@ -642,7 +667,8 @@ function RentalPageContent() {
                                             setStartTime(timeSlot)
                                             updateCartDetails('startTime', timeSlot)
                                             // Cerrar el popover automáticamente cuando se selecciona una hora
-                                            setDateTimePopoverOpen(false)
+                                            // setDateTimePopoverOpen(false)
+                                            handlePopoverState('startDate', false)
                                           }}
                                           disabled={!isAvailable}
                                         >
@@ -670,11 +696,11 @@ function RentalPageContent() {
                   
                   <div className="space-y-2">
                     <label className="font-bold">{t('cart.returnDate')}</label>
-                    <Popover modal={false} open={endDateTimePopoverOpen} onOpenChange={setEndDateTimePopoverOpen}>
+                    <Popover modal={false} open={getPopoverState('endDate')} onOpenChange={(open) => handlePopoverState('endDate', open)}>
                       <PopoverTrigger asChild className="w-full">
                         <Button
                           variant={"outline"}
-                          className="justify-start text-left font-normal"
+                           className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {endDate ? format(endDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
@@ -694,6 +720,11 @@ function RentalPageContent() {
                                 setEndDate(newDate)
                                 setEndTime(null)
                                 updateCartDetails('endDate', newDate)
+                                if (startDate && newDate < startDate) {
+                                  setHasDateConflict(true)
+                                } else {
+                                  setHasDateConflict(false)
+                                }
                               }
                             }}
                             className="p-2 sm:pe-5"
@@ -725,7 +756,8 @@ function RentalPageContent() {
                                           setEndTime(timeSlot)
                                           updateCartDetails('endTime', timeSlot)
                                           // Cerrar el popover automáticamente cuando se selecciona una hora
-                                          setEndDateTimePopoverOpen(false)
+                                          // setEndDateTimePopoverOpen(false)
+                                          handlePopoverState('endDate', false)
                                         }}
                                         disabled={!available}
                                       >
@@ -798,7 +830,7 @@ function RentalPageContent() {
               <Button 
                 className="w-full mt-4" 
                 onClick={proceedToCheckout}
-                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland}
+               disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland || hasDateConflict}
               >
                 {t('cart.proceedToCheckout')}
               </Button>
@@ -852,14 +884,17 @@ function RentalPageContent() {
       <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-balance mb-4">{t('hero.title')}</h2>
-          <p 
-            className="text-muted-foreground text-pretty"
-            dangerouslySetInnerHTML={{ __html: t('hero.subtitle') }}
-          />
-          <p
-            className="text-muted-foreground text-pretty mt-4"
-            dangerouslySetInnerHTML={{ __html: t('hero.description') }}
-          />
+          <p className="text-muted-foreground text-pretty">
+            {t.rich('hero.subtitle', {
+              br: () => <br />,
+              strong: (chunks) => <strong>{chunks}</strong>
+            })}
+          </p>
+          <p className="text-muted-foreground text-pretty mt-4">
+            {t.rich('hero.description', {
+              strong: (chunks) => <strong>{chunks}</strong>
+            })}
+          </p>
         </div>
       </section>
 
@@ -896,13 +931,19 @@ function RentalPageContent() {
 
       {/* Mobile Cart Drawer */}
       <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
-        <DrawerContent className="max-h-[85vh]">
+        <DrawerContent>
           <div id="sheet-portal" ref={portalRefCb} className="contents" />
           <DrawerHeader>
-            <DrawerTitle>{t('cart.title')}</DrawerTitle>
+            <DrawerTitle className="flex items-center justify-center gap-2">
+              <ShoppingCart className="h-5 w-5" /> 
+              {t('cart.title')}
+              <Badge variant="outline" className="bg-white border border-accent text-accent">
+                {cartItems.reduce((total, item) => total + item.quantity, 0)} {t('cart.items')}
+              </Badge>
+            </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 overflow-y-auto">
-            {renderCart()}
+            {renderCart(true)}
           </div>
         </DrawerContent>
       </Drawer>
