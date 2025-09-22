@@ -83,6 +83,7 @@ export const config = {
     '/(es|en)/:path*',
     '/dashboard/:path*',
     '/admin/:path*',
+    '/sizes/:path*',
     '/checkout/:path*',
     '/checkout/confirmation/:path*',
   ],
