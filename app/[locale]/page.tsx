@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SheetPopoverContent } from "@/components/ui/sheet-popover-content"
 import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2 } from "lucide-react"
@@ -849,7 +850,7 @@ function RentalPageContent() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Image src="/chokotrip.webp" alt="Chokotrip" width={40} height={40} />
-              <h1 className="text-xl font-bold">Galápagos - Wetsuit & Snorkeling</h1>
+              <h1 className="text-md sm:text-xl font-bold">Galápagos - Wetsuit & Snorkeling</h1>
             </div>
             
             <div className="flex items-center gap-2">
@@ -881,16 +882,16 @@ function RentalPageContent() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-12 bg-gradient-to-b from-primary/5 to-background">
+      <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-balance mb-4">{t('hero.title')}</h2>
-          <p className="text-muted-foreground text-pretty">
+          <h2 className="text-xl sm:text-3xl font-bold text-balance mb-4">{t('hero.title')}</h2>
+          <p className="text-sm sm:text-base text-muted-foreground text-pretty">
             {t.rich('hero.subtitle', {
               br: () => <br />,
               strong: (chunks) => <strong>{chunks}</strong>
             })}
           </p>
-          <p className="text-muted-foreground text-pretty mt-4">
+          <p className="text-sm sm:text-base text-muted-foreground text-pretty mt-4">
             {t.rich('hero.description', {
               strong: (chunks) => <strong>{chunks}</strong>
             })}
@@ -899,7 +900,7 @@ function RentalPageContent() {
       </section>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pb-8">
         <div className="flex flex-col sm:flex-row gap-8 items-start">
           {/* Left Column - Products */}
           <div className="flex-1 w-full sm:w-auto ">
@@ -920,8 +921,20 @@ function RentalPageContent() {
           </div>
 
           {/* Right Column - Cart (Hidden on mobile) */}
-          <div className="hidden sm:block w-full sm:w-80 sm:sticky lg:top-24">
-            {renderCart()}
+          <div className="block w-full sm:w-80 sm:sticky lg:top-24">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Image src="/location-wetsuits-galapagos.webp" width={320} height={260} alt="Galápagos Wetsuit" className="w-full h-auto rounded-md mb-4 cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p><strong>Grupo Galapagos</strong><br />Moisés Brito entre Thomas Berlanga y Juan Montalvo,<br />Puerto Ayora - Isla Santa Cruz</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="hidden sm:block">
+              {renderCart()}
+            </div>
           </div>
         </div>
       </main>
