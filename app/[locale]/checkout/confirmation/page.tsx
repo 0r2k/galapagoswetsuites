@@ -59,7 +59,7 @@ function ConfirmationContent() {
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ status: 2 }), // 2 = Enviado
+                body: JSON.stringify({ status: 2 }), // 2 = Email enviado
               })
                
               if (statusResponse.ok) {

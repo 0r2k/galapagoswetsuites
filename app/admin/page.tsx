@@ -796,12 +796,12 @@ export default function AdminPage() {
                            </TableCell>
                            <TableCell>
                              <Badge 
-                               variant={order.status === 1 ? 'default' : 
-                                       order.status === 0 ? 'secondary' :
-                                       order.status === -1 ? 'outline' : 'destructive'}
+                               variant={order.status > 0 ? 'default' : 
+                                order.status === 0 ? 'secondary' :
+                                order.status === -1 ? 'outline' : 'destructive'}
                              >
                                {order.status === 0 ? 'Pendiente' :
-                                order.status === 1 ? 'Completado' :
+                                order.status > 0 ? 'Completado' :
                                 order.status === -1 ? 'Reembolsado' :
                                 order.status === -2 ? 'Falló' : order.status}
                              </Badge>
