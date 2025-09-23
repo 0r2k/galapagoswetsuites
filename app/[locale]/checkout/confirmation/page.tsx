@@ -34,23 +34,7 @@ function ConfirmationContent() {
         }
         const orderData = await data.json()
         
-        const rentalItemsData = await fetch('/api/rentals/items?order_id=' + orderId)
-        if (!rentalItemsData.ok) {
-          throw new Error('Failed to fetch rental items')
-        }
-        const items = await rentalItemsData.json()
-
-        const customerData = await fetch('/api/customer/' + orderData.customer_id)
-        if (!customerData.ok) {
-          throw new Error('Failed to fetch customer')
-        }
-        const customer = await customerData.json()
-        
-        setOrder({
-          ...orderData,
-          rental_items: items || [],
-          customer: customer
-        })
+        setOrder(orderData)
         
         // Enviar emails automáticos después de cargar el pedido
         if (!orderData.sent_email) {
@@ -250,6 +234,11 @@ function ConfirmationContent() {
             <h3 className="font-medium text-blue-700 mb-2">{t('pickupInstructions')}</h3>
             <p className="text-sm text-blue-600">
               {t('pickupInstructionsText')}
+            </p>
+            <p className="text-sm text-blue-600">
+              {t('customizeInstructions1')}<br />
+              <a href={`https://galapagos.viajes/sizes?orderId=${order.id}`} className="text-blue-600 underline">{`https://galapagos.viajes/sizes?orderId=${order.id}`}</a><br />
+              {t('customizeInstructions2')}
             </p>
           </div>
         </CardContent>
