@@ -92,7 +92,7 @@ export interface EmailVariables {
   profit?: number;
   
   // Enlaces
-  sizesSelectionUrl: string;
+  sizesSelectionID: string;
 }
 
 function formatProductName(item: RentalItem & { product_config: { id: string; product_type: string; product_subtype?: string; size?: string; public_price: number; supplier_cost: number; } }): string {
@@ -210,7 +210,7 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     pickupPayment: Math.max(pickupPayment, 0),
     
     // Enlaces
-    sizesSelectionUrl: `https://galapagos.viajes/sizes?orderId=${order.id}`,
+    sizesSelectionID: `'https://galapagos.viajes'}/sizes?orderId=${order.id}`
     
   };
 }

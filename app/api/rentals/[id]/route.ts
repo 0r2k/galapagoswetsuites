@@ -25,7 +25,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         return_island,
         payment_status,
         order_number,
-        sent_email,
         language,
         users (
           first_name,

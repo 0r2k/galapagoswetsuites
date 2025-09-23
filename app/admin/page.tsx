@@ -60,7 +60,7 @@ interface RentalOrder {
   customer_id: string
   total_amount: number
   tax_amount: number
-  status: string
+  status: number
   start_date: string
   end_date: string
   start_time: string
@@ -796,14 +796,14 @@ export default function AdminPage() {
                            </TableCell>
                            <TableCell>
                              <Badge 
-                               variant={order.status === 'completed' ? 'default' : 
-                                       order.status === 'pending' ? 'secondary' :
-                                       order.status === 'refunded' ? 'outline' : 'destructive'}
+                               variant={order.status === 1 ? 'default' : 
+                                       order.status === 0 ? 'secondary' :
+                                       order.status === -1 ? 'outline' : 'destructive'}
                              >
-                               {order.status === 'pending' ? 'Pendiente' :
-                                order.status === 'completed' ? 'Completado' :
-                                order.status === 'refunded' ? 'Reembolsado' :
-                                order.status === 'cancelled' ? 'Falló' : order.status}
+                               {order.status === 0 ? 'Pendiente' :
+                                order.status === 1 ? 'Completado' :
+                                order.status === -1 ? 'Reembolsado' :
+                                order.status === -2 ? 'Falló' : order.status}
                              </Badge>
                            </TableCell>
                            <TableCell className="font-semibold">

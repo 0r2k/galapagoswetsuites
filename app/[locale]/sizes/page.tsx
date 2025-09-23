@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import Image from "next/image"
 import { toast } from 'sonner'
 
@@ -36,6 +37,7 @@ interface RentalOrder {
   customer_id: string
   users: User
   rental_items: RentalItem[]
+  status: number
 }
 
 const sizeOptions = {
@@ -55,6 +57,10 @@ export default function SizesPage() {
   const [sizes, setSizes] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [finalizing, setFinalizing] = useState(false)
+  const [isOrderValid, setIsOrderValid] = useState(true)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [orderFinalized, setOrderFinalized] = useState(false)
 
   useEffect(() => {
     if (!orderId) {
@@ -77,6 +83,14 @@ export default function SizesPage() {
       }
       
       const orderData = await response.json()
+
+      if(orderData.status < 1 ) {
+        setTimeout(() => {
+          toast.error(t('orderNotReady'))
+        }, 0)
+        setIsOrderValid(false)
+        return
+      }
       setOrder(orderData)
       
       // Inicializar sizes con las tallas existentes
@@ -130,6 +144,18 @@ export default function SizesPage() {
         throw new Error('Error al guardar las tallas')
       }
 
+      const statusResponse = await fetch(`/api/rentals/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 3 }), // 3 = Algunas tallas escogidas
+      })
+
+      if (!statusResponse.ok) {
+        throw new Error('Error al actualizar el status del pedido')
+      }
+
       const result = await response.json()
       toast.success(result.message || t('sizesSavedSuccessfully'))
     } catch (error) {
@@ -137,6 +163,90 @@ export default function SizesPage() {
       toast.error(t('errorSavingSizes'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const areAllSizesSelected = () => {
+    if (!order?.rental_items) return false
+    
+    const rentalItems = order.rental_items.filter((item: any) => item.quantity > 0)
+    
+    for (const item of rentalItems) {
+      const productType = item.product_config?.product_type?.toLowerCase()
+      
+      // Solo validar productos que requieren talla
+      if (productType === 'wetsuit' || productType === 'fins') {
+        // Check all individual items for this rental item
+        for (let i = 0; i < item.quantity; i++) {
+          const uniqueId = `${item.id}|${i}`
+          if (!sizes[uniqueId] || sizes[uniqueId].trim() === '') {
+            return false
+          }
+        }
+      }
+    }
+    
+    return true
+  }
+
+  const handleFinalize = async () => {
+    if (!orderId) return
+    
+    // Validar que todas las tallas estén seleccionadas
+    if (!areAllSizesSelected()) {
+      toast.error(t('allSizesRequired'))
+      return
+    }
+    
+    setFinalizing(true)
+    try {
+      // Primero guardar las tallas
+      const sizesResponse = await fetch(`/api/rentals/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sizes }),
+      })
+
+      if (!sizesResponse.ok) {
+        throw new Error('Error al guardar las tallas')
+      }
+
+      // Actualizar el status del pedido a 3
+      const statusResponse = await fetch(`/api/rentals/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 4 }), // 4 = Finalizado
+      })
+
+      if (!statusResponse.ok) {
+        throw new Error('Error al actualizar el status del pedido')
+      }
+
+      // Enviar email al proveedor
+      const emailResponse = await fetch('/api/send-supplier-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderId }),
+      })
+
+      if (!emailResponse.ok) {
+        throw new Error('Error al enviar el email al proveedor')
+      }
+
+      toast.success(t('orderFinalized'))
+      setOrderFinalized(true)
+      setShowConfirmDialog(false)
+    } catch (error) {
+      console.error('Error finalizing order:', error)
+      toast.error(t('errorFinalizingOrder'))
+    } finally {
+      setFinalizing(false)
     }
   }
 
@@ -198,9 +308,20 @@ export default function SizesPage() {
     )
   }
 
+  if (!isOrderValid) {
+    return (
+      <div className="h-screen flex flex-1 flex-col items-center justify-center p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-red-800 mb-2">{t('orderNotValid')}</h2>
+          <p className="text-red-600">{t('orderNotValidMessage')}</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!order) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="h-screen flex flex-1 flex-col items-center justify-center p-6">
         <div className="text-center text-red-500">{t('orderNotFound')}</div>
       </div>
     )
@@ -250,33 +371,39 @@ export default function SizesPage() {
                             <CardContent>
                               <div className="space-y-2">
                                 <div>
-                                  <label className="text-sm font-medium text-gray-700 mb-1 block">
-                                    {item.product_config.product_type.toLowerCase() === 'fins' ? t('enterSize') : t('selectSize')}:
-                                  </label>
-                                  {item.product_config.product_type.toLowerCase() === 'fins' ? (
-                                    <Input
-                                      type="text"
-                                      value={sizes[uniqueId] || ''}
-                                      onChange={(e) => handleSizeChange(uniqueId, e.target.value)}
-                                      placeholder={t('enterSizePlaceholder')}
-                                      className="w-full border-gray-300 bg-white"
-                                    />
+                                  {order.status > 3 ? (
+                                    <div>Talla: {sizes[uniqueId] || ''}</div>
                                   ) : (
-                                    <Select
-                                      value={sizes[uniqueId] || ''}
-                                      onValueChange={(value) => handleSizeChange(uniqueId, value)}
-                                    >
-                                      <SelectTrigger className="w-full border-gray-300 bg-white">
-                                        <SelectValue placeholder={t('selectSizePlaceholder')} />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {getSizeOptions(item.product_config.product_type).map((size) => (
-                                          <SelectItem key={size} value={size}>
-                                            {size}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
+                                    <>
+                                      <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                        {item.product_config.product_type.toLowerCase() === 'fins' ? t('enterSize') : t('selectSize')}:
+                                      </label>
+                                      {item.product_config.product_type.toLowerCase() === 'fins' ? (
+                                        <Input
+                                          type="text"
+                                          value={sizes[uniqueId] || ''}
+                                          onChange={(e) => handleSizeChange(uniqueId, e.target.value)}
+                                          placeholder={t('enterSizePlaceholder')}
+                                          className="w-full border-gray-300 bg-white"
+                                        />
+                                      ) : (
+                                        <Select
+                                          value={sizes[uniqueId] || ''}
+                                          onValueChange={(value) => handleSizeChange(uniqueId, value)}
+                                        >
+                                          <SelectTrigger className="w-full border-gray-300 bg-white">
+                                            <SelectValue placeholder={t('selectSizePlaceholder')} />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {getSizeOptions(item.product_config.product_type).map((size) => (
+                                              <SelectItem key={size} value={size}>
+                                                {size}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               </div>
@@ -297,15 +424,62 @@ export default function SizesPage() {
           })}
         </div>
 
-        <div className="mt-8">
-          <Button 
-            onClick={handleSave} 
-            disabled={saving || Object.keys(sizes).length === 0}
-            className="w-full md:w-auto py-6 px-10 text-lg font-bold cursor-pointer"
-          >
-            {saving ? t('saving') : t('saveSizes')}
-          </Button>
-        </div>
+        {orderFinalized || order.status > 3 ? (
+          <div className="mt-8">
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-green-800 mb-2">{t('orderFinalizedTitle')}</h3>
+                <p className="text-green-700">{t('orderFinalized')}</p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-col md:flex-row gap-4">
+            <Button 
+              onClick={handleSave} 
+              disabled={saving || Object.keys(sizes).length === 0}
+              className="w-full md:w-auto py-6 px-10 text-lg font-bold cursor-pointer"
+            >
+              {saving ? t('saving') : t('saveSizes')}
+            </Button>
+            
+            <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  disabled={finalizing || !areAllSizesSelected()}
+                  variant="default"
+                  className="w-full md:w-auto py-6 px-10 text-lg font-bold cursor-pointer bg-green-600 hover:bg-green-700"
+                >
+                  {finalizing ? t('finalizing') : t('finalize')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('confirmFinalize')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('confirmFinalizeMessage')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('cancelFinalize')}</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleFinalize}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {t('confirmFinalizeButton')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
       </div>
       <footer className="border-t bg-card/50 mt-16">
         <div className="container mx-auto px-4 py-8 text-center">

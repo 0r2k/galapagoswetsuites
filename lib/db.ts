@@ -58,7 +58,7 @@ export interface RentalOrder {
   dev_reference: string;
   total_amount: number;
   tax_amount: number;
-  status: OrderStatus;
+  status: number;
   start_date: string;
   end_date: string;
   start_time: string;

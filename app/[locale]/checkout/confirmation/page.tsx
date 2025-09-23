@@ -37,7 +37,7 @@ function ConfirmationContent() {
         setOrder(orderData)
         
         // Enviar emails automáticos después de cargar el pedido
-        if (!orderData.sent_email) {
+        if (orderData.status > 0 && orderData.status < 2) {
           try {
             const emailResponse = await fetch('/api/send-order-emails', {
               method: 'POST',
@@ -53,20 +53,20 @@ function ConfirmationContent() {
             if (emailResponse.ok) {
               const emailResult = await emailResponse.json()
               // console.log('Emails enviados:', emailResult.message)
-              // Actualizar sent_email a true después de enviar correctamente
-              const updateResponse = await fetch('/api/rentals', {
+              // Actualizar status a 2 (Enviado) { antes era sent_email } después de enviar correctamente
+              const statusResponse = await fetch(`/api/rentals/${orderId}/status`, {
                 method: 'PATCH',
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ orderId, sent_email: true })
+                body: JSON.stringify({ status: 2 }), // 2 = Enviado
               })
                
-              if (updateResponse.ok) {
-                console.log('Campo sent_email actualizado a true')
+              if (statusResponse.ok) {
+                console.log('Status actualizado status a Enviado')
               } else {
-                const updateError = await updateResponse.json()
-                console.error('Error actualizando sent_email:', updateError)
+                const statusError = await statusResponse.json()
+                console.error('Error actualizando status:', statusError)
               }
             } else {
               console.error('Error enviando emails:', await emailResponse.text())
