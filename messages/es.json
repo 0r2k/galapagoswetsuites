@@ -18,6 +18,7 @@
     "filter": "Filtrar",
     "sort": "Ordenar",
     "select": "Seleccionar",
+    "name": "Nombre",
     "language": "Idioma"
   },
   "metadata": {
@@ -52,7 +53,11 @@
     "howMany": "¿Cuántos {productName}?",
     "howManyFeminine": "¿Cuántas {productName}?",
     "loading": "Cargando productos...",
-    "noProducts": "No hay productos disponibles en este momento."
+    "noProducts": "No hay productos disponibles en este momento.",
+    "wetsuitShort": "Traje de buceo corto",
+    "wetsuitLong": "Traje de buceo largo",
+    "snorkel": "Snorkel",
+    "fins": "Aletas"
   },
   "cart": {
     "title": "Carrito",
@@ -175,5 +180,25 @@
     "snorkel": "Snorkel",
     "fins": "Aletas",
     "unknownProduct": "Producto desconocido"
+  },
+  "sizes": {
+    "title": "Seleccionar Tallas",
+    "customer": "Cliente",
+    "email": "Email",
+    "selectSize": "Seleccionar Talla",
+    "selectSizePlaceholder": "Seleccionar talla",
+    "noSizeRequired": "No requiere talla",
+    "quantity": "Cantidad",
+    "type": "Tipo",
+    "saving": "Guardando...",
+    "saveSizes": "Guardar Tallas",
+    "loadingOrder": "Cargando pedido...",
+    "orderNotFound": "No se pudo cargar el pedido",
+    "orderIdRequired": "ID de pedido requerido",
+    "errorLoadingOrder": "Error al cargar el pedido",
+    "errorSavingSizes": "Error al guardar las tallas",
+    "sizesSavedSuccessfully": "Tallas guardadas correctamente",
+    "product": "producto",
+    "products": "productos"
   }
 }

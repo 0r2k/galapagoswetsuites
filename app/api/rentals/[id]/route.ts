@@ -28,7 +28,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           product_config (
             name,
             name_en,
-            product_type
+            product_type,
+            product_subtype
           )
         )
       `)

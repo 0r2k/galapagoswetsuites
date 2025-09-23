@@ -18,6 +18,7 @@
     "filter": "Filter",
     "sort": "Sort",
     "select": "Select",
+    "name": "Name",
     "language": "Language"
   },
   "metadata": {
@@ -52,7 +53,11 @@
     "howMany": "How many {productName}?",
     "howManyFeminine": "How many {productName}?",
     "loading": "Loading products...",
-    "noProducts": "No products available at the moment."
+    "noProducts": "No products available at the moment.",
+    "wetsuitShort": "Short wetsuit",
+    "wetsuitLong": "Long wetsuit",
+    "snorkel": "Snorkel",
+    "fins": "Fins"
   },
   "cart": {
     "title": "Cart",
@@ -175,5 +180,25 @@
     "snorkel": "Snorkel",
     "fins": "Fins",
     "unknownProduct": "Unknown product"
+  },
+  "sizes": {
+    "title": "Select Sizes",
+    "customer": "Customer",
+    "email": "Email",
+    "selectSize": "Select Size",
+    "selectSizePlaceholder": "Select size",
+    "noSizeRequired": "No size required",
+    "quantity": "Quantity",
+    "type": "Type",
+    "saving": "Saving...",
+    "saveSizes": "Save Sizes",
+    "loadingOrder": "Loading order...",
+    "orderNotFound": "Could not load order",
+    "orderIdRequired": "Order ID required",
+    "errorLoadingOrder": "Error loading order",
+    "errorSavingSizes": "Error saving sizes",
+    "sizesSavedSuccessfully": "Sizes saved successfully",
+    "product": "product",
+    "products": "products"
   }
 }
