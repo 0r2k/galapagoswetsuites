@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     // Enviar el email al proveedor
     const { error: emailError } = await resend.emails.send({
       from: FROM,
-      to: 'cecheverria@gmail.com', // Cambiar por el email real del proveedor
+      to: 'payments.localgroup@gmail.com', // Cambiar por el email real del proveedor
       subject: `Tallas seleccionadas - Pedido #${order.order_number}`,
       html: emailHtml,
     });

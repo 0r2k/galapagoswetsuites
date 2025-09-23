@@ -23,7 +23,7 @@ export async function generateMetadata({
       siteName: t('openGraph.siteName'),
       images: [
         {
-          url: '/wetsuits-snorkel.jpg',
+          url: locale === 'es' ? '/wetsuits-snorkel-es.jpg' : '/wetsuits-snorkel-en.jpg',
           width: 1200,
           height: 630,
           alt: t('openGraph.imageAlt'),
