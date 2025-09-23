@@ -925,7 +925,7 @@ function RentalPageContent() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Image src="/location-wetsuits-galapagos.webp" width={320} height={260} alt="Galápagos Wetsuit" className="w-full h-auto rounded-md mb-4 cursor-pointer" />
+                  <Image src="/location-galapagos-wetsuits.webp" width={320} height={260} alt="Galápagos Wetsuit" className="w-full h-auto rounded-md mb-4 cursor-pointer" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Moisés Brito entre Thomas Berlanga y Juan Montalvo,<br />Puerto Ayora - Santa Cruz</p>
