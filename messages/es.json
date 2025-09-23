@@ -187,6 +187,8 @@
     "email": "Email",
     "selectSize": "Seleccionar Talla",
     "selectSizePlaceholder": "Seleccionar talla",
+    "enterSize": "Ingresar Talla",
+    "enterSizePlaceholder": "Ingrese su talla de pie",
     "noSizeRequired": "No requiere talla",
     "quantity": "Cantidad",
     "type": "Tipo",

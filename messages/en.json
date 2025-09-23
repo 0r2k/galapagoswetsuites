@@ -187,6 +187,8 @@
     "email": "Email",
     "selectSize": "Select Size",
     "selectSizePlaceholder": "Select size",
+    "enterSize": "Enter Size",
+    "enterSizePlaceholder": "Enter your feet size",
     "noSizeRequired": "No size required",
     "quantity": "Quantity",
     "type": "Type",

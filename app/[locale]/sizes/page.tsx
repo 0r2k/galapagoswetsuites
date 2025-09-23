@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from "next/image"
 import { toast } from 'sonner'
@@ -143,8 +144,6 @@ export default function SizesPage() {
     switch (productType.toLowerCase()) {
       case 'wetsuit':
         return sizeOptions.wetsuit
-      case 'fins':
-        return sizeOptions.fins
       default:
         return []
     }
@@ -252,23 +251,33 @@ export default function SizesPage() {
                               <div className="space-y-2">
                                 <div>
                                   <label className="text-sm font-medium text-gray-700 mb-1 block">
-                                    {t('selectSize')}:
+                                    {item.product_config.product_type.toLowerCase() === 'fins' ? t('enterSize') : t('selectSize')}:
                                   </label>
-                                  <Select
-                                    value={sizes[uniqueId] || ''}
-                                    onValueChange={(value) => handleSizeChange(uniqueId, value)}
-                                  >
-                                    <SelectTrigger className="w-full border-gray-300 bg-white">
-                                      <SelectValue placeholder={t('selectSizePlaceholder')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {getSizeOptions(item.product_config.product_type).map((size) => (
-                                        <SelectItem key={size} value={size}>
-                                          {size}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                  {item.product_config.product_type.toLowerCase() === 'fins' ? (
+                                    <Input
+                                      type="text"
+                                      value={sizes[uniqueId] || ''}
+                                      onChange={(e) => handleSizeChange(uniqueId, e.target.value)}
+                                      placeholder={t('enterSizePlaceholder')}
+                                      className="w-full border-gray-300 bg-white"
+                                    />
+                                  ) : (
+                                    <Select
+                                      value={sizes[uniqueId] || ''}
+                                      onValueChange={(value) => handleSizeChange(uniqueId, value)}
+                                    >
+                                      <SelectTrigger className="w-full border-gray-300 bg-white">
+                                        <SelectValue placeholder={t('selectSizePlaceholder')} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {getSizeOptions(item.product_config.product_type).map((size) => (
+                                          <SelectItem key={size} value={size}>
+                                            {size}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  )}
                                 </div>
                               </div>
                             </CardContent>
