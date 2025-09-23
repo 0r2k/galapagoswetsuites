@@ -15,6 +15,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       .select(`
         id,
         customer_id,
+        total_amount,
+        tax_amount,
+        status,
+        start_date,
+        end_date,
+        start_time,
+        end_time,
+        return_island,
+        payment_status,
+        order_number,
+        sent_email,
+        language,
         users (
           first_name,
           last_name,

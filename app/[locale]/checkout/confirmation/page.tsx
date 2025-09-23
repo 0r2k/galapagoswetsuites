@@ -157,6 +157,11 @@ function ConfirmationContent() {
   if (!order) {
     return <div className="flex items-center justify-center h-screen">{t('orderNotFound')}</div>
   }
+
+  // Validación adicional para asegurar que order tenga las propiedades necesarias
+  if (!order.total_amount || !order.rental_items) {
+    return <div className="flex items-center justify-center h-screen">{tCommon('loading')}</div>
+  }
   
   return (
     <div className="container mx-auto py-8">
@@ -226,11 +231,11 @@ function ConfirmationContent() {
             )}
             <div className="flex justify-between">
               <span>{t('initialPayment')}</span>
-              <span>${(order.total_amount - order.tax_amount).toFixed(2)}</span>
+              <span>${(order.total_amount - (order.tax_amount || 0)).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>{t('taxes')}</span>
-              <span>${order.tax_amount.toFixed(2)}</span>
+              <span>${(order.tax_amount || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold mt-2">
               <span>{t('totalPaid')}</span>

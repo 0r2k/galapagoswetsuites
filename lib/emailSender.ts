@@ -90,6 +90,9 @@ export interface EmailVariables {
   supplierTotalAmount?: number;
   commission?: number;
   profit?: number;
+  
+  // Enlaces
+  sizesSelectionUrl: string;
 }
 
 function formatProductName(item: RentalItem & { product_config: { id: string; product_type: string; product_subtype?: string; size?: string; public_price: number; supplier_cost: number; } }): string {
@@ -204,7 +207,10 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     totalAmount: order.total_amount + supplierTotalAmount,
     returnFeeAmount: returnFeeAmount,
     initialPayment: Math.max(initialPayment, 0),
-    pickupPayment: Math.max(pickupPayment, 0)
+    pickupPayment: Math.max(pickupPayment, 0),
+    
+    // Enlaces
+    sizesSelectionUrl: `https://galapagos.viajes/sizes?orderId=${order.id}`,
     
   };
 }
