@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +24,8 @@ function CheckoutContent() {
   const t = useTranslations()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const params = useParams()
+  const locale = params.locale || 'es'
   const rentalData = searchParams.get('rentalData')
 
   const [loading, setLoading] = useState(true)
@@ -460,12 +462,17 @@ function CheckoutContent() {
               <div>
                 <h3 className="font-medium mb-2">{t('checkout.products')}</h3>
                 <ul className="space-y-2">
-                  {rental.items && rental.items.map((item: any, index: number) => (
-                    <li key={index} className="flex justify-between">
-                      <span>{item.product.name} x{item.quantity}</span>
-                      <span>${(item.product.public_price * item.quantity).toFixed(2)}</span>
-                    </li>
-                  ))}
+                  {rental.items && rental.items.map((item: any, index: number) => {
+                    // Obtener nombre según el idioma
+                    const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
+                    
+                    return (
+                      <li key={index} className="flex justify-between">
+                        <span>{itemName} x{item.quantity}</span>
+                        <span>${(item.product.public_price * item.quantity).toFixed(2)}</span>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
               

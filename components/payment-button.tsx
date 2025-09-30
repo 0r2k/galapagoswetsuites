@@ -110,7 +110,7 @@ const PaymentButton = ({
         tax_amount: taxAmount,
         payment_method: data?.card?.type || 'card',
         payment_status: isTransactionSuccessful ? 'paid' : 'pending',
-         status: isTransactionSuccessful ? 'completed' : 'cancelled',
+         status: isTransactionSuccessful ? 1 : -1,
         status_detail: data?.transaction?.status_detail || '',
         transaction_id: data?.transaction?.id || '',
         notes: '',
