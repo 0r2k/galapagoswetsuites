@@ -36,6 +36,8 @@ export interface OrderEmailData {
         product_type: string;
         product_subtype?: string;
         size?: string;
+        name: string;
+        name_en: string;
         public_price: number;
         supplier_cost: number;
       }
@@ -71,6 +73,7 @@ export interface EmailVariables {
   // Variables de productos
   products: Array<{
     name: string;
+    name_en: string;
     quantity: number;
     days: number;
     unitPrice: number;
@@ -93,23 +96,6 @@ export interface EmailVariables {
   
   // Enlaces
   sizesSelectionID: string;
-}
-
-function formatProductName(item: RentalItem & { product_config: { id: string; product_type: string; product_subtype?: string; size?: string; public_price: number; supplier_cost: number; } }): string {
-  const productType = item.product_config?.product_type;
-  const productSubtype = item.product_config?.product_subtype;
-  const size = item.product_config?.size;
-  
-  switch (productType) {
-    case 'wetsuit':
-      return `Traje de buceo ${productSubtype || ''}`.trim();
-    case 'snorkel':
-      return 'Snorkel';
-    case 'fins':
-      return `Aletas`.trim();
-    default:
-      return `Producto ${item.product_config_id}`;
-  }
 }
 
 // Función para calcular el costo adicional por isla de devolución
@@ -151,7 +137,8 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
   
   // Preparar productos
   const products = order.rental_items.map(item => ({
-    name: formatProductName(item),
+    name: item.product_config.name,
+    name_en: item.product_config.name_en,
     quantity: item.quantity,
     days: item.days,
     unitPrice: item.unit_price,
@@ -428,7 +415,9 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
           product_subtype,
           size,
           public_price,
-          supplier_cost
+          supplier_cost,
+          name,
+          name_en
         )
       `)
       .eq('order_id', orderId);
@@ -493,7 +482,9 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
             product_subtype: item.product_config.product_subtype,
             size: item.product_config.size,
             public_price: item.product_config.public_price,
-            supplier_cost: item.product_config.supplier_cost
+            supplier_cost: item.product_config.supplier_cost,
+            name: item.product_config.name,
+            name_en: item.product_config.name_en,
           }
         })),
         
