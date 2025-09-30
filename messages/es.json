@@ -84,7 +84,8 @@
   },
   "payment": {
     "loadingConfig": "Cargando configuración...",
-    "payWithCard": "Pagar con tarjeta de crédito/débito"
+    "payWithCard": "Pagar con tarjeta de crédito/débito",
+    "processingError": "Error al procesar el pago. Por favor, inténtelo de nuevo más tarde."
   },
   "validation": {
     "required": "Este campo es requerido",

@@ -169,10 +169,13 @@ const PaymentButton = ({
       });
       
       if (isTransactionSuccessful) {
-        // Redirigir a la página de confirmación solo si la transacción fue exitosa
+        // Limpiar el carrito
+        localStorage.removeItem('galapagosCart')
+        
+        // Redirigir si la transacción fue exitosa
         router.push(`/${locale}/checkout/confirmation?orderId=${order.id}`)
       } else {
-        // Mostrar error pero permitir que se registre el intento fallido
+        // Mostrar error pero registrar el intento fallido
         const errorMessage = transactionStatusDetail === 1 ? 'Verificación requerida' :
         transactionStatusDetail === 6 ? 'Fraude' :
         transactionStatusDetail === 7 ? 'Reembolso' :
@@ -206,7 +209,7 @@ const PaymentButton = ({
       
     } catch (error) {
       console.error('Error processing payment:', error)
-      alert('Error al procesar el pago. Por favor, inténtelo de nuevo.')
+      toast.error('Error', { description: t('processingError') })
     }
   }
 
