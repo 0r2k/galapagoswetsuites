@@ -159,7 +159,8 @@ function RentalPageContent() {
           .from('product_config')
           .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage')
           .eq('active', true)
-          
+          .order('created_at', { ascending: true })
+        
         if (error) {
           throw error
         }
@@ -850,7 +851,7 @@ function RentalPageContent() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Image src="/chokotrip.webp" alt="Chokotrip" width={40} height={40} />
-              <h1 className="text-md sm:text-xl font-bold">Galápagos - Wetsuit & Snorkeling</h1>
+              <p className="text-md sm:text-xl font-bold">Galápagos - Wetsuit & Snorkeling</p>
             </div>
             
             <div className="flex items-center gap-2">
@@ -884,7 +885,7 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-xl sm:text-3xl font-bold text-balance mb-4">{t('hero.title')}</h2>
+          <h1 className="text-xl sm:text-3xl font-bold text-balance mb-4">{t('hero.title')}</h1>
           <p className="text-sm sm:text-base text-muted-foreground text-pretty">
             {t.rich('hero.subtitle', {
               br: () => <br />,
