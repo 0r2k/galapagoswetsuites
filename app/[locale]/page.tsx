@@ -885,7 +885,7 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-xl sm:text-3xl font-bold text-balance mb-4">{t('hero.title')}</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold text-balance mb-4">{t('hero.title')}</h1>
           <p className="text-sm sm:text-base text-muted-foreground text-pretty">
             {t.rich('hero.subtitle', {
               br: () => <br />,
@@ -965,11 +965,14 @@ function RentalPageContent() {
       {/* Footer */}
       <footer className="border-t bg-card/50 mt-16">
         <div className="container mx-auto px-4 py-8 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
             <Image src="/chokotrip.webp" alt="Chokotrip" width={24} height={24} />
             <span className="font-semibold">Galápagos - Wetsuit & Snorkeling</span>
           </div>
-          <p className="text-muted-foreground text-sm">by <a href="https://www.chokotrip.info/" target="_blank">Chokotrip</a></p>
+          <div className="flex items-center justify-center gap-2">
+            <span>by</span>
+            <a href="https://www.chokotrip.info/" target="_blank"><Image src="/ChokoTrip-logo.webp" alt="Chokotrip" width={100} height={28} /></a>
+          </div>
         </div>
       </footer>
     </div>
