@@ -197,7 +197,7 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     pickupPayment: Math.max(pickupPayment, 0),
     
     // Enlaces
-    sizesSelectionID: `'https://galapagos.viajes'}/sizes?orderId=${order.id}`
+    sizesSelectionID: `https://galapagos.viajes/sizes?orderId=${order.id}`
     
   };
 }
