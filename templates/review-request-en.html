@@ -1,0 +1,111 @@
+<mjml>
+  <mj-head>
+    <mj-title>Review Request</mj-title>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" color="#333333" line-height="1.6" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#0066cc" padding="30px">
+      <mj-column>
+        <mj-text align="center" color="white" font-size="28px" font-weight="bold" padding-bottom="10px">
+          🌊 Galápagos Dive Rental
+        </mj-text>
+        <mj-text align="center" color="white" font-size="22px" font-weight="bold">
+          How was your experience?
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Content -->
+    <mj-section background-color="#f9f9f9" padding="30px">
+      <mj-column>
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          Hello <strong>{{globalData.customerName.data}}</strong>,
+        </mj-text>
+        
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          We hope you enjoyed your diving experience in the Galápagos Islands with our rental equipment.
+        </mj-text>
+
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          Your feedback is very important to us and helps us improve our services. Could you take a few minutes to share your experience?
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Order Summary -->
+    <mj-section background-color="#f9f9f9" padding="0 30px">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          📋 Your Rental Summary
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Order Number:</strong> <span style="color: #0066cc; font-weight: bold;">{{globalData.orderNumber.data}}</span>
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Rental Period:</strong> {{globalData.startDate.data}} - {{globalData.endDate.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- CTA Button -->
+    <mj-section background-color="#f9f9f9" padding="30px">
+      <mj-column>
+        <mj-text align="center" font-size="16px" color="#333333" padding-bottom="20px">
+          Click the button below to leave your review:
+        </mj-text>
+        
+        <mj-button 
+          background-color="#0066cc" 
+          color="white" 
+          font-size="16px" 
+          font-weight="bold" 
+          padding="15px 30px" 
+          border-radius="5px"
+          href="{{globalData.reviewUrl.data}}"
+        >
+          ⭐ Leave my Review
+        </mj-button>
+        
+        <mj-text align="center" font-size="12px" color="#666666" padding-top="15px">
+          Or copy and paste this link in your browser:<br/>
+          <a href="{{globalData.reviewUrl.data}}" style="color: #0066cc;">{{globalData.reviewUrl.data}}</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Benefits -->
+    <mj-section background-color="#f9f9f9" padding="0 30px 30px">
+      <mj-column background-color="#e8f4fd" padding="20px">
+        <mj-text font-size="16px" font-weight="bold" color="#0066cc" padding-bottom="10px" align="center">
+          🎁 Thank you for your time!
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" align="center">
+          Your review helps us continue offering incredible experiences in the Galápagos Islands.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#333333" padding="20px">
+      <mj-column>
+        <mj-text align="center" color="white" font-size="14px" padding-bottom="10px">
+          <strong>Galápagos Dive Rental</strong>
+        </mj-text>
+        <mj-text align="center" color="#cccccc" font-size="12px">
+          Galápagos Islands, Ecuador<br/>
+          Email: info@galapagos.viajes<br/>
+          Phone: +593 XXX XXXX
+        </mj-text>
+        
+        <mj-text align="center" color="#cccccc" font-size="11px" padding-top="15px">
+          This email was sent because you completed a rental with us 3 days ago.<br/>
+          If you don't want to receive more review emails, you can ignore this message.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

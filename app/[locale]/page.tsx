@@ -611,7 +611,7 @@ function RentalPageContent() {
                           className="justify-start text-left font-normal"
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
+                          {startDate ? format(startDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
                           (startTime ? ` ${t('time.at')} ${startTime}` : '') : (
                             <span>{t('time.selectTime')}</span>
                           )}
@@ -705,7 +705,7 @@ function RentalPageContent() {
                            className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, "MMM d, yy", { locale: locale === 'en' ? enUS : es }) + 
+                          {endDate ? format(endDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
                           (endTime ? ` ${t('time.at')} ${endTime}` : '')
                           : (
                             <span>{t('time.selectTime')}</span>
@@ -850,7 +850,7 @@ function RentalPageContent() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/chokotrip.webp" alt="Chokotrip" width={40} height={40} />
+              <Image src="/favicon.webp" alt="Chokotrip" width={40} height={40} />
               <p className="text-md sm:text-xl font-bold">Galápagos - Wetsuit & Snorkeling</p>
             </div>
             
@@ -885,7 +885,7 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold text-balance mb-4">{t('hero.title')}</h1>
+          <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4">{t('hero.title')}</h1>
           <p className="text-sm sm:text-base text-muted-foreground text-pretty">
             {t.rich('hero.subtitle', {
               br: () => <br />,

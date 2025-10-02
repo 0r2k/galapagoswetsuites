@@ -1,0 +1,111 @@
+<mjml>
+  <mj-head>
+    <mj-title>Solicitud de Reseña</mj-title>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" color="#333333" line-height="1.6" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#0066cc" padding="30px">
+      <mj-column>
+        <mj-text align="center" color="white" font-size="28px" font-weight="bold" padding-bottom="10px">
+          🌊 Galápagos Dive Rental
+        </mj-text>
+        <mj-text align="center" color="white" font-size="22px" font-weight="bold">
+          ¿Cómo fue tu experiencia?
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Content -->
+    <mj-section background-color="#f9f9f9" padding="30px">
+      <mj-column>
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          Hola <strong>{{globalData.customerName.data}}</strong>,
+        </mj-text>
+        
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          Esperamos que hayas disfrutado tu experiencia de buceo en las Islas Galápagos con nuestro equipo de alquiler.
+        </mj-text>
+
+        <mj-text font-size="16px" color="#333333" padding-bottom="20px">
+          Tu opinión es muy importante para nosotros y nos ayuda a mejorar nuestros servicios. ¿Podrías tomarte unos minutos para compartir tu experiencia?
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Order Summary -->
+    <mj-section background-color="#f9f9f9" padding="0 30px">
+      <mj-column background-color="white" padding="20px">
+        <mj-text font-size="18px" font-weight="bold" color="#333333" padding-bottom="15px">
+          📋 Resumen de tu Alquiler
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Número de Orden:</strong> <span style="color: #0066cc; font-weight: bold;">{{globalData.orderNumber.data}}</span>
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" padding="5px 0">
+          <strong>Período de Alquiler:</strong> {{globalData.startDate.data}} - {{globalData.endDate.data}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- CTA Button -->
+    <mj-section background-color="#f9f9f9" padding="30px">
+      <mj-column>
+        <mj-text align="center" font-size="16px" color="#333333" padding-bottom="20px">
+          Haz clic en el botón de abajo para dejar tu reseña:
+        </mj-text>
+        
+        <mj-button 
+          background-color="#0066cc" 
+          color="white" 
+          font-size="16px" 
+          font-weight="bold" 
+          padding="15px 30px" 
+          border-radius="5px"
+          href="{{globalData.reviewUrl.data}}"
+        >
+          ⭐ Dejar mi Reseña
+        </mj-button>
+        
+        <mj-text align="center" font-size="12px" color="#666666" padding-top="15px">
+          O copia y pega este enlace en tu navegador:<br/>
+          <a href="{{globalData.reviewUrl.data}}" style="color: #0066cc;">{{globalData.reviewUrl.data}}</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Benefits -->
+    <mj-section background-color="#f9f9f9" padding="0 30px 30px">
+      <mj-column background-color="#e8f4fd" padding="20px">
+        <mj-text font-size="16px" font-weight="bold" color="#0066cc" padding-bottom="10px" align="center">
+          🎁 ¡Gracias por tu tiempo!
+        </mj-text>
+        <mj-text font-size="14px" color="#333333" align="center">
+          Tu reseña nos ayuda a seguir ofreciendo experiencias increíbles en las Islas Galápagos.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#333333" padding="20px">
+      <mj-column>
+        <mj-text align="center" color="white" font-size="14px" padding-bottom="10px">
+          <strong>Galápagos Dive Rental</strong>
+        </mj-text>
+        <mj-text align="center" color="#cccccc" font-size="12px">
+          Islas Galápagos, Ecuador<br/>
+          Email: info@galapagos.viajes<br/>
+          Teléfono: +593 XXX XXXX
+        </mj-text>
+        
+        <mj-text align="center" color="#cccccc" font-size="11px" padding-top="15px">
+          Este email fue enviado porque completaste un alquiler con nosotros hace 3 días.<br/>
+          Si no deseas recibir más emails de reseñas, puedes ignorar este mensaje.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
