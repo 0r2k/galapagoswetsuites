@@ -149,10 +149,10 @@
     "noRentalData": "No rental data available",
     "validationError": "Please complete the following fields: {fields}",
     "acceptPolicies": "I accept the",
-    "acceptPoliciesLink": "cancellation policies in Galápagos",
-    "cancellationPolicies": "Cancellation Policies in Galápagos",
+    "acceptPoliciesLink": "cancellation policies",
+    "cancellationPolicies": "Cancellation Policies of Wetsuits and Snorkeling Equipment",
     "policiesRequired": "You must accept the cancellation policies to continue",
-    "cancellationPoliciesText": "Cancellation Policies in Galapagos - Wetsuit & Snorkeling by ChokoTrip\n\nBy making a Reservation, you accept the applicable policies for renting your wetsuit and snorkeling equipment. The initial payment will be made only with debit or credit card, to confirm 100% of the equipment reservation. You can cancel your equipment reservation within 30 business days before the pickup date to receive a refund of the initial payment, less than 30 days the initial payment will be charged as a penalty. If you think you won't arrive on time, contact the agency manager and tell them when you will arrive so they don't cancel your Reservation. You are also responsible for damages or losses of rented equipment, so on pickup day the operator will ask for a guarantee that will be charged to a credit card and the return will be automatic."
+    "cancellationPoliciesText": "By making a Reservation, you accept the applicable policies for renting your wetsuit and snorkeling equipment. The initial payment will be made only with debit or credit card, to confirm 100% of the equipment reservation. You can cancel your equipment reservation within 30 business days before the pickup date to receive a refund of the initial payment, less than 30 days the initial payment will be charged as a penalty. If you think you won't arrive on time, contact the agency manager and tell them when you will arrive so they don't cancel your Reservation. You are also responsible for damages or losses of rented equipment, so on pickup day the operator will ask for a guarantee that will be charged to a credit card and the return will be automatic."
   },
   "confirmation": {
     "title": "Thank you for trusting ChokoTrip!",

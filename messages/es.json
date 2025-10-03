@@ -149,10 +149,10 @@
     "noRentalData": "No hay datos de alquiler disponibles",
     "validationError": "Por favor completa los siguientes campos: {fields}",
     "acceptPolicies": "Acepto las",
-    "acceptPoliciesLink": "políticas de cancelación en Galápagos",
-    "cancellationPolicies": "Políticas de cancelación en Galápagos",
+    "acceptPoliciesLink": "políticas de cancelación",
+    "cancellationPolicies": "Políticas de cancelación de Wetsuits y equipos de snorkel",
     "policiesRequired": "Debes aceptar las políticas de cancelación para continuar",
-    "cancellationPoliciesText": "Políticas de cancelación en Galapagos - Wetsuit & Snorkeling by ChokoTrip\n\nAl hacer la Reserva, aceptás las políticas aplicables de rentar tu wetsuit y equipos de snorkeling. El pago inicial, se realizara unicamente con tarjeta de debito o credito, para poder confirmar la reserva al 100% de los equipos. Puedes cancelar tu reserva de los equipos dentro de 30 dias habiles antes de la fecha de recogida para recibir un reembolso del pago inicial, menos de 30 dias el pago inicial se cobrará como penalidad, Si creés que no vas a llegar en tiempo ponte en contacto con el encargado de la agencia e indicale cuándo vas a llegar para que no cancele tu Reserva. También eres responsable por daños o pérdidas de los equipos alquilados, por eso el dia de recogida la operadora pedirá una garantia que se cobrara con tarjeta de credito y la devolucion sera atuomatica."
+    "cancellationPoliciesText": "Al hacer la Reserva, aceptás las políticas aplicables de rentar tu wetsuit y equipos de snorkeling. El pago inicial, se realizara unicamente con tarjeta de debito o credito, para poder confirmar la reserva al 100% de los equipos. Puedes cancelar tu reserva de los equipos dentro de 30 dias habiles antes de la fecha de recogida para recibir un reembolso del pago inicial, menos de 30 dias el pago inicial se cobrará como penalidad, Si creés que no vas a llegar en tiempo ponte en contacto con el encargado de la agencia e indicale cuándo vas a llegar para que no cancele tu Reserva. También eres responsable por daños o pérdidas de los equipos alquilados, por eso el dia de recogida la operadora pedirá una garantia que se cobrara con tarjeta de credito y la devolucion sera atuomatica."
   },
   "confirmation": {
     "title": "¡Gracias por confiar en ChokoTrip!",

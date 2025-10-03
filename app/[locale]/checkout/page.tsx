@@ -415,10 +415,10 @@ function CheckoutContent() {
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>{t('checkout.cancellationPolicies')}</DialogTitle>
+                          <DialogTitle className='text-center'>{t('checkout.cancellationPolicies')}</DialogTitle>
                         </DialogHeader>
                         <div className="mt-4">
-                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                          <p className="text-sm text-gray-700 whitespace-pre-line text-justify">
                             {t('checkout.cancellationPoliciesText')}
                           </p>
                         </div>
@@ -504,17 +504,17 @@ function CheckoutContent() {
               </div>
               <Separator />
               <div>
-                <div className="flex justify-between font-bold text-lg">
-                  <span>{t('cart.initialPayment')}</span>
+                <div className="flex justify-between text-lg">
+                  <span className=' font-bold'>{t('cart.initialPayment')}</span>
                   <span>${calculateInitialPayment(rental).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
-                  <span>{t('cart.payOnPickup')}</span>
+                  <span className=' font-bold'>{t('cart.payOnPickup')}</span>
                   <span>${(parseFloat(calculateTotal(rental)) - calculateInitialPayment(rental)).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-lg">
-                  <span>{t('cart.total')}</span>
-                  <span>${calculateTotal(rental)}</span>
+                <div className="flex justify-between text-lg">
+                  <span className=' font-bold'>{t('cart.total')}</span>
+                  <span className=' font-bold'>${calculateTotal(rental)}</span>
                 </div>
               </div>
             </CardContent>

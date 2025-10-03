@@ -850,8 +850,7 @@ function RentalPageContent() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/favicon.webp" alt="Chokotrip" width={40} height={40} />
-              <p className="text-md sm:text-xl font-bold">Galápagos - Wetsuit & Snorkeling</p>
+              <Image src="/galapagos-wetsuit-snorkel.webp" alt="Galápagos - Wetsuit & Snorkel" width={203} height={40} />
             </div>
             
             <div className="flex items-center gap-2">
@@ -966,12 +965,12 @@ function RentalPageContent() {
       <footer className="border-t bg-card/50 mt-16">
         <div className="container mx-auto px-4 py-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Image src="/chokotrip.webp" alt="Chokotrip" width={24} height={24} />
+            <Image src="/favicon.webp" alt="Galápagos - Wetsuit & Snorkeling" width={24} height={24} />
             <span className="font-semibold">Galápagos - Wetsuit & Snorkeling</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span>by</span>
-            <a href="https://www.chokotrip.info/" target="_blank"><Image src="/ChokoTrip-logo.webp" alt="Chokotrip" width={100} height={28} /></a>
+            <span className="text-xs text-muted-foreground">by</span>
+            <a href="https://www.chokotrip.info/" target="_blank"><Image src="/ChokoTrip-logo.webp" className="align-bottom" alt="Chokotrip" width={100} height={28} /></a>
           </div>
         </div>
       </footer>
