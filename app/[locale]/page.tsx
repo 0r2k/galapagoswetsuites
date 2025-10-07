@@ -428,7 +428,7 @@ function RentalPageContent() {
           </Badge>
         )}
         <CardHeader className="text-center">
-          <CardTitle className="text-xl flex justify-center gap-2">{productName} <Badge variant="secondary">${product.public_price}{t('products.perDay')}</Badge></CardTitle>
+          <CardTitle className="text-xl flex justify-center gap-2">{productName} <Badge variant="secondary">US${product.public_price}</Badge></CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center gap-2">
