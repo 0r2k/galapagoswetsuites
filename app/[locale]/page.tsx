@@ -884,7 +884,7 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4">{t('hero.title')}</h1>
+          <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4 text-[#01a4d4]">{t('hero.title')}</h1>
           <p className="text-sm sm:text-base text-muted-foreground text-pretty">
             {t.rich('hero.subtitle', {
               br: () => <br />,
