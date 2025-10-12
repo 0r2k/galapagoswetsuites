@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Crear URL de reseña
-        const reviewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/${order.language || 'es'}/review?orderId=${order.id}`;
+        const reviewUrl = `https://galapagos.viajes/${order.language || 'es'}/review?orderId=${order.id}`;
         
         // Datos para el template de email
         const emailData = {
@@ -92,23 +92,47 @@ export async function POST(req: NextRequest) {
           customerEmail: user.email
         };
 
-        // Aquí podrías enviar el email usando tu sistema de templates existente
+        // Determinar el idioma del email
+        const isEnglish = order.language === 'en';
+        
+        // Contenido del email según el idioma
+        const emailContent = isEnglish ? {
+          subject: `Review for your order #${order.order_number}`,
+          greeting: `Hello ${emailData.customerName},`,
+          thankYou: `Thank you for your purchase at Galápagos Viajes by ChokoTrip. We would like to know your opinion about your experience.`,
+          instruction: `Please click on the following link to leave your review:`,
+          buttonText: `Leave Review`,
+          orderInfo: `Your order number is: ${emailData.orderNumber}`,
+          contact: `If you have any questions, don't hesitate to contact us.`,
+          closing: `Thank you for your collaboration!`
+        } : {
+          subject: `Reseña para tu pedido #${order.order_number}`,
+          greeting: `Hola ${emailData.customerName},`,
+          thankYou: `Gracias por tu compra en Galápagos Viajes by ChokoTrip. Queremos saber tu opinión sobre tu experiencia.`,
+          instruction: `Por favor, da clic en el siguiente enlace para dejar tu reseña:`,
+          buttonText: `Dejar Reseña`,
+          orderInfo: `Tu número de orden es: ${emailData.orderNumber}`,
+          contact: `Si tienes alguna pregunta, no dudes en contactarnos.`,
+          closing: `Gracias por tu colaboración!`
+        };
+
+        // HTML del email
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #333;">Hola ${emailData.customerName},</h2>
-            <p>Gracias por tu compra en Galapagos Dive Rental. Queremos saber tu opinión sobre tu experiencia.</p>
-            <p>Por favor, da clic en el siguiente enlace para dejar tu reseña:</p>
-            <a href="${emailData.reviewUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Dejar Reseña</a>
-            <p>Tu número de orden es: ${emailData.orderNumber}</p>
-            <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
-            <p>Gracias por tu colaboración!</p>
+            <h2 style="color: #333;">${emailContent.greeting}</h2>
+            <p>${emailContent.thankYou}</p>
+            <p>${emailContent.instruction}</p>
+            <a href="${emailData.reviewUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">${emailContent.buttonText}</a>
+            <p>${emailContent.orderInfo}</p>
+            <p>${emailContent.contact}</p>
+            <p>${emailContent.closing}</p>
           </div>
         `;
 
         const { error: emailError } = await resend.emails.send({
           from: FROM,
           to: user.email,
-          subject: `Reseña para tu pedido #${order.order_number}`,
+          subject: emailContent.subject,
           html: emailHtml,
         });
         

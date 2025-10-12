@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign } from 'lucide-react'
+import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign, Star } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { 
@@ -77,6 +77,10 @@ interface RentalOrder {
   status_detail: string | null
   transaction_id: string | null
   language: string
+  review_submitted_at: string | null
+  review_text: string | null
+  review_stars: number | null
+  review_email_sent: boolean | null
   // Campos del JOIN con users
   customer_name: string
   customer_email: string
@@ -117,6 +121,7 @@ export default function AdminPage() {
   const [isPaymentConfigModalOpen, setIsPaymentConfigModalOpen] = useState(false)
   const [loadingRefund, setLoadingRefund] = useState<string | null>(null)
   const [loadingResendEmail, setLoadingResendEmail] = useState<string | null>(null)
+  const [loadingReviewEmail, setLoadingReviewEmail] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   
   // Estados para el modal de edición
@@ -265,6 +270,58 @@ export default function AdminPage() {
     } finally {
       setLoadingRefund(null)
     }
+  }
+
+  // Función para enviar email de reseña manualmente
+  const handleSendReviewEmail = async (order: RentalOrder) => {
+    setLoadingReviewEmail(order.id)
+    try {
+      const response = await fetch('/api/reviews/send-manual', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: order.id
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        toast.success('Email de reseña enviado exitosamente')
+        // Recargar pedidos para actualizar el estado
+        await loadOrders()
+      } else {
+        toast.error('Error al enviar email de reseña: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error sending review email:', error)
+      toast.error('Error al enviar email de reseña')
+    } finally {
+      setLoadingReviewEmail(null)
+    }
+  }
+
+  // Función para verificar si un pedido es elegible para email de reseña
+  const isReviewEmailEligible = (order: RentalOrder) => {
+    // Status debe ser >= 2
+    if (order.status < 2) return false
+    
+    // end_date debe ser al menos 3 días atrás
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 4)
+    const orderEndDate = new Date(order.end_date)
+    
+    if (orderEndDate > threeDaysAgo) return false
+    
+    // No debe tener reseña ya enviada
+    if (order.review_submitted_at !== null) return false
+    
+    // No debe tener email de reseña ya enviado
+    // if (order.review_email_sent === false) return false
+    
+    return true
   }
 
   // Función para cargar pedidos de alquiler
@@ -764,7 +821,7 @@ export default function AdminPage() {
                 <Table>
                    <TableHeader>
                      <TableRow>
-                       <TableHead>Número de Pedido</TableHead>
+                       <TableHead># Pedido</TableHead>
                        <TableHead>Nombre del Cliente</TableHead>
                        <TableHead>Fecha y Hora de Recogida</TableHead>
                        <TableHead>Isla de Devolución</TableHead>
@@ -830,12 +887,13 @@ export default function AdminPage() {
                                      <p>Ver items del pedido</p>
                                    </TooltipContent>
                                  </Tooltip>
-                                 <Tooltip>
-                                   <TooltipTrigger asChild>
-                                     <Button 
-                                       variant="secondary" 
-                                       size="sm"
-                                       onClick={() => handleResendEmail(order)}
+                                 {order.status >= 2 && (
+                                   <Tooltip>
+                                     <TooltipTrigger asChild>
+                                       <Button 
+                                         variant="secondary" 
+                                         size="sm"
+                                         onClick={() => handleResendEmail(order)}
                                        disabled={loadingResendEmail === order.id}
                                      >
                                        {loadingResendEmail === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
@@ -845,6 +903,7 @@ export default function AdminPage() {
                                      <p>Reenviar email de confirmación al cliente</p>
                                    </TooltipContent>
                                  </Tooltip>
+                                 )}
                                  {isRefundAvailable(order) && (
                                    <Tooltip>
                                      <TooltipTrigger asChild>
@@ -862,6 +921,26 @@ export default function AdminPage() {
                                      </TooltipContent>
                                    </Tooltip>
                                  )}
+                                 {isReviewEmailEligible(order) && (
+                                   <Tooltip>
+                                     <TooltipTrigger asChild>
+                                       <Button 
+                                         variant="outline" 
+                                         size="sm"
+                                         onClick={() => handleSendReviewEmail(order)}
+                                         disabled={loadingReviewEmail === order.id}
+                                         className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600"
+                                       >
+                                         {loadingReviewEmail === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}
+                                       </Button>
+                                     </TooltipTrigger>
+                                     <TooltipContent>
+                                       <p>Reenviar email para solicitar reseña</p>
+                                     </TooltipContent>
+                                   </Tooltip>
+                                 )}
+
+                                 
                                </TooltipProvider>
                              </div>
                            </TableCell>
