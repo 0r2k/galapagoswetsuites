@@ -75,7 +75,7 @@ function ReviewPageContent() {
 
   useEffect(() => {
     if (!orderId) {
-      setError('ID de pedido no proporcionado')
+      setError(t('orderNotProvided'))
       setLoading(false)
       return
     }
@@ -130,7 +130,7 @@ function ReviewPageContent() {
       }
 
       if (!data) {
-        setError('Pedido no encontrado')
+        setError(t('orderNotFound'))
         return
       }
 
@@ -183,7 +183,7 @@ function ReviewPageContent() {
       
     } catch (err) {
       console.error('Error submitting review:', err)
-      setError(err instanceof Error ? err.message : 'Error al enviar la reseña')
+      setError(err instanceof Error ? err.message : t('submitError'))
     } finally {
       setSubmitting(false)
     }
@@ -215,7 +215,7 @@ function ReviewPageContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Cargando datos del pedido...</p>
+          <p>{t('loadingOrder')}</p>
         </div>
       </div>
     )
@@ -231,7 +231,7 @@ function ReviewPageContent() {
               <h2 className="text-xl font-semibold mb-2">Error</h2>
               <p className="text-gray-600 mb-4">{error}</p>
               <Button onClick={() => router.push('/')}>
-                Volver al inicio
+                {t('backToHome')}
               </Button>
             </div>
           </CardContent>
@@ -255,7 +255,7 @@ function ReviewPageContent() {
             <p className="text-md sm:text-xl font-bold">Galápagos - Wetsuit & Snorkeling</p>
           </div>
           <h2 className="text-xl text-gray-600">
-            {success ? '¡Gracias por tu reseña!' : '¿Cómo fue tu experiencia?'}
+            {success ? t('thankYou') : t('title')}
           </h2>
         </div>
 
@@ -266,8 +266,8 @@ function ReviewPageContent() {
                 <CheckCircle className="h-6 w-6 mr-2" />
                 <span className="font-medium">
                   {orderData.review_submitted_at 
-                    ? 'Tu reseña ya fue enviada anteriormente' 
-                    : '¡Tu reseña ha sido enviada exitosamente!'
+                    ? t('reviewAlreadySubmitted')
+                    : t('reviewSubmitted')
                   }
                 </span>
               </div>
@@ -279,17 +279,17 @@ function ReviewPageContent() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center">
-              📋 Resumen de tu Alquiler
+              📋 {t('orderSummary')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-sm text-gray-600">Número de Orden</p>
+                <p className="text-sm text-gray-600">{t('orderNumber')}</p>
                 <p className="font-semibold text-blue-600">#{orderData.order_number}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Cliente</p>
+                <p className="text-sm text-gray-600">{t('customer')}</p>
                 <p className="font-semibold">
                   {Array.isArray(orderData.users) 
                     ? `${orderData.users[0]?.first_name} ${orderData.users[0]?.last_name}`
@@ -298,13 +298,13 @@ function ReviewPageContent() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Período de Alquiler</p>
+                <p className="text-sm text-gray-600">{t('rentalPeriod')}</p>
                 <p className="font-semibold">
                   {formatDate(orderData.start_date)} {formatTime(orderData.start_time)} - {formatDate(orderData.end_date)} {formatTime(orderData.end_time)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Isla de Devolución</p>
+                <p className="text-sm text-gray-600">{t('returnIsland')}</p>
                 <p className="font-semibold">{orderData.return_island}</p>
               </div>
             </div>
@@ -312,7 +312,7 @@ function ReviewPageContent() {
             <Separator className="my-4" />
 
             <div>
-              <h4 className="font-semibold mb-3">Equipos Alquilados:</h4>
+              <h4 className="font-semibold mb-3">{t('rentedEquipment')}:</h4>
               <div className="space-y-2">
                 {orderData.rental_items.map((item) => {
                   const productConfig = Array.isArray(item.product_config) 
@@ -329,7 +329,7 @@ function ReviewPageContent() {
                           }
                         </p>
                         <p className="text-sm text-gray-600">
-                          Talla: {item.size} • Cantidad: {item.quantity} • {item.days} días
+                          {t('size')}: {item.size} • {t('quantity')}: {item.quantity} • {item.days} {t('days')}
                         </p>
                       </div>
                       <Badge variant="secondary">
@@ -340,10 +340,7 @@ function ReviewPageContent() {
                 })}
               </div>
               
-              <div className="flex justify-between items-center mt-4 pt-3 border-t">
-                <span className="font-semibold">Total:</span>
-                <span className="font-bold text-lg">${orderData.total_amount.toFixed(2)}</span>
-              </div>
+              
             </div>
           </CardContent>
         </Card>
@@ -352,7 +349,7 @@ function ReviewPageContent() {
         {!success && (
           <Card>
             <CardHeader>
-              <CardTitle>⭐ Deja tu Reseña</CardTitle>
+              <CardTitle>⭐ {t('leaveReview')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -360,7 +357,7 @@ function ReviewPageContent() {
                 {/* Star Rating */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Calificación (1-5 estrellas)
+                    {t('rating')}
                   </label>
                   <div className="flex space-x-1">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -384,11 +381,11 @@ function ReviewPageContent() {
                   </div>
                   {rating > 0 && (
                     <p className="text-sm text-gray-600 mt-1">
-                      {rating === 1 && 'Muy malo'}
-                      {rating === 2 && 'Malo'}
-                      {rating === 3 && 'Regular'}
-                      {rating === 4 && 'Bueno'}
-                      {rating === 5 && 'Excelente'}
+                      {rating === 1 && t('ratingVeryBad')}
+                      {rating === 2 && t('ratingBad')}
+                      {rating === 3 && t('ratingRegular')}
+                      {rating === 4 && t('ratingGood')}
+                      {rating === 5 && t('ratingExcellent')}
                     </p>
                   )}
                 </div>
@@ -396,17 +393,17 @@ function ReviewPageContent() {
                 {/* Review Text */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cuéntanos sobre tu experiencia
+                    {t('reviewText')}
                   </label>
                   <Textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Describe tu experiencia con nuestro servicio de alquiler de equipos de buceo..."
+                    placeholder={t('reviewPlaceholder')}
                     rows={5}
                     className="w-full"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    {reviewText.length}/500 caracteres
+                    {t('charactersCount', { count: reviewText.length })}
                   </p>
                 </div>
 
@@ -424,10 +421,10 @@ function ReviewPageContent() {
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Enviando reseña...
+                      {t('submittingReview')}
                     </>
                   ) : (
-                    'Enviar Reseña'
+                    t('submitReview')
                   )}
                 </Button>
               </div>
@@ -439,7 +436,7 @@ function ReviewPageContent() {
         {success && orderData.review_text && (
           <Card>
             <CardHeader>
-              <CardTitle>Tu Reseña</CardTitle>
+              <CardTitle>{t('yourReview')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -455,7 +452,7 @@ function ReviewPageContent() {
                     />
                   ))}
                   <span className="ml-2 text-sm text-gray-600">
-                    ({orderData.review_stars}/5 estrellas)
+                    ({orderData.review_stars}/5 {t('stars')})
                   </span>
                 </div>
                 
@@ -465,7 +462,7 @@ function ReviewPageContent() {
                 
                 {orderData.review_submitted_at && (
                   <p className="text-sm text-gray-500">
-                    Enviado el {formatDate(orderData.review_submitted_at)}
+                    {t('submittedOn')} {formatDate(orderData.review_submitted_at)}
                   </p>
                 )}
               </div>
@@ -476,10 +473,10 @@ function ReviewPageContent() {
         {/* Footer */}
         <div className="text-center mt-8 pt-6 border-t">
           <p className="text-gray-600 mb-2">
-            ¡Gracias por elegir Galápagos Dive Rental!
+            {t('thankYouMessage')}
           </p>
           <Button variant="outline" onClick={() => router.push('/')}>
-            Volver al inicio
+            {t('backToHome')}
           </Button>
         </div>
       </div>
