@@ -86,5 +86,6 @@ export const config = {
     '/sizes/:path*',
     '/checkout/:path*',
     '/checkout/confirmation/:path*',
+    '/review/:path*',
   ],
 }
