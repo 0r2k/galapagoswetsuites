@@ -98,22 +98,20 @@ export async function POST(req: NextRequest) {
     
     // Contenido del email según el idioma
     const emailContent = isEnglish ? {
-      subject: `Review for your order #${order.order_number}`,
+      subject: `Hi ${emailData.customerName}! Help us with your review.`,
       greeting: `Hello ${emailData.customerName},`,
-      thankYou: `Thank you for your purchase at Galápagos Viajes by ChokoTrip. We would like to know your opinion about your experience.`,
-      instruction: `Please click on the following link to leave your review:`,
+      thankYou: `Thank you for renting your snorkeling equipment and wetsuit in the Galapagos. We would like to know how was your experience with the equipment and suits.`,
+      instruction: `Please click on the following link to leave your review and help us improve:`,
       buttonText: `Leave Review`,
-      orderInfo: `Your order number is: ${emailData.orderNumber}`,
-      contact: `If you have any questions, don't hesitate to contact us.`,
+      orderInfo: `Your order number was: ${emailData.orderNumber}`,
       closing: `Thank you for your collaboration!`
     } : {
-      subject: `Reseña para tu pedido #${order.order_number}`,
+      subject: `Hola ${emailData.customerName}! Ayúdanos con tu reseña.`,
       greeting: `Hola ${emailData.customerName},`,
-      thankYou: `Gracias por tu compra en Galápagos Viajes by ChokoTrip. Queremos saber tu opinión sobre tu experiencia.`,
-      instruction: `Por favor, da clic en el siguiente enlace para dejar tu reseña:`,
-      buttonText: `Dejar Reseña`,
-      orderInfo: `Tu número de orden es: ${emailData.orderNumber}`,
-      contact: `Si tienes alguna pregunta, no dudes en contactarnos.`,
+      thankYou: `Gracias por alquilar tu equipo de snorkel y wetsuit en Galápagos. Queremos saber cómo fue tu experiencia con los equipos y wetsuits.`,
+      instruction: `Por favor, da clic en el siguiente enlace para dejar tu reseña y ayudanos a mejorar:`,
+      buttonText: `Escribir Reseña`,
+      orderInfo: `Tu número de orden fue: ${emailData.orderNumber}`,
       closing: `Gracias por tu colaboración!`
     };
 
@@ -125,7 +123,6 @@ export async function POST(req: NextRequest) {
         <p>${emailContent.instruction}</p>
         <a href="${emailData.reviewUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">${emailContent.buttonText}</a>
         <p>${emailContent.orderInfo}</p>
-        <p>${emailContent.contact}</p>
         <p>${emailContent.closing}</p>
       </div>
     `;

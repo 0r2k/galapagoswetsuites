@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/reviews/cronjob",
+      "path": "/api/reviews/cronjob?token=LolaRita2025!",
       "schedule": "0 9 * * *"
     }
   ]
