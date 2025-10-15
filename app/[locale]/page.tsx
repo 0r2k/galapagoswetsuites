@@ -1048,7 +1048,7 @@ function RentalPageContent() {
                           {/* Reviews Container */}
                           <div 
                             ref={reviewsContainerRef}
-                            className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-4 px-12 md:px-2 pb-4"
+                            className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-4 px-0 md:px-2 pb-4"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                             onScroll={(e) => {
                               const container = e.currentTarget
