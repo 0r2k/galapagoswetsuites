@@ -1028,8 +1028,8 @@ function RentalPageContent() {
               )}
             </div>
             
-            <div className="flex flex-wrap mt-6">
-              <div className="w-full md:w-1/2">
+            <div className="grid grid-cols-1 md:grid-cols-2 mt-6 gap-6">
+              <div>
                 <section className="py-8">
                   <div className="container mx-auto px-4">
                     <h2 className="text-2xl font-bold text-center mb-8 text-[#01a4d4]">
@@ -1135,8 +1135,8 @@ function RentalPageContent() {
                   </div>
                 </section>
               </div>
-              <div className="w-full md:w-1/2">
-                <section className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6 h-full">
+              <div>
+                <section className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg h-full">
                   <div className="relative">
                     {galleryLoading ? (
                       <div className="flex items-center justify-center py-12">
