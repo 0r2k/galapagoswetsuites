@@ -12,7 +12,7 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SheetPopoverContent } from "@/components/ui/sheet-popover-content"
-import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2 } from "lucide-react"
+import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2, ChevronLeft, ChevronRight, Star } from "lucide-react"
 import { format, differenceInDays } from "date-fns"
 import { es, enUS } from "date-fns/locale"
 import { toast } from 'sonner'
@@ -20,6 +20,7 @@ import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useTranslations } from 'next-intl'
+import { getCountryFlag, getCountryName } from "@/utils/countryFlags"
 
 interface Product {
   id: string
@@ -43,6 +44,24 @@ interface CartItem {
   startTime?: string
   endTime?: string
   returnIsland?: "santa-cruz" | "san-cristobal"
+}
+
+interface Review {
+  id: string
+  customerName: string
+  reviewText: string
+  reviewStars: number
+  reviewDate: string
+  nationality?: string | null
+}
+
+interface GalleryImage {
+  id: string
+  title: string
+  url: string
+  alt: string
+  sort_order: number
+  created_at: string
 }
 
 // Función para cargar el carrito desde localStorage
@@ -86,8 +105,15 @@ function RentalPageContent() {
   // const [dateTimePopoverOpen, setDateTimePopoverOpen] = useState(false)
   // const [endDateTimePopoverOpen, setEndDateTimePopoverOpen] = useState(false)
   const [hasDateConflict, setHasDateConflict] = useState(false)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
+  const [galleryLoading, setGalleryLoading] = useState(false)
+  const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
+  const reviewsContainerRef = useRef<HTMLDivElement>(null);
 
   const portalRefCb = useCallback((node: HTMLDivElement | null) => {
     portalRef.current = node;
@@ -188,8 +214,44 @@ function RentalPageContent() {
         setLoading(false)
       }
     }
+
+    const fetchReviews = async () => {
+      setReviewsLoading(true)
+      try {
+        const response = await fetch('/api/reviews/approved')
+        if (!response.ok) {
+          throw new Error('Failed to fetch reviews')
+        }
+        const data = await response.json()
+        setReviews(data || [])
+        console.log('Reviews cargadas:', data || [])
+      } catch (error) {
+        console.error('Error al cargar reviews:', error)
+      } finally {
+        setReviewsLoading(false)
+      }
+    }
+
+    const fetchGalleryImages = async () => {
+      setGalleryLoading(true)
+      try {
+        const response = await fetch('/api/gallery/list')
+        if (!response.ok) {
+          throw new Error('Failed to fetch gallery images')
+        }
+        const data = await response.json()
+        setGalleryImages(data.images || [])
+        console.log('Imágenes de galería cargadas:', data || [])
+      } catch (error) {
+        console.error('Error al cargar imágenes de galería:', error)
+      } finally {
+        setGalleryLoading(false)
+      }
+    }
     
     fetchProducts()
+    fetchReviews()
+    fetchGalleryImages()
   }, [])
 
   useEffect(() => {
@@ -295,7 +357,54 @@ function RentalPageContent() {
     
     localStorage.setItem('galapagosCart', JSON.stringify(updatedCart))
   }
-  
+
+  // Funciones para navegación de reviews
+  const nextReview = () => {
+    if (reviews.length > 0) {
+      setCurrentReviewIndex((prev) => (prev + 1) % reviews.length)
+    }
+  }
+
+  const prevReview = () => {
+    if (reviews.length > 0) {
+      setCurrentReviewIndex((prev) => (prev - 1 + reviews.length) % reviews.length)
+    }
+  }
+
+  const scrollToReview = (index: number) => {
+    if (reviewsContainerRef.current) {
+      const container = reviewsContainerRef.current
+      const reviewWidth = container.scrollWidth / reviews.length
+      container.scrollTo({
+        left: reviewWidth * index,
+        behavior: 'smooth'
+      })
+    }
+    setCurrentReviewIndex(index)
+  }
+
+  // Efecto para cambio automático de imágenes de galería cada 5 segundos
+  useEffect(() => {
+    if (galleryImages.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentGalleryIndex((prev) => (prev + 1) % galleryImages.length)
+      }, 5000)
+
+      return () => clearInterval(interval)
+    }
+  }, [galleryImages.length])
+
+  // Efecto para cambio automático de reviews cada 10 segundos
+  useEffect(() => {
+    if (reviews.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentReviewIndex((prev) => (prev + 1) % reviews.length)
+      }, 10000)
+
+      return () => clearInterval(interval)
+    }
+  }, [reviews.length])
+
   // Calcula los días de alquiler según las reglas de horario
   const calculateRentalDays = (): number => {
     if (!startDate || !endDate || !startTime || !endTime) {
@@ -918,6 +1027,156 @@ function RentalPageContent() {
                 </div>
               )}
             </div>
+            
+            <div className="flex flex-wrap mt-6">
+              <div className="w-full md:w-1/2">
+                <section className="py-8">
+                  <div className="container mx-auto px-4">
+                    <h2 className="text-2xl font-bold text-center mb-8 text-[#01a4d4]">
+                      {t('reviews.title')}
+                    </h2>
+
+                    {reviewsLoading ? (
+                      <div className="flex justify-center items-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <span className="ml-2">{t('reviews.loading')}</span>
+                      </div>
+                    ) : (
+                      <>
+                        {reviews.length > 0 ? (
+                        <div className="relative max-w-4xl mx-auto">
+                          {/* Reviews Container */}
+                          <div 
+                            ref={reviewsContainerRef}
+                            className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-4 px-12 md:px-2 pb-4"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            onScroll={(e) => {
+                              const container = e.currentTarget
+                              const scrollLeft = container.scrollLeft
+                              const reviewWidth = container.scrollWidth / reviews.length
+                              const newIndex = Math.round(scrollLeft / reviewWidth)
+                              if (newIndex !== currentReviewIndex) {
+                                setCurrentReviewIndex(newIndex)
+                              }
+                            }}
+                          >
+                            {reviews.map((review, index) => (
+                              <Card 
+                                key={review.id} 
+                                className="flex-shrink-0 w-full snap-center bg-white shadow-md hover:shadow-lg transition-shadow"
+                              >
+                                <CardContent className="p-6">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                      <h3 className="font-semibold text-lg">{review.customerName}</h3>
+                                      {review.nationality && (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <span className="text-lg" role="img" aria-label={getCountryName(review.nationality)}>
+                                                {getCountryFlag(review.nationality)}
+                                              </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>{getCountryName(review.nationality)}</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          className={`h-4 w-4 ${
+                                            i < review.reviewStars
+                                              ? 'fill-yellow-400 text-yellow-400'
+                                              : 'text-gray-300'
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <p className="text-muted-foreground text-sm leading-relaxed">
+                                    "{review.reviewText}"
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-4">
+                                    {new Date(review.reviewDate).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric'
+                                    })}
+                                  </p>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+
+                          {/* Dots Indicator */}
+                          <div className="flex justify-center gap-2 mt-4">
+                            {reviews.map((_, index) => (
+                              <button
+                                key={index}
+                                className={`w-2 h-2 rounded-full transition-colors ${
+                                  index === currentReviewIndex
+                                    ? 'bg-[#01a4d4]'
+                                    : 'bg-gray-300 hover:bg-gray-400'
+                                }`}
+                                onClick={() => scrollToReview(index)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        ) : (
+                          <p className="text-center text-muted-foreground py-12">{t('reviews.noReviews')}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </section>
+              </div>
+              <div className="w-full md:w-1/2">
+                <section className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6 h-full">
+                  <div className="relative">
+                    {galleryLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        {locale === 'es' ? 'Cargando galería...' : 'Loading gallery...'}
+                      </div>
+                    ) : (
+                      <>
+                        {galleryImages.length > 0 ? (
+                        <div className="relative h-96 overflow-hidden rounded-lg">
+                          {galleryImages.map((image, index) => (
+                            <div
+                              key={image.id}
+                              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                                index === currentGalleryIndex ? 'opacity-100' : 'opacity-0'
+                              }`}
+                            >
+                              <div className="relative w-full h-full">
+                                <Image
+                                  src={image.url}
+                                  alt={image.alt}
+                                  fill
+                                  className="object-cover rounded-lg"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        ) : (
+                          <p className="text-center text-muted-foreground py-12">
+                            {locale === 'es' ? 'No hay imágenes en la galería.' : 'No images in gallery.'}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </section>
+              </div>
+            </div>
+
           </div>
 
           {/* Right Column - Cart (Hidden on mobile) */}

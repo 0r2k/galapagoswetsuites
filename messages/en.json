@@ -263,5 +263,10 @@
     "orderNotFound": "Order not found",
     "submitError": "Error submitting review",
     "loadingOrder": "Loading order data..."
+  },
+  "reviews": {
+    "title": "Customer Reviews",
+    "loading": "Loading reviews...",
+    "noReviews": "No reviews yet for this product."
   }
 }

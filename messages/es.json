@@ -263,5 +263,10 @@
     "orderNotFound": "Pedido no encontrado",
     "submitError": "Error al enviar la reseña",
     "loadingOrder": "Cargando datos del pedido..."
+  },
+  "reviews": {
+    "title": "Reseñas de Clientes",
+    "loading": "Cargando reseñas...",
+    "noReviews": "No hay reseñas disponibles para este producto."
   }
 }

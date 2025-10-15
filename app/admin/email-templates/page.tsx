@@ -181,7 +181,7 @@ export default function EmailTemplatesList() {
         </Badge>
       </div>
 
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Crear Nueva Plantilla
@@ -236,7 +236,7 @@ export default function EmailTemplatesList() {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <div className="grid gap-4">
         {loading ? (

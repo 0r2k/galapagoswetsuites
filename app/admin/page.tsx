@@ -8,22 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign, Star } from 'lucide-react'
+import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { 
-  ProductConfig, 
   AdditionalFee, 
-  getProducts, 
   getAdditionalFees, 
-  updateProduct,
-  ProductType,
-  WetsuitSubtype,
   Island
 } from '@/lib/db'
 import { toast } from 'sonner'
@@ -37,6 +33,8 @@ import {
 } from '@/lib/paymentConfig'
 import refundPaymentez from '@/lib/refund-paymentez'
 import { Separator } from '@/components/ui/separator'
+import Gallery from '@/components/gallery'
+import GalleryUploader from '@/components/gallery-uploader'
 
 // Interface para productos con información completa
 interface Product {
@@ -81,6 +79,7 @@ interface RentalOrder {
   review_text: string | null
   review_stars: number | null
   review_email_sent: boolean | null
+  review_approved: boolean | null
   // Campos del JOIN con users
   customer_name: string
   customer_email: string
@@ -110,7 +109,7 @@ export default function AdminPage() {
   const [fees, setFees] = useState<AdditionalFee[]>([])
   const [user, setUser] = useState<any>(null)
   const [orders, setOrders] = useState<RentalOrder[]>([])
-  const [activeTab, setActiveTab] = useState('products')
+  const [activeTab, setActiveTab] = useState('general-config')
   const [paymentConfigs, setPaymentConfigs] = useState<PaymentConfig[]>([])
   const [isItemsModalOpen, setIsItemsModalOpen] = useState(false)
   const [selectedOrderItems, setSelectedOrderItems] = useState<RentalItem[]>([])
@@ -123,6 +122,25 @@ export default function AdminPage() {
   const [loadingResendEmail, setLoadingResendEmail] = useState<string | null>(null)
   const [loadingReviewEmail, setLoadingReviewEmail] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [reviews, setReviews] = useState<RentalOrder[]>([])
+  const [loadingApproval, setLoadingApproval] = useState<string | null>(null)
+  const [approvalConfirmDialog, setApprovalConfirmDialog] = useState<{
+    isOpen: boolean
+    orderId: string
+    reviewText: string
+    customerName: string
+  }>({
+    isOpen: false,
+    orderId: '',
+    reviewText: '',
+    customerName: ''
+  })
+  
+  // Estado para refrescar la galería
+  const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0)
+  
+  // Estado para mostrar/ocultar la galería
+  const [isGalleryVisible, setIsGalleryVisible] = useState(false)
   
   // Estados para el modal de edición
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -137,6 +155,48 @@ export default function AdminPage() {
     tax_percentage: 0,
     active: true
   })
+
+  // Función para cargar reviews
+  // Función para mostrar el diálogo de confirmación de aprobación
+  const showApprovalConfirmation = (review: RentalOrder) => {
+    setApprovalConfirmDialog({
+      isOpen: true,
+      orderId: review.id,
+      reviewText: review.review_text || '',
+      customerName: review.customer_name
+    })
+  }
+
+  // Función para aprobar una review
+  const handleApproveReview = async () => {
+    const { orderId } = approvalConfirmDialog
+    setLoadingApproval(orderId)
+    try {
+      const { error } = await supabase
+        .from('rental_orders')
+        .update({ review_approved: true })
+        .eq('id', orderId)
+
+      if (error) throw error
+
+      toast.success('Review aprobada exitosamente')
+      // Recargar orders para actualizar el estado de reviews
+      await loadOrders()
+      
+      // Cerrar el diálogo
+      setApprovalConfirmDialog({
+        isOpen: false,
+        orderId: '',
+        reviewText: '',
+        customerName: ''
+      })
+    } catch (error) {
+      console.error('Error approving review:', error)
+      toast.error('Error al aprobar la review')
+    } finally {
+      setLoadingApproval(null)
+    }
+  }
 
   // Formulario para nueva tarifa
   const [newFee, setNewFee] = useState<Partial<AdditionalFee>>({
@@ -307,6 +367,7 @@ export default function AdminPage() {
   const isReviewEmailEligible = (order: RentalOrder) => {
     // Status debe ser >= 2
     if (order.status < 2) return false
+    if (order.review_submitted_at !== null) return false
     
     // end_date debe ser al menos 3 días atrás
     const threeDaysAgo = new Date()
@@ -314,9 +375,6 @@ export default function AdminPage() {
     const orderEndDate = new Date(order.end_date)
     
     if (orderEndDate > threeDaysAgo) return false
-    
-    // No debe tener reseña ya enviada
-    if (order.review_submitted_at !== null) return false
     
     // No debe tener email de reseña ya enviado
     // if (order.review_email_sent === false) return false
@@ -349,6 +407,17 @@ export default function AdminPage() {
       })) || []
       
       setOrders(mappedOrders)
+
+      // Filtrar solo las órdenes que tienen reviews (review_text no nulo y review_submitted_at no nulo)
+      const mappedReviews = data?.filter(order => 
+        order.review_text && order.review_submitted_at
+      ).map(order => ({
+        ...order,
+        customer_name: order.users?.first_name + ' ' + order.users?.last_name || 'N/A',
+        customer_email: order.users?.email || 'N/A'
+      })) || []
+      
+      setReviews(mappedReviews)
     } catch (error) {
       console.error('Error loading orders:', error)
       toast.error('Error al cargar pedidos')
@@ -557,15 +626,16 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="products">Productos</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="general-config">Configuración</TabsTrigger>
           <TabsTrigger value="fees">Tarifas Adicionales</TabsTrigger>
-          <TabsTrigger value="payment-config">Configuración de Pago</TabsTrigger>
+          <TabsTrigger value="payment-config">Nuvei</TabsTrigger>
           <TabsTrigger value="email-templates">Plantillas de Email</TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="products" className="space-y-6">
+        <TabsContent value="general-config" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Productos Disponibles</CardTitle>
@@ -620,6 +690,36 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Galería de imágenes</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsGalleryVisible(!isGalleryVisible)}
+                  className="flex items-center gap-2"
+                >
+                  {isGalleryVisible ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Ocultar uploader
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      Subir imagen
+                    </>
+                  )}
+                </Button>
+              </div>
+              {isGalleryVisible && (
+                <GalleryUploader onUploadSuccess={() => setGalleryRefreshTrigger(prev => prev + 1)} />
+              )}
+              <Gallery refreshTrigger={galleryRefreshTrigger} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -953,6 +1053,107 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Tab de Reviews */}
+        <TabsContent value="reviews" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Reviews de Clientes</CardTitle>
+              <Button 
+                onClick={loadOrders} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualizar
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Orden</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Estrellas</TableHead>
+                    <TableHead>Review</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reviews.map((review) => (
+                    <TableRow key={review.id}>
+                      <TableCell className="font-medium">
+                        #{review.order_number}
+                      </TableCell>
+                      <TableCell>{review.customer_name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-4 w-4 ${
+                                i < (review.review_stars || 0)
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                          <span className="ml-2 text-sm text-gray-600">
+                            ({review.review_stars}/5)
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-xs">
+                        <div className="break-words whitespace-normal" title={review.review_text || ''}>
+                          {review.review_text}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {review.review_submitted_at 
+                          ? new Date(review.review_submitted_at).toLocaleDateString('es-ES')
+                          : 'N/A'
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={review.review_approved ? 'default' : 'secondary'}
+                        >
+                          {review.review_approved ? 'Aprobada' : 'Pendiente'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {!review.review_approved && (
+                          <Button
+                            onClick={() => showApprovalConfirmation(review)}
+                            disabled={loadingApproval === review.id}
+                            size="sm"
+                            className="bg-green-600 cursor-pointer hover:bg-green-700"
+                          >
+                            {loadingApproval === review.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Aprobar'
+                            )}
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {reviews.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        No hay reviews disponibles
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Modal de Edición */}
@@ -1221,6 +1422,59 @@ export default function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de confirmación para aprobar review */}
+      <Dialog open={approvalConfirmDialog.isOpen} onOpenChange={(open) => {
+        if (!open) {
+          setApprovalConfirmDialog({
+            isOpen: false,
+            orderId: '',
+            reviewText: '',
+            customerName: ''
+          })
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Está seguro que desea aprobar la review de {approvalConfirmDialog.customerName}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p><strong>Comentario:</strong></p>
+            <div className="mt-2 p-3 bg-gray-50 rounded-md">
+              <p>{approvalConfirmDialog.reviewText}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setApprovalConfirmDialog({
+                isOpen: false,
+                orderId: '',
+                reviewText: '',
+                customerName: ''
+              })}
+              disabled={loadingApproval !== null}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleApproveReview}
+              disabled={loadingApproval !== null}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {loadingApproval ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Aprobando...
+                </>
+              ) : (
+                'Aprobar Review'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }
