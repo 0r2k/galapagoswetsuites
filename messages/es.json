@@ -265,7 +265,7 @@
     "loadingOrder": "Cargando datos del pedido..."
   },
   "reviews": {
-    "title": "Reseñas de Clientes",
+    "title": "Lo que dicen nuestros clientes",
     "loading": "Cargando reseñas...",
     "noReviews": "No hay reseñas disponibles para este producto."
   }

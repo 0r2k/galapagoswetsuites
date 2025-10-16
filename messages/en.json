@@ -265,7 +265,7 @@
     "loadingOrder": "Loading order data..."
   },
   "reviews": {
-    "title": "Customer Reviews",
+    "title": "What our customers say",
     "loading": "Loading reviews...",
     "noReviews": "No reviews yet for this product."
   }
