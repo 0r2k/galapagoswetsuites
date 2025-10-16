@@ -38,6 +38,7 @@ interface RentalOrder {
   users: User
   rental_items: RentalItem[]
   status: number
+  pickup?: string
 }
 
 const sizeOptions = {
@@ -55,6 +56,7 @@ export default function SizesPage() {
   
   const [order, setOrder] = useState<RentalOrder | null>(null)
   const [sizes, setSizes] = useState<Record<string, string>>({})
+  const [hotelName, setHotelName] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
@@ -112,6 +114,11 @@ export default function SizesPage() {
       })
       setSizes(initialSizes)
       
+      // Inicializar hotel name si el pickup es hotel
+      if (orderData.pickup && orderData.pickup !== 'santa-cruz') {
+        setHotelName(orderData.pickup)
+      }
+      
     } catch (error) {
       console.error('Error fetching order:', error)
       toast.error(t('orderNotFound'))
@@ -127,17 +134,23 @@ export default function SizesPage() {
     }))
   }
 
-  const handleSave = async () => {
-    if (!orderId) return
-    
+  const saveSizes = async () => {
     setSaving(true)
     try {
+      // Prepare data to save
+      const dataToSave: any = { sizes }
+      
+      // Include hotel name if pickup is hotel
+      if (order?.pickup && order.pickup !== 'santa-cruz' && hotelName.trim()) {
+        dataToSave.pickup = hotelName.trim()
+      }
+      
       const response = await fetch(`/api/rentals/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sizes }),
+        body: JSON.stringify(dataToSave),
       })
 
       if (!response.ok) {
@@ -200,13 +213,21 @@ export default function SizesPage() {
     
     setFinalizing(true)
     try {
+      // Prepare data to save
+      const dataToSave: any = { sizes }
+      
+      // Include hotel name if pickup is hotel
+      if (order?.pickup && order.pickup !== 'santa-cruz' && hotelName.trim()) {
+        dataToSave.pickup = hotelName.trim()
+      }
+      
       // Primero guardar las tallas
       const sizesResponse = await fetch(`/api/rentals/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sizes }),
+        body: JSON.stringify(dataToSave),
       })
 
       if (!sizesResponse.ok) {
@@ -248,6 +269,11 @@ export default function SizesPage() {
     } finally {
       setFinalizing(false)
     }
+  }
+
+  const handleSave = async () => {
+    if (!orderId) return
+    await saveSizes()
   }
 
   const getSizeOptions = (productType: string) => {
@@ -345,6 +371,34 @@ export default function SizesPage() {
               </div>
             </div>
           </div>
+
+        {/* Hotel Name Section - Only show if pickup is hotel */}
+        {order?.pickup && order.pickup !== 'santa-cruz' && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('hotelInformation')}</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('hotelName')}
+                </label>
+                {order.status > 3 ? (
+                  <div className="p-3 bg-gray-50 rounded-md border">
+                    <span className="text-gray-900">{hotelName || order.pickup}</span>
+                  </div>
+                ) : (
+                  <Input
+                    type="text"
+                    value={hotelName}
+                    onChange={(e) => setHotelName(e.target.value)}
+                    placeholder={t('hotelNamePlaceholder')}
+                    className="w-full border-gray-300 bg-white"
+                  />
+                )}
+              </div>
+              <p className="text-sm text-gray-500 italic">{t('noAirbnb')}</p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {Object.values(groupedItems).map((group) => {

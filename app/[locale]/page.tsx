@@ -44,6 +44,8 @@ interface CartItem {
   startTime?: string
   endTime?: string
   returnIsland?: "santa-cruz" | "san-cristobal"
+  pickup?: "santa-cruz" | string
+  hotelName?: string
 }
 
 interface Review {
@@ -111,6 +113,8 @@ function RentalPageContent() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
   const [galleryLoading, setGalleryLoading] = useState(false)
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
+  const [pickup, setPickup] = useState<"santa-cruz" | "hotel">("santa-cruz")
+  const [hotelName, setHotelName] = useState<string>("")
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
   const reviewsContainerRef = useRef<HTMLDivElement>(null);
@@ -175,6 +179,17 @@ function RentalPageContent() {
       if (firstItem.endDate) setEndDate(firstItem.endDate)
       if (firstItem.startTime) setStartTime(firstItem.startTime)
       if (firstItem.endTime) setEndTime(firstItem.endTime)
+      
+      // Cargar pickup y hotelName desde localStorage
+      if (firstItem.pickup) {
+        if (firstItem.pickup === 'santa-cruz') {
+          setPickup('santa-cruz')
+          setHotelName('')
+        } else {
+          setPickup('hotel')
+          setHotelName(firstItem.hotelName || firstItem.pickup)
+        }
+      }
     }
   }, [])
   
@@ -334,7 +349,7 @@ function RentalPageContent() {
     localStorage.setItem('galapagosCart', JSON.stringify(newCartItems))
   }
   
-  // Actualizar fecha, hora e isla de devolución
+  // Actualizar fecha, hora, isla de devolución y pickup
   const updateCartDetails = (field: string, value: any) => {
     const updatedCart = cartItems.map(item => ({
       ...item,
@@ -467,7 +482,10 @@ function RentalPageContent() {
       return total + itemSubtotal + itemTax
     }, returnFeeAmount) // Agregamos la tarifa de devolución sin multiplicar por días
     
-    return { subtotal, returnFeeAmount, totalWithTax }
+    // Agregar $5 si el pickup es en hotel
+    const hotelPickupFee = pickup === "hotel" ? 5 : 0
+    
+    return { subtotal, returnFeeAmount, totalWithTax: totalWithTax + hotelPickupFee }
   }
 
   const calculateInitialPayment = (): number => {
@@ -479,7 +497,10 @@ function RentalPageContent() {
       return total + priceDifference
     }, 0)
     
-    return Math.max(initialPayment, 0) // Asegurar que no sea negativo
+    // Agregar $5 si el pickup es en hotel
+    const hotelPickupFee = pickup === "hotel" ? 5 : 0
+    
+    return Math.max(initialPayment + hotelPickupFee, 0) // Asegurar que no sea negativo
   }
   
   const proceedToCheckout = () => {
@@ -656,9 +677,9 @@ function RentalPageContent() {
             </CardTitle>
           </CardHeader>
         )}
-        <CardContent className="space-y-4 pt-6">
+        <CardContent className="space-y-4 p-0">
           {cartItems.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground">
+            <div className="text-center p-6 text-muted-foreground">
               <ShoppingCart className="mx-auto h-8 w-8 mb-2 opacity-50" />
               <p>{t('cart.empty')}</p>
               <p className="text-sm">{t('cart.emptyDescription')}</p>
@@ -666,7 +687,7 @@ function RentalPageContent() {
           ) : (
             <div className="space-y-4">
               {/* Lista de productos en el carrito */}
-              <div className="space-y-3">
+              <div className="space-y-3 px-6">
                 {cartItems.map((item, index) => {
                   // Obtener nombre según el idioma para cada item del carrito
                   const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
@@ -701,7 +722,7 @@ function RentalPageContent() {
               </div>
               
               {/* Total por dia */}
-              <div>
+              <div className="px-6">
                 <div className="flex justify-between font-medium">
                   <span>{t('cart.totalPerDay')}</span>
                   <span>${calculateCartTotal().baseTotal}</span>
@@ -710,218 +731,270 @@ function RentalPageContent() {
               
               {/* Selector de fechas y horas */}
               {cartItems.length > 0 && (
-                <div className="mt-12 space-y-3">
-                  <div className="space-y-2">
-                    <label className="font-bold">{t('cart.pickupDate')}</label>
-                    <Popover modal={false} open={getPopoverState('startDate')} onOpenChange={(open) => handlePopoverState('startDate', open)}>
-                      <PopoverTrigger asChild className="w-full">
-                        <Button
-                          variant={"outline"}
-                          className="justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
-                          (startTime ? ` ${t('time.at')} ${startTime}` : '') : (
-                            <span>{t('time.selectTime')}</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
-                        <div className="flex">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={(newDate) => {
-                              if (newDate) {
-                                setStartDate(newDate)
-                                setStartTime(null)
-                                updateCartDetails('startDate', newDate)
-                                
-                                // Check if new start date is after end date
-                                if (endDate && newDate > endDate) {
-                                  console.log('Esta mal')
-                                  setHasDateConflict(true)
-                                } else {
-                                  console.log('Esta bien')
-                                  setHasDateConflict(false)
+                <>
+                  <div className="mt-8 space-y-3 p-6 bg-[#f9feff] border-b mb-0">
+                    <p className="font-bold">{t('cart.pickupTitle')}:</p>
+                    <div className="space-y-2">
+                      <label>{t('cart.pickupDate')}</label>
+                      <Popover modal={false} open={getPopoverState('startDate')} onOpenChange={(open) => handlePopoverState('startDate', open)}>
+                        <PopoverTrigger asChild className="w-full">
+                          <Button
+                            variant={"outline"}
+                            className="justify-start text-left font-normal border-primary/20"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {startDate ? format(startDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
+                            (startTime ? ` ${t('time.at')} ${startTime}` : '') : (
+                              <span>{t('time.selectTime')}</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
+                          <div className="flex">
+                            <Calendar
+                              mode="single"
+                              selected={startDate}
+                              onSelect={(newDate) => {
+                                if (newDate) {
+                                  setStartDate(newDate)
+                                  setStartTime(null)
+                                  updateCartDetails('startDate', newDate)
+                                  
+                                  // Check if new start date is after end date
+                                  if (endDate && newDate > endDate) {
+                                    console.log('Esta mal')
+                                    setHasDateConflict(true)
+                                  } else {
+                                    console.log('Esta bien')
+                                    setHasDateConflict(false)
+                                  }
                                 }
-                              }
-                            }}
-                            className="p-2 sm:pe-5"
-                            disabled={[
-                              { before: today }, // Dates before today
-                            ]}
-                          />
-                          <div className="w-40 border-l">
-                            <div className="py-4">
-                              <div className="space-y-3">
-                                <div className="flex h-5 shrink-0 items-center px-5">
-                                  <p className="text-sm font-medium">
-                                    {startDate ? format(startDate, "EEEE, d", { locale: locale === 'en' ? enUS : es }) : t('time.selectTime')}
-                                  </p>
+                              }}
+                              className="p-2 sm:pe-5"
+                              disabled={[
+                                { before: today }, // Dates before today
+                              ]}
+                            />
+                            <div className="w-40 border-l">
+                              <div className="py-4">
+                                <div className="space-y-3">
+                                  <div className="flex h-5 shrink-0 items-center px-5">
+                                    <p className="text-sm font-medium">
+                                      {startDate ? format(startDate, "EEEE, d", { locale: locale === 'en' ? enUS : es }) : t('time.selectTime')}
+                                    </p>
+                                  </div>
+                                  <div
+                                    className="h-[250px] overflow-y-auto px-5 touch-pan-y"
+                                    style={{ WebkitOverflowScrolling: "touch" }}
+                                    data-scroll-lock-scrollable=""
+                                  >
+                                    <div className="grid gap-1.5">
+                                      {timeSlots.map(({ time: timeSlot, available }) => {
+                                        const isAvailable = available && isTimeSlotAvailable(timeSlot, startDate)
+                                        return (
+                                          <Button
+                                            key={timeSlot}
+                                            variant={startTime === timeSlot ? "default" : "outline"}
+                                            size="sm"
+                                            className="w-full"
+                                            onClick={() => {
+                                              setStartTime(timeSlot)
+                                              updateCartDetails('startTime', timeSlot)
+                                              // Cerrar el popover automáticamente cuando se selecciona una hora
+                                              // setDateTimePopoverOpen(false)
+                                              handlePopoverState('startDate', false)
+                                            }}
+                                            disabled={!isAvailable}
+                                          >
+                                            {timeSlot}
+                                          </Button>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div
-                                  className="h-[250px] overflow-y-auto px-5 touch-pan-y"
-                                  style={{ WebkitOverflowScrolling: "touch" }}
-                                  data-scroll-lock-scrollable=""
-                                >
-                                  <div className="grid gap-1.5">
-                                    {timeSlots.map(({ time: timeSlot, available }) => {
-                                      const isAvailable = available && isTimeSlotAvailable(timeSlot, startDate)
-                                      return (
+                              </div>
+                            </div>
+                          </div>
+                        </SheetPopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label>{t('cart.pickupIsland')}</label>
+                      <Select 
+                        value={pickup} 
+                        onValueChange={(value: "santa-cruz" | "hotel") => {
+                          setPickup(value)
+                          if (value === "santa-cruz") {
+                            setHotelName("")
+                            updateCartDetails('pickup', 'santa-cruz')
+                            updateCartDetails('hotelName', '')
+                          } else {
+                            updateCartDetails('pickup', 'hotel')
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full bg-white border border-primary/20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          <SelectItem value="santa-cruz">
+                            {t('cart.santaCruzOffice')}
+                          </SelectItem>
+                          <SelectItem value="hotel">
+                            {t('cart.santaCruzHotel')}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {pickup === "hotel" && (
+                        <div className="space-y-2 mt-3">
+                          <input
+                            type="text"
+                            placeholder={t('cart.hotelNamePlaceholder')}
+                            value={hotelName}
+                            onChange={(e) => {
+                              setHotelName(e.target.value)
+                              updateCartDetails('hotelName', e.target.value)
+                              updateCartDetails('pickup', e.target.value || '')
+                            }}
+                            className="w-full px-3 py-2 border border-primary/20 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                          <p className="text-xs text-gray-500 italic">
+                            * {t('cart.noAirbnb')}<br />
+                            * {t('cart.noHotel')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-3 p-6 bg-[#f9feff] m-0">
+                    <p className="font-bold">{t('cart.returnTitle')}:</p>
+                    <div className="space-y-2">
+                      <label>{t('cart.returnDate')}</label>
+                      <Popover modal={false} open={getPopoverState('endDate')} onOpenChange={(open) => handlePopoverState('endDate', open)}>
+                        <PopoverTrigger asChild className="w-full">
+                          <Button
+                            variant={"outline"}
+                            className={`justify-start text-left font-normal border-primary/20 ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {endDate ? format(endDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
+                            (endTime ? ` ${t('time.at')} ${endTime}` : '')
+                            : (
+                              <span>{t('time.selectTime')}</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
+                          <div className="flex">
+                            <Calendar
+                              mode="single"
+                              selected={endDate}
+                              onSelect={(newDate) => {
+                                if (newDate) {
+                                  setEndDate(newDate)
+                                  setEndTime(null)
+                                  updateCartDetails('endDate', newDate)
+                                  if (startDate && newDate < startDate) {
+                                    setHasDateConflict(true)
+                                  } else {
+                                    setHasDateConflict(false)
+                                  }
+                                }
+                              }}
+                              className="p-2 sm:pe-5"
+                              disabled={[
+                                { before: startDate ? startDate : today }
+                              ]}
+                            />
+                            <div className="w-40 border-l">
+                              <div className="py-4">
+                                <div className="space-y-3">
+                                  <div className="flex h-5 shrink-0 items-center px-5">
+                                    <p className="text-sm font-medium">
+                                      {endDate ? format(endDate, "EEEE, d", { locale: locale === 'en' ? enUS : es }) : t('time.selectTime')}
+                                    </p>
+                                  </div>
+                                  <div
+                                    className="h-[250px] overflow-y-auto px-5 touch-pan-y"
+                                    style={{ WebkitOverflowScrolling: "touch" }}
+                                    data-scroll-lock-scrollable=""
+                                  >
+                                    <div className="grid gap-1.5">
+                                      {timeSlots.map(({ time: timeSlot, available }) => (
                                         <Button
                                           key={timeSlot}
-                                          variant={startTime === timeSlot ? "default" : "outline"}
+                                          variant={endTime === timeSlot ? "default" : "outline"}
                                           size="sm"
                                           className="w-full"
                                           onClick={() => {
-                                            setStartTime(timeSlot)
-                                            updateCartDetails('startTime', timeSlot)
+                                            setEndTime(timeSlot)
+                                            updateCartDetails('endTime', timeSlot)
                                             // Cerrar el popover automáticamente cuando se selecciona una hora
-                                            // setDateTimePopoverOpen(false)
-                                            handlePopoverState('startDate', false)
+                                            // setEndDateTimePopoverOpen(false)
+                                            handlePopoverState('endDate', false)
                                           }}
-                                          disabled={!isAvailable}
+                                          disabled={!available}
                                         >
                                           {timeSlot}
                                         </Button>
-                                      )
-                                    })}
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </SheetPopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="font-bold">{t('cart.pickupIsland')}</label>
-                    <div className="">
-                      Santa Cruz
+                        </SheetPopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label>{t('cart.returnIsland')}</label>
+                      <Select
+                        value={cartItems.length > 0 && cartItems[0].returnIsland ? cartItems[0].returnIsland : undefined}
+                        onValueChange={(value) => {
+                          updateCartDetails('returnIsland', value)
+                        }}
+                      >
+                        <SelectTrigger className="w-full bg-white border border-primary/20">
+                          <SelectValue placeholder={t('common.select')} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {returnFees.map((fee) => {
+                            // Calcular el monto con multiplier como en línea 323
+                            const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+                            const multiplier = Math.ceil(totalItems / 3)
+                            const calculatedDeliveryAmount = fee.amount * multiplier
+                            
+                            return (
+                              <SelectItem key={fee.id} value={fee.location}>
+                                {t(`cart.${fee.location}`)} {fee.amount > 0 && `(+ US$${calculatedDeliveryAmount})`}
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-
-                  
-                  <div className="space-y-2">
-                    <label className="font-bold">{t('cart.returnDate')}</label>
-                    <Popover modal={false} open={getPopoverState('endDate')} onOpenChange={(open) => handlePopoverState('endDate', open)}>
-                      <PopoverTrigger asChild className="w-full">
-                        <Button
-                          variant={"outline"}
-                           className={`justify-start text-left font-normal ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
-                          (endTime ? ` ${t('time.at')} ${endTime}` : '')
-                          : (
-                            <span>{t('time.selectTime')}</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
-                        <div className="flex">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={(newDate) => {
-                              if (newDate) {
-                                setEndDate(newDate)
-                                setEndTime(null)
-                                updateCartDetails('endDate', newDate)
-                                if (startDate && newDate < startDate) {
-                                  setHasDateConflict(true)
-                                } else {
-                                  setHasDateConflict(false)
-                                }
-                              }
-                            }}
-                            className="p-2 sm:pe-5"
-                            disabled={[
-                              { before: startDate ? startDate : today }
-                            ]}
-                          />
-                          <div className="w-40 border-l">
-                            <div className="py-4">
-                              <div className="space-y-3">
-                                <div className="flex h-5 shrink-0 items-center px-5">
-                                  <p className="text-sm font-medium">
-                                    {endDate ? format(endDate, "EEEE, d", { locale: locale === 'en' ? enUS : es }) : t('time.selectTime')}
-                                  </p>
-                                </div>
-                                <div
-                                  className="h-[250px] overflow-y-auto px-5 touch-pan-y"
-                                  style={{ WebkitOverflowScrolling: "touch" }}
-                                  data-scroll-lock-scrollable=""
-                                >
-                                  <div className="grid gap-1.5">
-                                    {timeSlots.map(({ time: timeSlot, available }) => (
-                                      <Button
-                                        key={timeSlot}
-                                        variant={endTime === timeSlot ? "default" : "outline"}
-                                        size="sm"
-                                        className="w-full"
-                                        onClick={() => {
-                                          setEndTime(timeSlot)
-                                          updateCartDetails('endTime', timeSlot)
-                                          // Cerrar el popover automáticamente cuando se selecciona una hora
-                                          // setEndDateTimePopoverOpen(false)
-                                          handlePopoverState('endDate', false)
-                                        }}
-                                        disabled={!available}
-                                      >
-                                        {timeSlot}
-                                      </Button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </SheetPopoverContent>
-                    </Popover>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="font-bold">{t('cart.returnIsland')}</label>
-                    <Select
-                      value={cartItems.length > 0 && cartItems[0].returnIsland ? cartItems[0].returnIsland : undefined}
-                      onValueChange={(value) => {
-                        updateCartDetails('returnIsland', value)
-                      }}
-                    >
-                      <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder={t('common.select')} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {returnFees.map((fee) => {
-                          // Calcular el monto con multiplier como en línea 323
-                          const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
-                          const multiplier = Math.ceil(totalItems / 3)
-                          const calculatedDeliveryAmount = fee.amount * multiplier
-                          
-                          return (
-                            <SelectItem key={fee.id} value={fee.location}>
-                              {t(`cart.${fee.location}`)} {fee.amount > 0 && `(+$${calculatedDeliveryAmount})`}
-                            </SelectItem>
-                          )
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                </>
               )}
 
               {/* Total final */}
               {cartItems.length > 0 && startDate && endDate && (
-                <div className="mt-4 border-t pt-4">
+                <div className="border-t pt-4 px-6">
                   <div className="flex justify-between text-sm mb-2">
                     <span>{t('cart.rentalDays')}</span>
                     <span>{calculateRentalDays()} días</span>
                   </div>
+                  {pickup === "hotel" && (
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>{t('cart.hotelPickupFee')}</span>
+                      <span>$5.00</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-lg">
                     <span>{t('cart.initialPayment')}</span>
                     <span>${calculateInitialPayment().toFixed(2)}</span>
@@ -938,13 +1011,15 @@ function RentalPageContent() {
               )}
               
               {/* Botón para continuar */}
-              <Button 
-                className="w-full mt-4" 
-                onClick={proceedToCheckout}
-               disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland || hasDateConflict}
-              >
-                {t('cart.proceedToCheckout')}
-              </Button>
+              <div className="px-6">
+                <Button 
+                  className="w-full mt-4" 
+                  onClick={proceedToCheckout}
+                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland || hasDateConflict}
+                >
+                  {t('cart.proceedToCheckout')}
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

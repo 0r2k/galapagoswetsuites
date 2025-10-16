@@ -170,6 +170,13 @@ function ConfirmationContent() {
               </div>
               <div>
                 <p><strong>{t('returnIsland')}:</strong> {order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</p>
+                <p><strong>{t('pickupLocation')}:</strong> {
+                  order.pickup === 'santa-cruz' 
+                    ? t('santaCruzOffice')
+                    : order.pickup 
+                      ? `${t('santaCruzHotel')} - ${order.pickup}`
+                      : t('santaCruzHotel')
+                }</p>
                 <p><strong>{t('status')}:</strong> {t('confirmed')}</p>
               </div>
             </div>
@@ -211,6 +218,12 @@ function ConfirmationContent() {
               <div className="flex justify-between">
                 <span>{t('returnFee')}</span>
                 <span>${calculateReturnFee().toFixed(2)}</span>
+              </div>
+            )}
+            {order.pickup && order.pickup !== 'santa-cruz' && (
+              <div className="flex justify-between">
+                <span>{t('hotelPickupFee')}</span>
+                <span>$5.00</span>
               </div>
             )}
             <div className="flex justify-between">

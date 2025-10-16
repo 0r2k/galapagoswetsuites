@@ -98,7 +98,11 @@ function CheckoutContent() {
       const taxRate = item.product.tax_percentage || 0;
       return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
     }, 0) : (rental.totalPrice * rental.rentalDays * 0)
-    return (subtotal + taxes).toFixed(2)
+    
+    // Agregar $5 si el pickup es en hotel
+    const hotelPickupFee = (rental.pickup && rental.pickup !== "santa-cruz") ? 5 : 0
+    
+    return (subtotal + taxes + hotelPickupFee).toFixed(2)
   }
 
   const calculateInitialPayment = (rental: any) => {
@@ -110,7 +114,10 @@ function CheckoutContent() {
       return total + priceDifference
     }, 0)
     
-    return Math.max(initialPayment, 0) // Asegurar que no sea negativo
+    // Agregar $5 si el pickup es en hotel
+    const hotelPickupFee = (rental.pickup && rental.pickup !== "santa-cruz") ? 5 : 0
+    
+    return Math.max(initialPayment + hotelPickupFee, 0) // Asegurar que no sea negativo
   }
   
   // Función de validación
@@ -246,7 +253,9 @@ function CheckoutContent() {
             endDate: cartItems[0].endDate,
             startTime: cartItems[0].startTime,
             endTime: cartItems[0].endTime,
-            returnIsland: cartItems[0].returnIsland
+            returnIsland: cartItems[0].returnIsland,
+            pickup: cartItems[0].pickup,
+            hotelName: cartItems[0].hotelName
           };
           
           setRental(rentalData);
@@ -455,6 +464,13 @@ function CheckoutContent() {
                 <p><strong>{t('checkout.endDate')}:</strong> {rental.endDate instanceof Date ? rental.endDate.toLocaleDateString() : rental.endDate} {rental.endTime}</p>
                 <p><strong>{t('checkout.days')}:</strong> {rental.rentalDays}</p>
                 <p><strong>{t('checkout.returnIsland')}:</strong> {rental.returnIsland === 'santa-cruz' ? t('cart.santaCruz') : t('cart.sanCristobal')}</p>
+                <p><strong>{t('cart.pickupIsland')}:</strong> {
+                  rental.pickup === 'santa-cruz' 
+                    ? t('cart.santaCruzOffice')
+                    : rental.hotelName 
+                      ? `${t('cart.santaCruzHotel')} - ${rental.hotelName}`
+                      : t('cart.santaCruzHotel')
+                }</p>
               </div>
               
               <Separator />
