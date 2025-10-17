@@ -923,7 +923,8 @@ export default function AdminPage() {
                      <TableRow>
                        <TableHead># Pedido</TableHead>
                        <TableHead>Nombre del Cliente</TableHead>
-                       <TableHead>Fecha y Hora de Recogida</TableHead>
+                       <TableHead>Recogida</TableHead>
+                       <TableHead>Entrega</TableHead>
                        <TableHead>Isla de Devolución</TableHead>
                        <TableHead>Estado</TableHead>
                        <TableHead>Total</TableHead>
@@ -947,6 +948,9 @@ export default function AdminPage() {
                            <TableCell>{order.customer_name}</TableCell>
                            <TableCell>
                              {new Date(order.start_date).toLocaleDateString('es-ES')} - {order.start_time}
+                           </TableCell>
+                           <TableCell>
+                             {new Date(order.end_date).toLocaleDateString('es-ES')} - {order.end_time}
                            </TableCell>
                            <TableCell className="capitalize">
                              {order.return_island.replace('-', ' ')}

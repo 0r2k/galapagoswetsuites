@@ -713,7 +713,7 @@ function RentalPageContent() {
                           ${item.product.public_price * item.quantity}
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removeFromCart(index)}>
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 color="red" className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -971,7 +971,7 @@ function RentalPageContent() {
                             
                             return (
                               <SelectItem key={fee.id} value={fee.location}>
-                                {t(`cart.${fee.location}`)} {fee.amount > 0 && `(+ US$${calculatedDeliveryAmount})`}
+                                {t(`cart.${fee.location}`)} {fee.amount > 0 && `(+US$${calculatedDeliveryAmount})`}
                               </SelectItem>
                             )
                           })}
@@ -992,20 +992,26 @@ function RentalPageContent() {
                   {pickup === "hotel" && (
                     <div className="flex justify-between text-sm mb-2">
                       <span>{t('cart.hotelPickupFee')}</span>
-                      <span>$5.00</span>
+                      <span>US$5.00</span>
+                    </div>
+                  )}
+                  {cartItems.length > 0 && cartItems[0].returnIsland === "san-cristobal" && (
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>{t('cart.returnFee')}</span>
+                      <span>US${calculateFinalTotal().returnFeeAmount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg">
                     <span>{t('cart.initialPayment')}</span>
-                    <span>${calculateInitialPayment().toFixed(2)}</span>
+                    <span>US${calculateInitialPayment().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>{t('cart.payOnPickup')}</span>
-                    <span>${(calculateFinalTotal().totalWithTax - calculateInitialPayment()).toFixed(2)}</span>
+                    <span>US${(calculateFinalTotal().totalWithTax - calculateInitialPayment()).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>{t('cart.total')}</span>
-                    <span>${calculateFinalTotal().totalWithTax.toFixed(2)}</span>
+                    <span>US${calculateFinalTotal().totalWithTax.toFixed(2)}</span>
                   </div>
                 </div>
               )}
