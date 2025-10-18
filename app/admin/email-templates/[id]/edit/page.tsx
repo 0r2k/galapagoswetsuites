@@ -346,16 +346,16 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
     });
   };
 
-  // Publicar: guarda SOLO el HTML final listo para enviar
+  // Publicar: guarda tanto el design como el HTML final listo para enviar
   const publish = async () => {
     if (isPublishing) return;
     setIsPublishing(true);
     try {
-      editorRef.current.editor.exportHtml(async ({ html }: any) => {
+      editorRef.current.editor.exportHtml(async ({ design, html }: any) => {
         const res = await fetch(`/api/studio/templates/${templateId}/publish`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ html }) // ← html con {{variables}} intactas
+          body: JSON.stringify({ design, html }) // ← design y html con {{variables}} intactas
         });
         if (!res.ok) throw new Error(await res.text());
         toast.success("Publicado ✅");

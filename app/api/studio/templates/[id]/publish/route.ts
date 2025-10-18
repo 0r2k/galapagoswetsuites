@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const resolvedParams = await params;
   const { error } = await supabaseAdmin
     .from('email_templates')
-    .update({ html: html })
+    .update({ html: html, design: { ...(design ?? {}), _draftHtml: html ?? null } })
     .eq('id', resolvedParams.id);
   if (error) throw error;
   
