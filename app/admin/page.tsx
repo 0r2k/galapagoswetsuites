@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -102,7 +102,8 @@ interface RentalItem {
   product_description: string
 }
 
-export default function AdminPage() {
+// Componente que usa useSearchParams
+function AdminPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
@@ -1495,5 +1496,16 @@ export default function AdminPage() {
       </Dialog>
 
     </div>
+  )
+}
+
+// Componente principal que envuelve con Suspense
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>}>
+      <AdminPageContent />
+    </Suspense>
   )
 }
