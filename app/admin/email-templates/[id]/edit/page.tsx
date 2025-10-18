@@ -1,92 +1,79 @@
 "use client";
 
-import { useEffect, useMemo, useState, use } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { Editor } from 'grapesjs';
-import StudioEditor, { CreateEditorOptions } from "@grapesjs/studio-sdk/react";
-import { rteTinyMce, dataSourceHandlebars, layoutSidebarButtons } from "@grapesjs/studio-sdk-plugins";
-import "@grapesjs/studio-sdk/style";
 import { toast } from "sonner";
+
+// Unlayer no soporta SSR: import dinámico
+const EmailEditor = dynamic(() => import("react-email-editor"), { ssr: false });
+
 
 export default function EditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: templateId } = use(params);
-  const [ready, setReady] = useState(false);
-  const [editor, setEditor] = useState<Editor>();
-  const [previewData, setPreviewData] = useState<any>(null);
+  const editorRef = useRef<any>(null);
+
+  // estado UI
+  const [design, setDesign] = useState<any>(null);     // JSON del editor (Unlayer design)
+  const [subject, setSubject] = useState<string>("");
   const [to, setTo] = useState("");
   const [varsJson, setVarsJson] = useState<string>("");
-  const [subject, setSubject] = useState<string>("");
+
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const onReady = (editor: Editor) => {
-    console.log('Editor loaded', editor);
-    setEditor(editor);
+  // Función de autosave con debounce
+  const autoSave = useRef<NodeJS.Timeout | null>(null);
+  
+  const performAutoSave = async () => {
+    if (!editorRef.current) return;
+    
+    setIsAutoSaving(true);
+    try {
+      editorRef.current.editor.exportHtml(async ({ design, html }: any) => {
+        const res = await fetch(`/api/studio/templates/${templateId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ design, html, subject })
+        });
+        if (res.ok) {
+          setLastSaved(new Date());
+        }
+      });
+    } catch (error) {
+      console.error('Error en autosave:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
   };
 
-  const layoutConfig: CreateEditorOptions['layout'] = {
-    default: {
-      type: 'row',
-      style: { height: '100%' },
-      children: [
-        {
-          type: 'canvasSidebarTop',
-          sidebarTop: {
-            leftContainer: {
-              buttons: ({ items }) => [
-                ...items,
-                {
-                  id: 'toggle-datasources-preview',
-                  title: 'Toggle Data Sources',
-                  icon: 'databaseOutlineOn',
-                  onClick: ({ editor }) => {
-                    editor.runCommand('studio:toggleStateDataSource');
-                  }
-                },
-                {
-                  id: 'layout-toogle',
-                  title: 'Toggle Layers',
-                  icon: 'layers',
-                  onClick: ({ editor }) => {
-                    editor.runCommand('studio:layoutRemove', { id: 'layoutId2' });
-                    editor.runCommand('studio:layoutToggle', {
-                      id: 'layoutId1',
-                      layout: { type: 'panelPagesLayers' },
-                      header: { label: 'Layers' },
-                      placer: { type: 'absolute', position: 'left' }
-                    });
-                  }
-                }
-              ]
-            }
-          }
-        },
-        { type: 'sidebarRight' }
-      ]
-    },
-    responsive: {
-      // Studio will switch the layout when the editor container width is below 1000px.
-      1000: {
-        type: 'row',
-        style: { height: '100%' },
-        children: [{ type: 'sidebarLeft' }, { type: 'canvas' }]
-      },
-      600: {
-        type: 'column',
-        style: { height: '100%' },
-        children: [{ type: 'canvas' }, { type: 'row', children: 'Text' }]
-      }
+  const scheduleAutoSave = () => {
+    if (autoSave.current) {
+      clearTimeout(autoSave.current);
     }
-  }
+    
+    autoSave.current = setTimeout(performAutoSave, 2000);
+  };
 
-  // Carga preview_data y subject (para mostrar variables en el editor)
+  useEffect(() => {
+    return () => {
+      if (autoSave.current) {
+        clearTimeout(autoSave.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     (async () => {
       const res = await fetch(`/api/studio/templates/${templateId}`);
       const json = await res.json();
-      const p = json.item?.preview_data ?? {
+      const item = json.item ?? {};
+      setSubject(item?.subject || "");
+      setVarsJson(JSON.stringify(item?.preview_data ?? {
         Name: "Ricardo",
         ReservationId: "R-12345",
         Date: "2025-09-20",
@@ -94,138 +81,295 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
         Guests: 3,
         Amount: "$49.90",
         ManageUrl: "https://tusitio/mi-reserva/R-12345"
-      };
-      setPreviewData(p);
-      setVarsJson(JSON.stringify(p, null, 2));
-      setSubject(json.item?.subject || "");
-      setReady(true);
+      }, null, 2));
+      // si ya guardaste un diseño antes, cárgalo
+      setDesign(item?.design ?? null); // ← asumo que en tu API guardarás design
     })();
   }, [templateId]);
 
-  const editorOptions = useMemo(() => {
-    if (!ready) return null;
-    return {
-      onReady,
-      licenseKey: process.env.NEXT_PUBLIC_GJS_STUDIO_LICENSE!,
-      layout: layoutConfig,
-      project: { 
-        type: "email",
-        id: templateId,
-        default: {
-          pages: [
-          { component: `
-            <mjml>
-              <mj-head>
-                <mj-title>{{ globalData.Name.data }} - Confirmación de Reserva</mj-title>
-                <mj-preview>Tu reserva {{ globalData.ReservationId.data }} ha sido confirmada</mj-preview>
-                <mj-attributes>
-                  <mj-all font-family="Arial, sans-serif" />
-                  <mj-text font-size="16px" color="#333" line-height="1.6" />
-                  <mj-button background-color="#007bff" color="white" border-radius="4px" />
-                </mj-attributes>
-              </mj-head>
-              <mj-body background-color="#f5f5f5">
-                <mj-section background-color="white" border-radius="8px" padding="40px">
-                  <mj-column>
-                    <mj-text font-size="24px" font-weight="bold" color="#333">
-                      ¡Hola {{ globalData.Name.data }}!
-                    </mj-text>
-                    <mj-text>
-                      Tu reserva ha sido confirmada exitosamente.
-                    </mj-text>
-                    <mj-divider border-color="#e0e0e0" />
-                    <mj-text font-weight="bold">Detalles de tu reserva:</mj-text>
-                    <mj-text>
-                      <strong>ID de Reserva:</strong> {{ globalData.ReservationId.data }}<br/>
-                      <strong>Fecha:</strong> {{ globalData.Date.data }}<br/>
-                      <strong>Hora:</strong> {{ globalData.Time.data }}<br/>
-                      <strong>Huéspedes:</strong> {{ globalData.Guests.data }}<br/>
-                      <strong>Total:</strong> {{ globalData.Amount.data }}
-                    </mj-text>
-                    <mj-text font-size="14px" color="#666">
-                      Si tienes alguna pregunta, no dudes en contactarnos.
-                    </mj-text>
-                  </mj-column>
-                </mj-section>
-              </mj-body>
-            </mjml>`,
-          style: {
-            '.container': { margin: '0 auto' },
-            '.card': { 'box-shadow': '0 1px 3px rgba(0,0,0,.08)' }
-          },
-          assets: []
-          }]
-        }
-      },
-      identity: { id: "admin-user-1" },
-      assets: { storageType: "cloud" },
-      storage: {
-        type: "self",
-        autosaveChanges: 50,
-        autosaveIntervalMs: 10000,
-        onSave: async ({ project }: any) => {
-          await fetch(`/api/studio/projects/${templateId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ project })
-          });
-        },
-        onLoad: async () => {
-          const res = await fetch(`/api/studio/projects/${templateId}`, { cache: "no-store" });
-          const data = await res.json();
-          // Si no hay proyecto guardado, usar el template por defecto
-          return { project: data?.project ?? null };
-        }
-      },
-      dataSources: {
-        blocks: true,
-        globalData: previewData,
-      },
-      plugins: [
-        rteTinyMce.init({}),
-        dataSourceHandlebars.init({}),
-      ],
-    } as any;
-  }, [ready, templateId, previewData]);
+  // useEffect separado para manejar la carga del diseño cuando esté disponible
+  useEffect(() => {
+    if (design && editorRef.current?.editor) {
+      console.log('Design y editor disponibles, intentando cargar diseño...');
+      // Pequeño delay adicional para asegurar que el editor esté completamente inicializado
+      const timer = setTimeout(() => {
+        loadDesignWithRetry(design);
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [design]); // Se ejecuta cuando design cambia (se carga desde la API)
 
-  const publish = async () => {
-    if (!editor) return alert("Editor aún no está listo");
-    if (isPublishing) return;
+  // Función para cargar el diseño con reintentos
+  const loadDesignWithRetry = (designData: any, retries = 3, delay = 500) => {
+    const attemptLoad = (attempt: number) => {
+      try {
+        if (editorRef.current?.editor && typeof editorRef.current.editor.loadDesign === 'function') {
+          console.log(`Intentando cargar diseño - intento ${attempt + 1}`);
+          editorRef.current.editor.loadDesign(designData);
+          console.log('Diseño cargado exitosamente');
+          return true;
+        } else {
+          throw new Error('Editor no está listo');
+        }
+      } catch (error) {
+        console.warn(`Error al cargar diseño (intento ${attempt + 1}):`, error);
+        
+        if (attempt < retries - 1) {
+          setTimeout(() => attemptLoad(attempt + 1), delay);
+        } else {
+          console.error('No se pudo cargar el diseño después de todos los intentos');
+          toast.error('Error al cargar el diseño del email');
+        }
+        return false;
+      }
+    };
+    
+    attemptLoad(0);
+  };
 
-    setIsPublishing(true);
+  // Cuando el editor está listo, carga el diseño si existe
+  const onLoad = () => {
+    console.log('Editor onLoad ejecutado');
+    
+    // Configurar merge tags primero
     try {
-      // 1) Forzar placeholders en el preview/exports
-      // Nota: el comando correcto es *toggleDataSourcesPreview*
-      editor.runCommand('studio:toggleStateDataSource', { showPlaceholder: true });
+      editorRef.current?.editor.setMergeTags({
+        customerName: {
+          name: 'Nombre cliente',
+          value: '{{customerName}}',
+          sample: 'Christian Echavarria',
+        },
+        customerEmail: {
+          name: 'Email cliente',
+          value: '{{customerEmail}}',
+          sample: 'christian@example.com',
+        },
+        customerPhone: {
+          name: 'Teléfono cliente',
+          value: '{{customerPhone}}',
+          sample: '+593 99 123 4567',
+        },
+        customerNationality: {
+          name: 'Nacionalidad cliente',
+          value: '{{customerNationality}}',
+          sample: 'Ecuador',
+        },
+        orderNumber: {
+          name: 'Número pedido',
+          value: '{{orderNumber}}',
+          sample: '140',
+        },
+        orderDate: {
+          name: 'Fecha pedido',
+          value: '{{orderDate}}',
+          sample: '15/01/2025',
+        },
+        products: {
+          name: 'Products',
+          rules: {
+            repeat: {
+              name: 'Repeat for Each Product',
+              before: '{{#each products}}',
+              after: '{{/each}}',
+            },
+          },
+          mergeTags: {
+            name: {
+              name: 'Producto',
+              value: '{{name}}',
+              sample: 'Traje de buceo largo - Talla M',
+            },
+            name_en: {
+              name: 'Producto en inglés',
+              value: '{{name_en}}',
+              sample: 'Wetsuit - Size M',
+            },
+            quantity: {
+              name: 'Cantidad',
+              value: '{{quantity}}',
+              sample: '2',
+            },
+            days: {
+              name: 'Días',
+              value: '{{days}}',
+              sample: '5',
+            },
+            subtotal: {
+              name: 'Subtotal',
+              value: '{{subtotal}}',
+              sample: '45',
+            },
+            unitPrice: {
+              name: 'Precio unitario',
+              value: '{{unitPrice}}',
+              sample: '5',
+            }
+          },
+        },
+        rentalDays: {
+          name: 'Días de alquiler',
+          value: '{{rentalDays}}',
+          sample: '5',
+        },
+        pickup: {
+          name: 'Lugar de recogida',
+          value: '{{pickup}}',
+          sample: 'Santa Cruz',
+        },
+        returnIsland: {
+          name: 'Isla de retorno',
+          value: '{{returnIsland}}',
+          sample: 'San Cristobal',
+        },
+        subtotal: {
+          name: 'Subtotal',
+          value: '{{subtotal}}',
+          sample: '90',
+        },
+        taxAmount: {
+          name: 'Impuestos',
+          value: '{{taxAmount}}',
+          sample: '10',
+        },
+        totalAmount: {
+          name: 'Total',
+          value: '{{totalAmount}}',
+          sample: '100',
+        },
+        initialPayment: {
+          name: 'Pago inicial',
+          value: '{{initialPayment}}',
+          sample: '50',
+        },
+        supplierTotalAmount: {
+          name: 'Total proveedor',
+          value: '{{supplierTotalAmount}}',
+          sample: '100',
+        },
+        returnFee: {
+          name: 'Cargo por devolución',
+          value: '{{returnFee}}',
+          sample: '10',
+        },
+        sizesSelectionID: {
+          name: 'Link tallas',
+          value: '{{sizesSelectionID}}',
+          sample: 'https://galapagos.viajes/sizes?orderId=352b5e17-1192-4e9c-a307-ec66c676fb77',
+        },
+        startDate: {
+          name: 'Fecha recogida',
+          value: '{{startDate}}',
+          sample: '20/01/2025',
+        },
+        startTime: {
+          name: 'Hora recogida',
+          value: '{{startTime}}',
+          sample: '14:00',
+        },
+        endDate: {
+          name: 'Fecha entrega',
+          value: '{{endDate}}',
+          sample: '22/01/2025',
+        },
+        endTime: {
+          name: 'Hora entrega',
+          value: '{{endTime}}',
+          sample: '19:00',
+        }
+      });
 
-      // 2) Exportar MJML tal cual con variables (sin IDs auto)
-      // getHtml soporta { cleanId: true } en GrapesJS
-      let mjml = editor.getHtml({ cleanId: true }) as string;
+      // Configurar Display Conditions con delay para asegurar que el editor esté listo
+      // NOTA: Display Conditions es una funcionalidad de pago de Unlayer
+      setTimeout(() => {
+        try {
+          console.log('Configurando Display Conditions...');
+          if (editorRef.current?.editor && typeof editorRef.current.editor.setDisplayConditions === 'function') {
+            editorRef.current.editor.setDisplayConditions([
+              {
+                type: 'Isla',
+                label: 'Isla de devolución',
+                description: 'Muestra este contenido si la isla de retorno es San Cristobal',
+                before: '{{#if (strContains returnIsland "San Cri")}}',
+                after: '{{/if}}',
+              }
+            ]);
+            console.log('Display Conditions configuradas exitosamente');
+          } else {
+            console.warn('setDisplayConditions no está disponible - Esta es una funcionalidad de pago de Unlayer');
+            console.warn('Para usar Display Conditions necesitas una suscripción de pago de Unlayer');
+          }
+        } catch (error) {
+          console.error('Error al configurar Display Conditions:', error);
+        }
+      }, 300);
 
-      // (Si algo te agrega IDs raros, deja también tu fallback)
-      // mjml = mjml.replace(/\s+id="[^"]*"/g, '');
+      console.log('Merge tags configurados');
+    } catch (error) {
+      console.warn('Error al configurar merge tags:', error);
+    }
 
-      // 3) Publicar (guarda MJML o compílalo a HTML, según tu flujo)
-      const res = await fetch(`/api/studio/templates/${templateId}/publish`, {
+    // Agregar event listener para auto-save
+    try {
+      editorRef.current?.editor.addEventListener('design:updated', () => {
+        scheduleAutoSave();
+      });
+      console.log('Event listener agregado');
+    } catch (error) {
+      console.warn('Error al agregar event listener:', error);
+    }
+
+    // Cargar diseño con delay para asegurar que el editor esté completamente listo
+     // Nota: El diseño también se carga en el useEffect separado cuando está disponible
+     if (design) {
+       console.log('onLoad: Design disponible, programando carga...');
+       setTimeout(() => {
+         loadDesignWithRetry(design);
+       }, 100);
+     } else {
+       console.log('onLoad: No hay diseño para cargar');
+     }
+  };
+
+  // Guardar diseño + HTML (borrador)
+  const saveDraft = async () => {
+    if (!editorRef.current) return;
+    editorRef.current.editor.exportHtml(async ({ design, html }: any) => {
+      // Guardamos ambos: design (JSON) y html (borrador)
+      const res = await fetch(`/api/studio/templates/${templateId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mjml }) // <-- manda MJML, no HTML resuelto
+        body: JSON.stringify({ design, html, subject })
       });
-      if (!res.ok) throw new Error(await res.text());
-      toast.success("Publicado ✅");
+      if (!res.ok) return toast.error("No se pudo guardar");
+      toast.success("Borrador guardado");
+    });
+  };
+
+  // Publicar: guarda SOLO el HTML final listo para enviar
+  const publish = async () => {
+    if (isPublishing) return;
+    setIsPublishing(true);
+    try {
+      editorRef.current.editor.exportHtml(async ({ html }: any) => {
+        const res = await fetch(`/api/studio/templates/${templateId}/publish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ html }) // ← html con {{variables}} intactas
+        });
+        if (!res.ok) throw new Error(await res.text());
+        toast.success("Publicado ✅");
+      });
     } catch (e: any) {
-      console.error(e);
-      toast.error("Error al publicar");
+      toast.error(e.message || "Error al publicar");
     } finally {
-      // (Opcional) volver al modo de vista que quieras
-      editor.runCommand('studio:toggleStateDataSource', { showPlaceholder: false });
       setIsPublishing(false);
     }
   };
 
+  // Guardar asunto y variables de PREVIEW (para que el editor muestre datos)
   const savePreview = async () => {
     if (isSavingPreview) return;
-    
     setIsSavingPreview(true);
     try {
       const parsed = JSON.parse(varsJson || "{}");
@@ -234,67 +378,76 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preview_data: parsed, subject: subject.trim() })
       });
-      if (!res.ok) throw new Error("No se pudo guardar preview");
-      setPreviewData(parsed);
-      alert("Preview y subject guardados ✅ (vuelve a recargar para refrescar el editor)");
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("Preview y subject guardados ✅");
     } catch (e: any) {
-      alert(`JSON inválido: ${e.message}`);
+      toast.error(`JSON inválido: ${e.message}`);
     } finally {
       setIsSavingPreview(false);
     }
   };
 
+  // Enviar prueba
   const sendTest = async () => {
-    if (!to.trim()) return alert("Pon un email de destino");
+    if (!to.trim()) return toast.error("Pon un email de destino");
     if (isSendingTest) return;
-    
+
     setIsSendingTest(true);
     try {
-      // Convertir variables planas a formato globalData que espera Handlebars
-      let variables = {};
-      try {
-        const parsedVars = JSON.parse(varsJson || "{}");
-        variables = {
-          globalData: Object.keys(parsedVars).reduce((acc, key) => {
-            acc[key] = { data: parsedVars[key] };
-            return acc;
-          }, {} as any)
-        };
-      } catch (e) {
-        return alert("JSON de variables inválido");
-      }
-      
+      const vars = JSON.parse(varsJson || "{}");
+
+      // Nota: si tu endpoint /send-test espera todavía globalData,
+      // transforma aquí. Si ya lo cambiaste a JSON plano, manda "vars" directo.
+      // --- descomenta una de estas dos líneas según tu server ---
+
+      // 1) Si tu server usa JSON plano:
+      const payload = { to, subject, vars };
+
+      // 2) Si tu server aún espera { globalData: { Name: { data } } }:
+      // const payload = {
+      //   to, subject,
+      //   vars: {
+      //     globalData: Object.fromEntries(Object.entries(vars).map(([k,v]) => [k, { data: v }]))
+      //   }
+      // };
+
       const res = await fetch(`/api/studio/templates/${templateId}/send-test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to, vars: variables })
+        body: JSON.stringify(payload)
       });
       const ok = res.ok;
       const msg = ok ? "Email de prueba enviado ✅" : `Error: ${await res.text()}`;
-      alert(msg);
-    } catch (error) {
-      alert("Error al enviar email de prueba");
+      toast[ok ? "success" : "error"](msg);
+    } catch {
+      toast.error("Error al enviar email de prueba");
     } finally {
       setIsSendingTest(false);
     }
   };
 
-  if (!editorOptions) return <div className="p-6">Cargando editor…</div>;
-
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 h-screen">
-      <div className="xl:col-span-3 h-full">
-        <StudioEditor
-          className="!h-full w-full"
-          options={editorOptions}
+      <div className="xl:col-span-3 h-full flex flex-col">
+        <EmailEditor
+          ref={editorRef}
+          onReady={onLoad}
+          options={{
+            displayMode: 'email',
+            locale: 'es',
+            mergeTagsConfig: {
+              sort: false
+            }
+          }}
+          style={{ height: '100%', width: '100%' }}
         />
       </div>
 
       <aside className="xl:col-span-1 border-l p-4 space-y-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold">Prueba & Variables</h2>
-          <Link 
-            href="/admin" 
+          <Link
+            href="/admin?tab=email-templates"
             className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -302,48 +455,87 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
           </Link>
         </div>
 
+        {/* Indicador de autosave */}
+        <div className="flex items-center justify-between text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+          <span>
+            {isAutoSaving ? (
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                Guardando automáticamente...
+              </span>
+            ) : lastSaved ? (
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Guardado {lastSaved.toLocaleTimeString()}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                Sin cambios
+              </span>
+            )}
+          </span>
+        </div>
+
         <label className="block text-sm text-gray-600">Asunto del email</label>
-        <input className="border rounded w-full px-3 py-2"
-               placeholder="Confirmación de reserva"
-               value={subject} onChange={e => setSubject(e.target.value)} />
+        <input
+          className="border rounded w-full px-3 py-2"
+          placeholder="Confirmación de reserva"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+        />
 
         <label className="block text-sm text-gray-600 mt-4">Enviar prueba a</label>
-        <input className="border rounded w-full px-3 py-2"
-               placeholder="cecheverria@gmail.com"
-               value={to} onChange={e => setTo(e.target.value)} />
+        <input
+          className="border rounded w-full px-3 py-2"
+          placeholder="correo@dominio.com"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+        />
 
         <label className="block text-sm text-gray-600 mt-2">Variables (JSON)</label>
-        <textarea className="border rounded w-full h-48 px-3 py-2 font-mono text-sm"
-                  value={varsJson} onChange={e => setVarsJson(e.target.value)} />
+        <textarea
+          className="border rounded w-full h-48 px-3 py-2 font-mono text-sm"
+          value={varsJson}
+          onChange={(e) => setVarsJson(e.target.value)}
+        />
 
         <div className="flex gap-2">
-          <button 
-            className="bg-black text-white px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed" 
+          <button
+            className="bg-black text-white px-3 py-2 rounded disabled:opacity-50"
             onClick={savePreview}
             disabled={isSavingPreview || isSendingTest || isPublishing}
           >
-            {isSavingPreview ? 'Cargando...' : 'Guardar asunto y variables'}
+            {isSavingPreview ? "Cargando..." : "Guardar asunto y variables"}
           </button>
-          <button 
-            className="bg-emerald-600 text-white px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed" 
+          <button
+            className="bg-gray-700 text-white px-3 py-2 rounded disabled:opacity-50"
+            onClick={saveDraft}
+            disabled={isSavingPreview || isSendingTest || isPublishing}
+          >
+            Guardar borrador
+          </button>
+          <button
+            className="bg-emerald-600 text-white px-3 py-2 rounded disabled:opacity-50"
             onClick={sendTest}
             disabled={isSavingPreview || isSendingTest || isPublishing}
           >
-            {isSendingTest ? 'Cargando...' : 'Enviar prueba'}
+            {isSendingTest ? "Cargando..." : "Enviar prueba"}
           </button>
         </div>
 
         <div className="pt-4 border-t">
-          <button 
-            className="bg-indigo-600 text-white px-3 py-2 rounded w-full disabled:opacity-50 disabled:cursor-not-allowed" 
+          <button
+            className="bg-indigo-600 text-white px-3 py-2 rounded w-full disabled:opacity-50"
             onClick={publish}
             disabled={isSavingPreview || isSendingTest || isPublishing}
           >
-            {isPublishing ? 'Cargando...' : 'Guardar plantilla'}
+            {isPublishing ? "Cargando..." : "Publicar (guardar HTML listo)"}
           </button>
           <p className="text-xs text-gray-500 mt-2">
-            * "Guardar plantilla" guarda el HTML con {`{{variables}}`} en la BD.<br />  
-            * "Enviar prueba" renderiza ese HTML con Handlebars y lo manda por Resend a la cuenta de correo que especifiques.
+            * “Guardar borrador” guarda el diseño y un HTML de referencia.<br />
+            * “Publicar” guarda el HTML definitivo con {`{{variables}}`} para producción.<br />
+            * “Enviar prueba” renderiza con Handlebars en tu API y manda por Resend.
           </p>
         </div>
       </aside>

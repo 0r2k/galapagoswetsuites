@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -104,12 +104,18 @@ interface RentalItem {
 
 export default function AdminPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [fees, setFees] = useState<AdditionalFee[]>([])
   const [user, setUser] = useState<any>(null)
   const [orders, setOrders] = useState<RentalOrder[]>([])
-  const [activeTab, setActiveTab] = useState('general-config')
+  
+  // Obtener la pestaña de la URL o usar 'general-config' por defecto
+  const tabFromUrl = searchParams.get('tab')
+  const validTabs = ['general-config', 'fees', 'payment-config', 'email-templates', 'orders', 'reviews']
+  const initialTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : 'general-config'
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [paymentConfigs, setPaymentConfigs] = useState<PaymentConfig[]>([])
   const [isItemsModalOpen, setIsItemsModalOpen] = useState(false)
   const [selectedOrderItems, setSelectedOrderItems] = useState<RentalItem[]>([])
@@ -609,6 +615,15 @@ export default function AdminPage() {
     }
   }
 
+  // Función para manejar el cambio de pestaña y actualizar la URL
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab)
+    // Actualizar la URL sin recargar la página
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', newTab)
+    window.history.pushState({}, '', url.toString())
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
@@ -625,7 +640,7 @@ export default function AdminPage() {
         <Button onClick={handleLogout}>Cerrar Sesión</Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general-config">Configuración</TabsTrigger>
           <TabsTrigger value="fees">Tarifas Adicionales</TabsTrigger>

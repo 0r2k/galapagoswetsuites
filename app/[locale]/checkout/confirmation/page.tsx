@@ -200,7 +200,7 @@ function ConfirmationContent() {
                 return (
                   <li key={item.id} className="flex justify-between">
                     <span>{productName} x{item.quantity}</span>
-                    <span>${item.subtotal.toFixed(2)}</span>
+                    <span>US${item.subtotal.toFixed(2)}</span>
                   </li>
                 )
               })}
@@ -212,31 +212,31 @@ function ConfirmationContent() {
           <div>
             <div className="flex justify-between">
               <span>{t('totalRented')}</span>
-              <span>${order.rental_items.reduce((total: number, item: any) => total + (item.unit_price * item.quantity * item.days), 0).toFixed(2)}</span>
+              <span>US${order.rental_items.reduce((total: number, item: any) => total + (item.unit_price * item.quantity * item.days), 0).toFixed(2)}</span>
             </div>
-            {order.return_island === 'san-cristobal' && (
-              <div className="flex justify-between">
-                <span>{t('returnFee')}</span>
-                <span>${calculateReturnFee().toFixed(2)}</span>
-              </div>
-            )}
             {order.pickup && order.pickup !== 'santa-cruz' && (
               <div className="flex justify-between">
                 <span>{t('hotelPickupFee')}</span>
-                <span>$5.00</span>
+                <span>US$5.00</span>
+              </div>
+            )}
+            {order.return_island === 'san-cristobal' && (
+              <div className="flex justify-between">
+                <span>{t('returnFee')}</span>
+                <span>US${calculateReturnFee().toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span>{t('initialPayment')}</span>
-              <span>${(order.total_amount - (order.tax_amount || 0)).toFixed(2)}</span>
+              <span>US${(order.total_amount - (order.tax_amount || 0)).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>{t('taxes')}</span>
-              <span>${(order.tax_amount || 0).toFixed(2)}</span>
+              <span>US${(order.tax_amount || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold mt-2">
               <span>{t('totalPaid')}</span>
-              <span>${order.total_amount.toFixed(2)}</span>
+              <span>US${order.total_amount.toFixed(2)}</span>
             </div>
             <div className="text-xs text-gray-500 mt-2">
               <p>{t('priceFor', {days: order.rental_items[0]?.days || 1})}</p>

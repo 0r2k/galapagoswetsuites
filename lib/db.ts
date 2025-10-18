@@ -63,6 +63,7 @@ export interface RentalOrder {
   end_date: string;
   start_time: string;
   end_time: string;
+  pickup?: string;
   return_island: Island;
   payment_method?: string;
   status_detail?: string;

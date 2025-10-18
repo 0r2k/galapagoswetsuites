@@ -485,7 +485,7 @@ function CheckoutContent() {
                     return (
                       <li key={index} className="flex justify-between">
                         <span>{itemName} x{item.quantity}</span>
-                        <span>${(item.product.public_price * item.quantity).toFixed(2)}</span>
+                        <span>US${(item.product.public_price * item.quantity).toFixed(2)}</span>
                       </li>
                     )
                   })}
@@ -497,23 +497,29 @@ function CheckoutContent() {
               <div>
                 <div className="flex justify-between">
                   <span>{t('checkout.productsSubtotal', { days: rental.rentalDays })}</span>
-                  <span>${calculateProductsSubtotal(rental)}</span>
+                  <span>US${calculateProductsSubtotal(rental)}</span>
                 </div>
+                {rental.pickup === "hotel" && (
+                  <div className="flex justify-between">
+                    <span>{t('cart.hotelPickupFee')}</span>
+                    <span>US$5.00</span>
+                  </div>
+                )}
                 {rental.returnFeeAmount > 0 && (
                   <div className="flex justify-between">
                     <span>{t('checkout.returnFeeLabel', { island: rental.returnIsland === 'santa-cruz' ? t('cart.santaCruz') : t('cart.sanCristobal') })}</span>
-                    <span>${calculateReturnFee(rental)}</span>
+                    <span>US${calculateReturnFee(rental)}</span>
                   </div>
                 )}
                 {parseFloat(calculateTaxes(rental)) > 0 && (
                 <>
                   <div className="flex justify-between">
                     <span>{t('cart.subtotal')}</span>
-                    <span>${calculateSubtotal(rental)}</span>
+                    <span>US${calculateSubtotal(rental)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t('cart.taxes')}</span>
-                    <span>${calculateTaxes(rental)}</span>
+                    <span>US${calculateTaxes(rental)}</span>
                   </div>
                 </>
                 )}
@@ -522,15 +528,15 @@ function CheckoutContent() {
               <div>
                 <div className="flex justify-between text-lg">
                   <span className=' font-bold'>{t('cart.initialPayment')}</span>
-                  <span>${calculateInitialPayment(rental).toFixed(2)}</span>
+                  <span>US${calculateInitialPayment(rental).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
                   <span className=' font-bold'>{t('cart.payOnPickup')}</span>
-                  <span>${(parseFloat(calculateTotal(rental)) - calculateInitialPayment(rental)).toFixed(2)}</span>
+                  <span>US${(parseFloat(calculateTotal(rental)) - calculateInitialPayment(rental)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg">
                   <span className=' font-bold'>{t('cart.total')}</span>
-                  <span className=' font-bold'>${calculateTotal(rental)}</span>
+                  <span className=' font-bold'>US${calculateTotal(rental)}</span>
                 </div>
               </div>
             </CardContent>

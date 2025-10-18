@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import Handlebars from 'handlebars';
+import * as cheerio from "cheerio";
 import { listTemplates } from './templates';
 import { RentalOrder, RentalItem } from './db';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -7,26 +8,29 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const FROM = process.env.RESEND_FROM || 'noreply@galapagos.viajes';
 
-// Registrar helpers personalizados de Handlebars
-Handlebars.registerHelper('strContains', function(str: string, substring: string) {
-  return str && str.toString().includes(substring);
+const norm = (s: any) =>
+  (s ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+
+Handlebars.registerHelper('strContains', (str: any, substr: any) =>
+  norm(str).includes(norm(substr))
+);
+
+Handlebars.registerHelper('and', function (...args: any[]) {
+  return args.slice(0, -1).every(Boolean);
 });
 
-Handlebars.registerHelper('eq', function(a: any, b: any) {
-  return a === b;
+Handlebars.registerHelper('or', function (...args: any[]) {
+  return args.slice(0, -1).some(Boolean);
 });
 
-Handlebars.registerHelper('ne', function(a: any, b: any) {
-  return a !== b;
-});
-
-Handlebars.registerHelper('gt', function(a: any, b: any) {
-  return a > b;
-});
-
-Handlebars.registerHelper('lt', function(a: any, b: any) {
-  return a < b;
-});
+Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
+Handlebars.registerHelper('ne', (a: any, b: any) => a !== b);
+Handlebars.registerHelper('gt', (a: any, b: any) => Number(a) > Number(b));
+Handlebars.registerHelper('lt', (a: any, b: any) => Number(a) < Number(b));
 
 export interface OrderEmailData {
   order: RentalOrder & { 
@@ -67,6 +71,7 @@ export interface EmailVariables {
   startTime: string;
   endDate: string;
   endTime: string;
+  pickup: string;
   returnIsland: string;
   rentalDays: number;
   
@@ -85,6 +90,7 @@ export interface EmailVariables {
   taxAmount: number;
   totalAmount: number;
   returnFeeAmount: number;
+  returnFee: number;
   initialPayment: number;
   pickupPayment: number;
   
@@ -96,6 +102,37 @@ export interface EmailVariables {
   
   // Enlaces
   sizesSelectionID: string;
+}
+
+function stripConditionalSections(html: string, vars: any) {
+  const $ = cheerio.load(html);
+
+  const pickup = (vars.pickup || "").toLowerCase();
+  const returnIsland = (vars.returnIsland || "").toLowerCase();
+
+  // 🔹 1. Si no hay returnIsland o no contiene "San Cri" → elimina la sección de devolución
+  if (!returnIsland.includes("san cri")) {
+    $('p:contains("Instrucciones de devolución en San Cristobal")')
+      .closest(".u-row-container")
+      .remove();
+    
+    $('p:contains("Return Instructions in San Cristobal")')
+      .closest(".u-row-container")
+      .remove();
+  }
+
+  // 🔹 2. Si pickup contiene "hotel" y returnIsland contiene "san cri" → elimina sección de recogida
+  if (pickup.includes("hotel") && returnIsland.includes("san cri")) {
+    $('div:contains("en la oficina de la agencia")')
+      .closest(".u-row-container")
+      .remove();
+    
+    $('div:contains("at the Grupo Galapagos travel agency office")')
+      .closest(".u-row-container")
+      .remove();
+  }
+
+  return $.html();
 }
 
 // Función para calcular el costo adicional por isla de devolución
@@ -133,7 +170,8 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
   const totalItems = order.rental_items.reduce((total, item) => total + item.quantity, 0);
   
   // Calcular costo adicional por isla de devolución
-  const returnFeeAmount = await calculateReturnFeeAmount(order.return_island, totalItems);
+  const returnFee = await calculateReturnFeeAmount(order.return_island, totalItems);
+  const returnFeeAmount = returnFee;
   
   // Preparar productos
   const products = order.rental_items.map(item => ({
@@ -150,12 +188,13 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     total + (item.product_config?.supplier_cost * item.quantity * item.days), 0
   );
   const commission = subtotal - supplierCost;
+  const initialPayment = subtotal - supplierCost;
   
   // Calcular pago inicial (diferencia entre precio público y costo proveedor)
-  const initialPayment = order.rental_items.reduce((total, item) => {
-    const priceDifference = (item.unit_price - (item.product_config?.supplier_cost || 0)) * item.quantity * item.days;
-    return total + priceDifference;
-  }, 0);
+  // const initialPayment = order.rental_items.reduce((total, item) => {
+  //   const priceDifference = (item.unit_price - (item.product_config?.supplier_cost || 0)) * item.quantity * item.days;
+  //   return total + priceDifference;
+  // }, 0);
   
   // Calcular valor a pagar al recoger (total - pago inicial)
   const pickupPayment = order.total_amount - Math.max(initialPayment, 0);
@@ -177,6 +216,7 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     startTime: order.start_time,
     endDate: new Date(order.end_date).toLocaleDateString('es-ES'),
     endTime: order.end_time,
+    pickup: order.pickup === 'santa-cruz' ? 'Santa Cruz - Agency Office' : 'Hotel - ' + order.pickup,
     returnIsland: order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal',
     rentalDays: order.rental_items[0]?.days || 1,
     
@@ -193,6 +233,7 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     taxAmount: order.tax_amount,
     totalAmount: order.total_amount + supplierTotalAmount,
     returnFeeAmount: returnFeeAmount,
+    returnFee: returnFee,
     initialPayment: Math.max(initialPayment, 0),
     pickupPayment: Math.max(pickupPayment, 0),
     
@@ -295,24 +336,13 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
       // console.log(`📧 Recipients: ${JSON.stringify(template.recipient_emails)}`);
       // console.log(`📝 Tiene HTML: ${!!template.html_published}`);
       
-      if (template.html_published && template.template_type) {
-        const { default: mjml2html } = await import('mjml');
+      if (template.html && template.template_type) {
 
-        let mjmlTemplate = template.html_published;
-        if (mjmlTemplate.trim().startsWith('<mjml>')) {
-          const { html: compiled, errors } = mjml2html(mjmlTemplate, {
-            minify: false,
-            validationLevel: 'soft',
-          });
-          if (errors?.length) {
-            const msg = errors.map((e: any) => e.message || e.formattedMessage).join('\n');
-            console.error('MJML errors:', msg);
-          }
-          mjmlTemplate = compiled;
-        }
-
-        const finalHtml = Handlebars.compile(mjmlTemplate)(handlebarsVars);
+        let templateHTML = template.html;
+        
         let recipients = template.recipient_emails ? [...template.recipient_emails] : [];
+        let finalHtml = Handlebars.compile(templateHTML)(handlebarsVars);
+        finalHtml = stripConditionalSections(finalHtml, handlebarsVars);
         
         // Para plantillas de cliente, agregar el email del cliente
         if (template.template_type === 'customer' && orderData.order.customer?.email) {
@@ -342,7 +372,7 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
           })
         );
       } else {
-        console.log(`⚠️ Saltando plantilla "${template.name}": ${!template.html_published ? 'Sin HTML' : 'Sin tipo'}`);
+        console.log(`⚠️ Saltando plantilla "${template.name}": ${!template.html ? 'Sin HTML' : 'Sin tipo'}`);
       }
     }
     
@@ -456,6 +486,7 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
         end_date: order.end_date,
         start_time: order.start_time,
         end_time: order.end_time,
+        pickup: order.pickup,
         return_island: order.return_island,
         payment_method: order.payment_method,
         status_detail: order.status_detail,

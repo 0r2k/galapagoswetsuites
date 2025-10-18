@@ -8,7 +8,7 @@ export type EmailTemplate = {
   template_type: TemplateType | null;
   recipient_emails: string[] | null;
   project: any | null;
-  html_published: string | null;
+  html: string | null;
   preview_data: any | null;
   subject: string | null;
   language: string;
@@ -75,6 +75,15 @@ export async function publishHtml(id: string, html: string) {
     .single();
   if (error) throw error;
   return data as EmailTemplate;
+}
+
+export async function saveDraftData(id: string, draft: any) {
+  const { error } = await supabaseAdmin
+    .from('email_templates')
+    .update(draft)
+    .eq('id', id);
+  if (error) throw error;
+  return { success: true };
 }
 
 export async function updatePreviewData(id: string, preview: any, subject?: string) {
