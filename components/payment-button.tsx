@@ -28,6 +28,7 @@ const PaymentButton = ({
   const paymentCheckoutRef = useRef<any>(null);
   const [paymentEnvironment, setPaymentEnvironment] = useState<string | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const capturedFormDataRef = useRef<any>(null);
   const router = useRouter();
   const params = useParams();
@@ -263,6 +264,8 @@ const PaymentButton = ({
         },
         onClose: function () {
           console.log("modal closed");
+          // Rehabilitar el botón cuando se cierre el modal
+          setIsProcessing(false);
         },
         onResponse: function (response: any) {
           // función del componente padre para cambiar estado
@@ -350,24 +353,34 @@ const PaymentButton = ({
       return; // No proceder si la validación falla
     }
     
-    // Capturar formData al momento del click para preservar los datos
-    capturedFormDataRef.current = { ...formData };
+    // Deshabilitar el botón mientras se procesa
+    setIsProcessing(true);
     
-    const reference = await initiateTransaction();
-    paymentCheckoutRef.current?.open({
-      reference: reference,
-    });
+    try {
+      // Capturar formData al momento del click para preservar los datos
+      capturedFormDataRef.current = { ...formData };
+      
+      const reference = await initiateTransaction();
+      paymentCheckoutRef.current?.open({
+        reference: reference,
+      });
+    } catch (error) {
+      console.error("Error al procesar el pago:", error);
+      toast.error("Error al procesar el pago. Por favor, inténtalo de nuevo.");
+      // Rehabilitar el botón en caso de error
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div>
       <Button
-        className="mt-6 h-14 font-bold w-full"
+        className="mt-6 h-14 font-bold w-full cursor-pointer"
         type="button"
         onClick={handleButtonClick}
-        disabled={disabled || !configLoaded || !paymentEnvironment}
+        disabled={disabled || !configLoaded || !paymentEnvironment || isProcessing}
       >
-        {!configLoaded ? t('loadingConfig') : t('payWithCard')}
+        {!configLoaded ? t('loadingConfig') : isProcessing ? t('processing') : t('payWithCard')}
       </Button>
     </div>
   );

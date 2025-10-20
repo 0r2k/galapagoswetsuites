@@ -95,6 +95,7 @@
   "payment": {
     "loadingConfig": "Loading configuration...",
     "payWithCard": "Pay with credit/debit card",
+    "processing": "Processing...",
     "processingError": "Error processing payment. Please try again later."
   },
   "validation": {
