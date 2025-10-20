@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
-const FROM = process.env.RESEND_FROM || 'noreply@galapagos.viajes';
+const FROM = process.env.RESEND_FROM || 'info@galapagos.viajes';
 
 export async function POST(req: NextRequest) {
   try {
