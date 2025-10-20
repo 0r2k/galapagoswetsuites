@@ -174,7 +174,7 @@ function ConfirmationContent() {
                   order.pickup === 'santa-cruz' 
                     ? t('santaCruzOffice')
                     : order.pickup 
-                      ? `${t('santaCruzHotel')} - ${order.pickup}`
+                      ? `${t('santaCruzHotel')} : ${order.pickup}`
                       : t('santaCruzHotel')
                 }</p>
                 <p><strong>{t('status')}:</strong> {t('confirmed')}</p>

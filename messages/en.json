@@ -69,6 +69,7 @@
     "returnDate": "Date and time",
     "pickupTitle": "Pickup",
     "pickupIsland": "Location",
+    "pickupPlaceholder": "Select where you will pick up the equipment",
     "returnTitle": "Return",
     "returnIsland": "Island",
     "santaCruz": "Santa Cruz",

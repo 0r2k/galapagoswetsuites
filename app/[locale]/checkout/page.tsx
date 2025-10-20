@@ -26,7 +26,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams()
   const params = useParams()
   const locale = params.locale || 'es'
-  const rentalData = searchParams.get('rentalData')
+  // const rentalData = searchParams.get('rentalData')
 
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
@@ -61,10 +61,12 @@ function CheckoutContent() {
     
     try {
       const parsedCart = JSON.parse(savedCart)
+      const hotelName = localStorage.getItem('hotelName') || ''
       return parsedCart.map((item: any) => ({
         ...item,
         startDate: item.startDate ? new Date(item.startDate) : undefined,
-        endDate: item.endDate ? new Date(item.endDate) : undefined
+        endDate: item.endDate ? new Date(item.endDate) : undefined,
+        hotelName: hotelName
       }))
     } catch (error) {
       console.error('Error al cargar el carrito desde localStorage:', error)
@@ -173,11 +175,8 @@ function CheckoutContent() {
           }
         }
         
-        // Intentar cargar datos desde localStorage primero
         const cartItems = loadCartFromLocalStorage()
-        
         if (cartItems && cartItems.length > 0) {
-          // Calcular días de alquiler
           const calculateRentalDays = (): number => {
             const item = cartItems[0];
             if (!item.startDate || !item.endDate || !item.startTime || !item.endTime) {
@@ -259,18 +258,6 @@ function CheckoutContent() {
           };
           
           setRental(rentalData);
-        } 
-        // Si no hay datos en localStorage, intentar usar los datos de la URL
-        else if (rentalData) {
-          const decodedRental = JSON.parse(decodeURIComponent(rentalData))
-          // Convertir fechas a objetos Date si existen
-          if (decodedRental.startDate) {
-            decodedRental.startDate = new Date(decodedRental.startDate)
-          }
-          if (decodedRental.endDate) {
-            decodedRental.endDate = new Date(decodedRental.endDate)
-          }
-          setRental(decodedRental)
         } else {
           // Si no hay datos de alquiler, redirigir a la página principal
           router.push('/')
@@ -468,7 +455,7 @@ function CheckoutContent() {
                   rental.pickup === 'santa-cruz' 
                     ? t('cart.santaCruzOffice')
                     : rental.hotelName 
-                      ? `${t('cart.santaCruzHotel')} - ${rental.hotelName}`
+                      ? `${t('cart.santaCruzHotel')} : ${rental.hotelName}`
                       : t('cart.santaCruzHotel')
                 }</p>
               </div>

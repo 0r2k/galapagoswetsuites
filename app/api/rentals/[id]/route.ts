@@ -13,19 +13,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const { data, error } = await supabaseAdmin
       .from("rental_orders")
       .select(`
-        id,
-        customer_id,
-        total_amount,
-        tax_amount,
-        status,
-        start_date,
-        end_date,
-        start_time,
-        end_time,
-        return_island,
-        payment_status,
-        order_number,
-        language,
+        *,
         users (
           first_name,
           last_name,

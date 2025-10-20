@@ -113,7 +113,6 @@ function RentalPageContent() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
   const [galleryLoading, setGalleryLoading] = useState(false)
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
-  const [pickup, setPickup] = useState<"santa-cruz" | "hotel">("santa-cruz")
   const [hotelName, setHotelName] = useState<string>("")
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
@@ -182,12 +181,10 @@ function RentalPageContent() {
       
       // Cargar pickup y hotelName desde localStorage
       if (firstItem.pickup) {
-        if (firstItem.pickup === 'santa-cruz') {
-          setPickup('santa-cruz')
-          setHotelName('')
-        } else {
-          setPickup('hotel')
+        if (firstItem.pickup === 'hotel') {
           setHotelName(firstItem.hotelName || firstItem.pickup)
+        } else {
+          setHotelName('')
         }
       }
     }
@@ -369,21 +366,13 @@ function RentalPageContent() {
         amount: returnFeeAmount
       }))
     }
+
+    if (field === 'pickup') {
+      setHotelName("")
+      localStorage.setItem('hotelName', '')
+    }
     
     localStorage.setItem('galapagosCart', JSON.stringify(updatedCart))
-  }
-
-  // Funciones para navegación de reviews
-  const nextReview = () => {
-    if (reviews.length > 0) {
-      setCurrentReviewIndex((prev) => (prev + 1) % reviews.length)
-    }
-  }
-
-  const prevReview = () => {
-    if (reviews.length > 0) {
-      setCurrentReviewIndex((prev) => (prev - 1 + reviews.length) % reviews.length)
-    }
   }
 
   const scrollToReview = (index: number) => {
@@ -483,7 +472,7 @@ function RentalPageContent() {
     }, returnFeeAmount) // Agregamos la tarifa de devolución sin multiplicar por días
     
     // Agregar $5 si el pickup es en hotel
-    const hotelPickupFee = pickup === "hotel" ? 5 : 0
+    const hotelPickupFee = cartItems.some(item => item.pickup === "hotel") ? 5 : 0
     
     return { subtotal, returnFeeAmount, totalWithTax: totalWithTax + hotelPickupFee }
   }
@@ -498,7 +487,7 @@ function RentalPageContent() {
     }, 0)
     
     // Agregar $5 si el pickup es en hotel
-    const hotelPickupFee = pickup === "hotel" ? 5 : 0
+    const hotelPickupFee = cartItems.some(item => item.pickup === "hotel") ? 5 : 0
     
     return Math.max(initialPayment + hotelPickupFee, 0) // Asegurar que no sea negativo
   }
@@ -823,20 +812,14 @@ function RentalPageContent() {
                     <div className="space-y-2">
                       <label>{t('cart.pickupIsland')}</label>
                       <Select 
-                        value={pickup} 
-                        onValueChange={(value: "santa-cruz" | "hotel") => {
-                          setPickup(value)
-                          if (value === "santa-cruz") {
-                            setHotelName("")
-                            updateCartDetails('pickup', 'santa-cruz')
-                            updateCartDetails('hotelName', '')
-                          } else {
-                            updateCartDetails('pickup', 'hotel')
-                          }
+                        value={cartItems.length > 0 && cartItems[0].pickup ? cartItems[0].pickup : undefined} 
+                        onValueChange={(value) => {
+                          updateCartDetails('pickup', value)
+                          console.log('pickup', value)
                         }}
                       >
                         <SelectTrigger className="w-full bg-white border border-primary/20">
-                          <SelectValue />
+                          <SelectValue placeholder={t('cart.pickupPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
                           <SelectItem value="santa-cruz">
@@ -848,7 +831,7 @@ function RentalPageContent() {
                         </SelectContent>
                       </Select>
                       
-                      {pickup === "hotel" && (
+                      {cartItems.length > 0 && cartItems[0].pickup === "hotel" && (
                         <div className="space-y-2 mt-3">
                           <input
                             type="text"
@@ -856,8 +839,8 @@ function RentalPageContent() {
                             value={hotelName}
                             onChange={(e) => {
                               setHotelName(e.target.value)
+                              localStorage.setItem('hotelName', e.target.value)
                               updateCartDetails('hotelName', e.target.value)
-                              updateCartDetails('pickup', e.target.value || '')
                             }}
                             className="w-full px-3 py-2 border border-primary/20 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
@@ -989,7 +972,7 @@ function RentalPageContent() {
                     <span>{t('cart.rentalDays')}</span>
                     <span>{calculateRentalDays()} días</span>
                   </div>
-                  {pickup === "hotel" && (
+                  {cartItems.length > 0 && cartItems[0].pickup === "hotel" && (
                     <div className="flex justify-between text-sm mb-2">
                       <span>{t('cart.hotelPickupFee')}</span>
                       <span>US$5.00</span>
