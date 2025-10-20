@@ -107,7 +107,7 @@ const PaymentButton = ({
         end_date: rental.endDate,
         end_time: rental.endTime,
         return_island: rental.returnIsland || 'santa-cruz',
-        pickup: rental.pickup === 'santa-cruz' ? 'santa-cruz' : (rental.hotelName || null),
+        pickup: rental.pickup === 'santa-cruz' ? 'santa-cruz' : ('Hotel: ' + rental.hotelName || null),
         total_amount: data?.transaction?.amount || totalAmount,
         tax_amount: taxAmount,
         payment_method: data?.card?.type || 'card',

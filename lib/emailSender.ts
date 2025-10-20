@@ -187,8 +187,14 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
   const supplierCost = order.rental_items.reduce((total, item) => 
     total + (item.product_config?.supplier_cost * item.quantity * item.days), 0
   );
-  const commission = subtotal - supplierCost;
-  const initialPayment = subtotal - supplierCost;
+
+  let pickupFee = 0;
+  if(order.pickup !== 'santa-cruz' && order.pickup !== null) {
+    pickupFee = 5;
+  }
+
+  const commission = (subtotal + pickupFee) - supplierCost;
+  const initialPayment = (subtotal + pickupFee) - supplierCost;
   
   // Calcular pago inicial (diferencia entre precio público y costo proveedor)
   // const initialPayment = order.rental_items.reduce((total, item) => {
@@ -243,41 +249,41 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
   };
 }
 
-function convertVariablesToHandlebarsFormat(variables: EmailVariables) {
-  return {
-    globalData: Object.keys(variables).reduce((acc, key) => {
-      const value = variables[key as keyof EmailVariables];
+// function convertVariablesToHandlebarsFormat(variables: EmailVariables) {
+//   return {
+//     globalData: Object.keys(variables).reduce((acc, key) => {
+//       const value = variables[key as keyof EmailVariables];
       
-      // Manejar arrays de manera especial
-      if (Array.isArray(value)) {
-        acc[key] = { 
-          data: value.map(item => {
-            if (typeof item === 'object' && item !== null) {
-              // Para objetos dentro del array, validar cada propiedad
-              const safeItem = {} as any;
-              Object.keys(item).forEach(itemKey => {
-                const itemValue = (item as any)[itemKey];
-                safeItem[itemKey] = (typeof itemValue === 'number' && (!isFinite(itemValue) || isNaN(itemValue))) ? 0 : itemValue;
-              });
-              return safeItem;
-            }
-            return item;
-          })
-        };
-      } else {
-        // Validar que el valor no sea infinito o NaN
-        const safeValue = (typeof value === 'number' && (!isFinite(value) || isNaN(value))) ? 0 : value;
-        acc[key] = { data: safeValue };
-      }
-      return acc;
-    }, {} as any)
-  };
-}
+//       // Manejar arrays de manera especial
+//       if (Array.isArray(value)) {
+//         acc[key] = { 
+//           data: value.map(item => {
+//             if (typeof item === 'object' && item !== null) {
+//               // Para objetos dentro del array, validar cada propiedad
+//               const safeItem = {} as any;
+//               Object.keys(item).forEach(itemKey => {
+//                 const itemValue = (item as any)[itemKey];
+//                 safeItem[itemKey] = (typeof itemValue === 'number' && (!isFinite(itemValue) || isNaN(itemValue))) ? 0 : itemValue;
+//               });
+//               return safeItem;
+//             }
+//             return item;
+//           })
+//         };
+//       } else {
+//         // Validar que el valor no sea infinito o NaN
+//         const safeValue = (typeof value === 'number' && (!isFinite(value) || isNaN(value))) ? 0 : value;
+//         acc[key] = { data: safeValue };
+//       }
+//       return acc;
+//     }, {} as any)
+//   };
+// }
 
 export async function sendAutomaticEmails(orderData: OrderEmailData, templateType?: string, language: string = 'es') {
   try {
     const variables = await prepareEmailVariables(orderData);
-    const handlebarsVars = convertVariablesToHandlebarsFormat(variables);
+    // const handlebarsVars = convertVariablesToHandlebarsFormat(variables);
     
     // Obtener plantillas por tipo
     // Obtener todas las plantillas con una sola consulta
@@ -341,8 +347,10 @@ export async function sendAutomaticEmails(orderData: OrderEmailData, templateTyp
         let templateHTML = template.html;
         
         let recipients = template.recipient_emails ? [...template.recipient_emails] : [];
-        let finalHtml = Handlebars.compile(templateHTML)(handlebarsVars);
-        finalHtml = stripConditionalSections(finalHtml, handlebarsVars);
+        // let finalHtml = Handlebars.compile(templateHTML)(handlebarsVars);
+        // finalHtml = stripConditionalSections(finalHtml, handlebarsVars);
+        let finalHtml = Handlebars.compile(templateHTML)(variables);
+        finalHtml = stripConditionalSections(finalHtml, variables);
         
         // Para plantillas de cliente, agregar el email del cliente
         if (template.template_type === 'customer' && orderData.order.customer?.email) {
