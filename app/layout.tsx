@@ -10,7 +10,10 @@ export const metadata: Metadata = {
   icons: "/favicon.webp",
   metadataBase: new URL(process.env.NODE_ENV === 'production' 
     ? 'https://galapagos.viajes' 
-    : 'http://localhost:3001')
+    : 'http://localhost:3001'),
+  verification: {
+    google: 'DBRZ7kKioExpBi2zaBBzblqg7awy2HTL-m0v1yoEULA'
+  }
 }
 
 export default function RootLayout({
