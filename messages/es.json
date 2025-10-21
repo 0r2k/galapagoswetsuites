@@ -133,9 +133,9 @@
     "unavailable": "No disponible"
   },
   "hero": {
-    "title": "Renta de wetsuits y equipo de snorkeling",
-    "subtitle": "¡Una preocupacion menos en tu viaje a Galapagos!<br></br><strong>Tenemos para alaquilar mas de 100 equipos de snorkeling, aletas, wetsuit</strong> cortos y largos (3mm), reservalos en linea con un pago inicial, y optimiza tu tiempo en las Islas Galápagos.",
-    "description": "<strong>Alquílalo por día o por todo el tiempo que desees</strong>, lo recoges en la Isla Santa Cruz y lo puedes devolver en la Isla de Santa Cruz o San Cristóbal."
+    "title": "Alquiler de wetsuits y snorkel en Galápagos",
+    "subtitle": "<strong>Tenemos wetsuit cortos y largos de todas las tallas</strong>, equipos de snorkel con aletas, <strong>todo en excelentes condiciones</strong> para que tengas una experiencia espectacular en las Islas Galápagos.",
+    "description": "<strong>Puedes rentarlo en linea</strong> y lo mejor es que te lo podemos <strong>entregar en tu hotel/hostal</strong>, o tambien <strong>lo puedes recoger en la oficina</strong> de la agencia en la Isla Santa Cruz."
   },
   "checkout": {
     "title": "Completar Compra",
@@ -185,10 +185,10 @@
     "taxes": "Impuestos",
     "totalPaid": "Total pagado",
     "priceFor": "Precio por {days} día(s) de alquiler",
-    "pickupInstructions": "Instrucciones de Recogida",
-    "pickupInstructionsText": "Hemos enviado a tu email la informacion para recoger tus equipos en la Isla Santa Cruz.",
-    "customizeInstructions1": "Para personalizar tus trajes wetsuit y aletas, puedes ingresar a este link:",
-    "customizeInstructions2": "para indicarnos las tallas, de igual manera podras probarte otras tallas similares, tambien el link te lo hemos enviado en tu email de confirmacion para que puedas hacerlo en cualquier momento.",
+    "pickupInstructions": "INSTRUCCIONES",
+    "pickupInstructionsText": "Hemos enviado a tu email la confirmación de los equipos alquilados.",
+    "customizeInstructions1": "Para personalizar tus wetsuit y aletas, en caso de haberlos alquilado, por favor ingresa a este link e indícanos las tallas:",
+    "customizeInstructions2": "También si has pedido que te entreguemos los equipos en tu hotel, en el mismo link puedes ingresar el nombre de tu hotel.",
     "backToHome": "Volver al Inicio",
     "orderNotFound": "No se encontró el pedido",
     "santaCruzOffice": "Santa Cruz - Oficina de Agencia",

@@ -19,8 +19,10 @@ import { toast } from 'sonner'
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { GalleryComponent } from "@/components/gallery-component"
 import { useTranslations } from 'next-intl'
 import { getCountryFlag, getCountryName } from "@/utils/countryFlags"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Product {
   id: string
@@ -91,6 +93,7 @@ function RentalPageContent() {
   const router = useRouter()
   const locale = params.locale || 'es'
   const t = useTranslations()
+  const isMobile = useIsMobile()
   const [loading, setLoading] = useState(true)
   const today = new Date()
   const [startDate, setStartDate] = useState<Date>()
@@ -1064,6 +1067,17 @@ function RentalPageContent() {
               strong: (chunks) => <strong>{chunks}</strong>
             })}
           </p>
+
+          {isMobile && (
+            <GalleryComponent 
+              images={galleryImages}
+              loading={galleryLoading}
+              currentIndex={currentGalleryIndex}
+              locale={locale as string}
+              className="my-4"
+            />
+          )}
+
           <p className="text-sm sm:text-base text-muted-foreground text-pretty mt-4">
             {t.rich('hero.description', {
               strong: (chunks) => <strong>{chunks}</strong>
@@ -1200,44 +1214,14 @@ function RentalPageContent() {
                 </section>
               </div>
               <div>
-                <section className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg h-full">
-                  <div className="relative">
-                    {galleryLoading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        {locale === 'es' ? 'Cargando galería...' : 'Loading gallery...'}
-                      </div>
-                    ) : (
-                      <>
-                        {galleryImages.length > 0 ? (
-                        <div className="relative h-96 overflow-hidden rounded-lg">
-                          {galleryImages.map((image, index) => (
-                            <div
-                              key={image.id}
-                              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                                index === currentGalleryIndex ? 'opacity-100' : 'opacity-0'
-                              }`}
-                            >
-                              <div className="relative w-full h-full">
-                                <Image
-                                  src={image.url}
-                                  alt={image.alt}
-                                  fill
-                                  className="object-cover rounded-lg"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        ) : (
-                          <p className="text-center text-muted-foreground py-12">
-                            {locale === 'es' ? 'No hay imágenes en la galería.' : 'No images in gallery.'}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </section>
+                {!isMobile && (
+                  <GalleryComponent 
+                    images={galleryImages}
+                    loading={galleryLoading}
+                    currentIndex={currentGalleryIndex}
+                    locale={locale as string}
+                  />
+                )}
               </div>
             </div>
 

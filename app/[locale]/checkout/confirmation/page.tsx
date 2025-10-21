@@ -244,13 +244,13 @@ function ConfirmationContent() {
           </div>
           
           <div className="bg-blue-50 p-4 rounded-md">
-            <h3 className="font-medium text-blue-700 mb-2">{t('pickupInstructions')}</h3>
-            <p className="text-sm text-blue-600">
+            <h3 className="font-medium text-[#f79b1e] mb-2">{t('pickupInstructions')}</h3>
+            <p className="text-sm mb-4">
               {t('pickupInstructionsText')}
             </p>
-            <p className="text-sm text-blue-600">
+            <p className="text-sm">
               {t('customizeInstructions1')}<br />
-              <a href={`https://galapagos.viajes/sizes?orderId=${order.id}`} className="text-blue-600 underline">{`https://galapagos.viajes/sizes?orderId=${order.id}`}</a><br />
+              <a href={`https://galapagos.viajes/sizes?orderId=${order.id}`} className="text-blue-600 underline">{`https://galapagos.viajes/sizes?orderId=${order.id}`}</a><br /><br />
               {t('customizeInstructions2')}
             </p>
           </div>

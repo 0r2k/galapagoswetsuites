@@ -133,9 +133,9 @@
     "unavailable": "Unavailable"
   },
   "hero": {
-    "title": "Wetsuit & Snorkeling Equipment Rental",
-    "subtitle": "One less worry on your trip to Galápagos!<br></br><strong>We have over 100 snorkeling equipment, fins, short and long wetsuits</strong> (3mm), reserve them online with an initial payment, and optimize your time in the Galápagos Islands.",
-    "description": "<strong>Rent it by the day or for as long as you want</strong>, pick it up on Santa Cruz Island and you can return it on Santa Cruz Island or San Cristóbal."
+    "title": "Wetsuit and snorkel rental in the Galápagos",
+    "subtitle": "<strong>We have short and long wetsuits in all sizes</strong>, snorkeling equipment with fins, <strong>all in excellent condition</strong> so you can have a spectacular experience in the Galapagos Islands.",
+    "description": "<strong>You can rent it online</strong> and the best part is that <strong>we can deliver it to your hotel/hostel</strong>, or you can <strong>pick it up at the agency's office</strong> on Santa Cruz Island."
   },
   "checkout": {
     "title": "Complete Purchase",
@@ -185,10 +185,10 @@
     "taxes": "Taxes",
     "totalPaid": "Total paid",
     "priceFor": "Price for {days} day(s)",
-    "pickupInstructions": "Pickup Instructions",
-    "pickupInstructionsText": "We have sent information to your email about where you need to pick up your equipment on Santa Cruz Island.",
-    "customizeInstructions1": "To customize your wetsuit and fins, you can visit this link:",
-    "customizeInstructions2": "to let us know the sizes you want. You can also try out different sizes on the website. We will send you this link in your confirmation email so you can do this at any time.",
+    "pickupInstructions": "INSTRUCTIONS",
+    "pickupInstructionsText": "We have sent a confirmation email with the details of your equipment rental.",
+    "customizeInstructions1": "To customize your wetsuit and fins, if you have rented them, please click on this link and tell us your sizes:",
+    "customizeInstructions2": "If you have requested delivery of the equipment to your hotel, you can also enter the name of your hotel at the same link.",
     "backToHome": "Back to Home",
     "orderNotFound": "Order not found",
     "santaCruzOffice": "Santa Cruz - Agency Office",
