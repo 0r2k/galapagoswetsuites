@@ -42,7 +42,7 @@ interface RentalOrder {
 }
 
 const sizeOptions = {
-  wetsuit: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+  wetsuit: ['4 a 6 años', '7 a 9 años', '10 a 12 años', '13 a 15 años', 'XS', 'S', 'M', 'L', 'XL', 'XXL'],
   fins: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46']
 }
 
