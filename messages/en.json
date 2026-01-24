@@ -135,7 +135,8 @@
   "hero": {
     "title": "Wetsuit and snorkel rental in the Galápagos",
     "subtitle": "<strong>We have short and long wetsuits in all sizes</strong>, snorkeling equipment with fins, <strong>all in excellent condition</strong> so you can have a spectacular experience in the Galapagos Islands.",
-    "description": "<strong>You can rent it online</strong> and the best part is that <strong>we can deliver it to your hotel/hostel</strong>, or you can <strong>pick it up at the agency's office</strong> on Santa Cruz Island."
+    "description": "<strong>You can rent it online</strong> and the best part is that <strong>we can deliver it to your hotel/hostel</strong>, or you can <strong>pick it up at the agency's office</strong> on Santa Cruz Island.",
+    "sizesnote": "Don't worry if you don't know your wetsuit size, we have all sizes for you to try on."
   },
   "checkout": {
     "title": "Complete Purchase",

@@ -1061,11 +1061,11 @@ function RentalPageContent() {
       <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4 text-[#01a4d4]">{t('hero.title')}</h1>
-          <p className="text-sm sm:text-base text-muted-foreground text-pretty">
+          <p className="text-sm sm:text-sm text-gray-500 text-pretty">
             {t.rich('hero.subtitle', {
               br: () => <br />,
               strong: (chunks) => <strong>{chunks}</strong>
-            })}
+            })} 
           </p>
 
           {isMobile && (
@@ -1078,10 +1078,13 @@ function RentalPageContent() {
             />
           )}
 
-          <p className="text-sm sm:text-base text-muted-foreground text-pretty mt-4">
+          <p className="text-sm sm:text-sm text-gray-500 text-pretty mt-4">
             {t.rich('hero.description', {
               strong: (chunks) => <strong>{chunks}</strong>
             })}
+          </p>
+          <p className="text-base sm:text-lg text-gray-900 text-pretty mt-4 font-medium">
+            {t('hero.sizesnote')}
           </p>
         </div>
       </section>

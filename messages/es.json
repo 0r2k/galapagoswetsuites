@@ -135,7 +135,8 @@
   "hero": {
     "title": "Alquiler de wetsuits y snorkel en Galápagos",
     "subtitle": "<strong>Tenemos wetsuit cortos y largos de todas las tallas</strong>, equipos de snorkel con aletas, <strong>todo en excelentes condiciones</strong> para que tengas una experiencia espectacular en las Islas Galápagos.",
-    "description": "<strong>Puedes rentarlo en linea</strong> y lo mejor es que te lo podemos <strong>entregar en tu hotel/hostal</strong>, o tambien <strong>lo puedes recoger en la oficina</strong> de la agencia en la Isla Santa Cruz."
+    "description": "<strong>Puedes rentarlo en linea</strong> y lo mejor es que te lo podemos <strong>entregar en tu hotel/hostal</strong>, o tambien <strong>lo puedes recoger en la oficina</strong> de la agencia en la Isla Santa Cruz.",
+    "sizesnote": "No te preocupes si no sabes tu talla para el wetsuit, tenemos todas las tallas para que te pruebes."
   },
   "checkout": {
     "title": "Completar Compra",
