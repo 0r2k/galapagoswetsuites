@@ -20,7 +20,8 @@ import { supabase } from '@/lib/supabaseClient'
 import { 
   AdditionalFee, 
   getAdditionalFees, 
-  Island
+  Island,
+  ProductType
 } from '@/lib/db'
 import { toast } from 'sonner'
 import EmailTemplatesList from '@/app/admin/email-templates/page'
@@ -49,6 +50,7 @@ interface Product {
   image: string
   tax_percentage: number
   active: boolean
+  protected: boolean
 }
 
 // Interface para pedidos de alquiler
@@ -160,6 +162,30 @@ function AdminPageContent() {
     supplier_cost: 0,
     public_price: 0,
     tax_percentage: 0,
+    active: true
+  })
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [newProductForm, setNewProductForm] = useState<{
+    product_type: ProductType | string
+    name: string
+    description: string
+    name_en: string
+    description_en: string
+    supplier_cost: number
+    public_price: number
+    image: string
+    tax_percentage: number
+    active: boolean
+  }>({
+    product_type: 'wetsuit',
+    name: '',
+    description: '',
+    name_en: '',
+    description_en: '',
+    supplier_cost: 0,
+    public_price: 0,
+    image: '',
+    tax_percentage: 12,
     active: true
   })
 
@@ -476,7 +502,7 @@ function AdminPageContent() {
       // Cargar productos con información completa
       const { data: productsData, error: productsError } = await supabase
         .from('product_config')
-        .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage, active')
+        .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage, active, protected')
         .eq('active', true)
       
       if (productsError) throw productsError
@@ -516,6 +542,22 @@ function AdminPageContent() {
     setIsEditModalOpen(true)
   }
 
+  const openCreateModal = () => {
+    setNewProductForm({
+      product_type: 'wetsuit',
+      name: '',
+      description: '',
+      name_en: '',
+      description_en: '',
+      supplier_cost: 0,
+      public_price: 0,
+      image: '',
+      tax_percentage: 12,
+      active: true
+    })
+    setIsCreateModalOpen(true)
+  }
+
   const handleUpdateProduct = async () => {
     if (!editingProduct) return
     
@@ -543,6 +585,70 @@ function AdminPageContent() {
     } catch (error) {
       console.error('Error updating product:', error)
       toast.error('Error', { description: 'No se pudo actualizar el producto' })
+    }
+  }
+
+  const handleCreateProduct = async () => {
+    try {
+      const { error } = await supabase
+        .from('product_config')
+        .insert([{
+          product_type: newProductForm.product_type,
+          name: newProductForm.name,
+          description: newProductForm.description,
+          name_en: newProductForm.name_en,
+          description_en: newProductForm.description_en,
+          supplier_cost: newProductForm.supplier_cost,
+          public_price: newProductForm.public_price,
+          image: newProductForm.image,
+          tax_percentage: newProductForm.tax_percentage,
+          active: newProductForm.active
+        }])
+      if (error) throw error
+      toast.success('Producto creado')
+      setIsCreateModalOpen(false)
+      loadData()
+    } catch (error) {
+      console.error('Error creating product:', error)
+      toast.error('Error', { description: 'No se pudo crear el producto' })
+    }
+  }
+
+  const handleDeleteProduct = async (product: Product) => {
+    try {
+      if (product.protected) {
+        toast.error('No permitido', { description: 'Este producto es inicial y no se puede borrar' })
+        return
+      }
+      const { error } = await supabase
+        .from('product_config')
+        .delete()
+        .eq('id', product.id)
+      if (error) throw error
+      toast.success('Producto eliminado')
+      loadData()
+    } catch (error: any) {
+      const msg = typeof error?.message === 'string' ? error.message : ''
+      if (msg.includes('protegido')) {
+        toast.error('No permitido', { description: 'Este producto es inicial y no se puede borrar' })
+        return
+      }
+      if (msg.includes('foreign key') || msg.includes('violates') || msg.includes('constraint')) {
+        try {
+          const { error: deactivateError } = await supabase
+            .from('product_config')
+            .update({ active: false })
+            .eq('id', product.id)
+          if (deactivateError) throw deactivateError
+          toast.success('Producto desactivado', { description: 'Tenía referencias activas, se desactivó en lugar de borrar' })
+          loadData()
+          return
+        } catch (deactivateErr) {
+          toast.error('Error', { description: 'No se pudo eliminar ni desactivar el producto' })
+          return
+        }
+      }
+      toast.error('Error', { description: 'No se pudo eliminar el producto' })
     }
   }
 
@@ -654,7 +760,12 @@ function AdminPageContent() {
         <TabsContent value="general-config" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Productos Disponibles</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Productos Disponibles</CardTitle>
+                <Button onClick={openCreateModal} size="sm" className="cursor-pointer">
+                  Agregar Producto
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -667,6 +778,7 @@ function AdminPageContent() {
                           <div className="flex gap-2">
                             <Badge variant="secondary">${product.public_price}/día</Badge>
                             <Badge variant="outline">Costo: ${product.supplier_cost}</Badge>
+                            {product.protected && <Badge variant="outline">Protegido</Badge>}
                           </div>
                         </CardTitle>
                       </CardHeader>
@@ -683,20 +795,33 @@ function AdminPageContent() {
                           <p className="text-sm text-muted-foreground text-center">{product.description}</p>
                           <div className="text-xs text-muted-foreground mt-2">
                             <p>Tipo: {product.product_type === 'wetsuit' ? 'Traje de buceo' : 
+                                     product.product_type === 'wetsuit_adult' ? 'Traje adulto' :
+                                     product.product_type === 'wetsuit_kids' ? 'Traje niños' :
                                      product.product_type === 'snorkel' ? 'Snorkel' : 'Aletas'}</p>
                             <p>IVA: {product.tax_percentage}%</p>
                           </div>
                         </div>
                       </CardContent>
                       <CardFooter className="pt-0">
-                        <Button 
-                          onClick={() => openEditModal(product)} 
-                          className="w-full"
-                          variant="outline"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </Button>
+                        <div className={`w-full ${!product.protected ? 'grid grid-cols-2 gap-2' : ''}`}>
+                          <Button 
+                            onClick={() => openEditModal(product)} 
+                            className="w-full"
+                            variant="outline"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Button>
+                          {!product.protected && (
+                            <Button
+                              onClick={() => handleDeleteProduct(product)}
+                              className="w-full"
+                              variant="destructive"
+                            >
+                              Eliminar
+                            </Button>
+                          )}
+                        </div>
                       </CardFooter>
                     </Card>
                   ))
@@ -1175,6 +1300,120 @@ function AdminPageContent() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Agregar Producto</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Tipo de Producto</Label>
+              <Select 
+                value={newProductForm.product_type}
+                onValueChange={(value) => setNewProductForm({ ...newProductForm, product_type: value })}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Selecciona tipo" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="wetsuit">Traje de buceo</SelectItem>
+                  <SelectItem value="wetsuit_adult">Traje adulto</SelectItem>
+                  <SelectItem value="wetsuit_kids">Traje niños</SelectItem>
+                  <SelectItem value="snorkel">Snorkel</SelectItem>
+                  <SelectItem value="fins">Aletas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <strong>Español</strong>
+                <Label>Nombre</Label>
+                <Input
+                  value={newProductForm.name}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, name: e.target.value })}
+                  className="border border-gray-300"
+                />
+                <Label>Descripción</Label>
+                <Input
+                  value={newProductForm.description}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, description: e.target.value })}
+                  className="border border-gray-300"
+                />
+              </div>
+              <div className="space-y-2">
+                <strong>Inglés</strong>
+                <Label>Name</Label>
+                <Input
+                  value={newProductForm.name_en}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, name_en: e.target.value })}
+                  className="border border-gray-300"
+                />
+                <Label>Description</Label>
+                <Input
+                  value={newProductForm.description_en}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, description_en: e.target.value })}
+                  className="border border-gray-300"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Costo Proveedor</Label>
+                <Input
+                  type="number"
+                  value={newProductForm.supplier_cost.toString()}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, supplier_cost: parseFloat(e.target.value) || 0 })}
+                  className="border border-gray-300"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>PVP</Label>
+                <Input
+                  type="number"
+                  value={newProductForm.public_price.toString()}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, public_price: parseFloat(e.target.value) || 0 })}
+                  className="border border-gray-300"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Impuesto (%)</Label>
+                <Input
+                  type="number"
+                  value={newProductForm.tax_percentage.toString()}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, tax_percentage: parseFloat(e.target.value) || 0 })}
+                  className="border border-gray-300"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Imagen (URL)</Label>
+                <Input
+                  value={newProductForm.image}
+                  onChange={(e) => setNewProductForm({ ...newProductForm, image: e.target.value })}
+                  className="border border-gray-300"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch 
+                checked={newProductForm.active} 
+                onCheckedChange={(checked) => setNewProductForm({ ...newProductForm, active: checked })}
+              />
+              <Label>Activo</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateProduct}>
+              Crear
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Edición */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
