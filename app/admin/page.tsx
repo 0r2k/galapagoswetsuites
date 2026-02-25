@@ -1306,26 +1306,9 @@ function AdminPageContent() {
           <DialogHeader>
             <DialogTitle>Agregar Producto</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label>Tipo de Producto</Label>
-              <Select 
-                value={newProductForm.product_type}
-                onValueChange={(value) => setNewProductForm({ ...newProductForm, product_type: value })}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Selecciona tipo" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="wetsuit">Traje de buceo</SelectItem>
-                  <SelectItem value="wetsuit_adult">Traje adulto</SelectItem>
-                  <SelectItem value="wetsuit_kids">Traje niños</SelectItem>
-                  <SelectItem value="snorkel">Snorkel</SelectItem>
-                  <SelectItem value="fins">Aletas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 py-4">
+              {/* Tipo de producto oculto o calculado automáticamente */}
+              <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <strong>Español</strong>
                 <Label>Nombre</Label>
@@ -1346,7 +1329,15 @@ function AdminPageContent() {
                 <Label>Name</Label>
                 <Input
                   value={newProductForm.name_en}
-                  onChange={(e) => setNewProductForm({ ...newProductForm, name_en: e.target.value })}
+                  onChange={(e) => {
+                    const nameEn = e.target.value;
+                    const slug = nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    setNewProductForm({ 
+                      ...newProductForm, 
+                      name_en: nameEn,
+                      product_type: slug || 'custom-product'
+                    });
+                  }}
                   className="border border-gray-300"
                 />
                 <Label>Description</Label>
