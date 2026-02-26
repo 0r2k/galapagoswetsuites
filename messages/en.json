@@ -199,7 +199,7 @@
     "wetsuitLong": "Long wetsuit",
     "snorkel": "Snorkel",
     "fins": "Fins",
-    "unknownProduct": "Unknown product"
+    "other": "Other"
   },
   "sizes": {
     "title": "Select Sizes",

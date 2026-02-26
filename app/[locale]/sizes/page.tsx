@@ -303,7 +303,7 @@ export default function SizesPage() {
       return 'snorkel'
     }
     
-    return 'unknownProduct'
+    return 'other'
   }
 
   // Agrupar items por tipo de producto

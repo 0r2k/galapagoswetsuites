@@ -195,7 +195,7 @@ function ConfirmationContent() {
                   ? t('snorkel')
                   : item.product_config?.product_type === 'fins'
                   ? t('fins')
-                  : t('unknownProduct')
+                  : t('other')
                 
                 return (
                   <li key={item.id} className="flex justify-between">

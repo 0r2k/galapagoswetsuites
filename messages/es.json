@@ -199,7 +199,7 @@
     "wetsuitLong": "Wetsuit largo",
     "snorkel": "Snorkel",
     "fins": "Aletas",
-    "unknownProduct": "Producto desconocido"
+    "other": "Otro"
   },
   "sizes": {
     "title": "Selecciona las tallas",
