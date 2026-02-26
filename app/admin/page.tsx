@@ -797,7 +797,7 @@ function AdminPageContent() {
                             <p>Tipo: {product.product_type === 'wetsuit' ? 'Traje de buceo' : 
                                      product.product_type === 'wetsuit_adult' ? 'Traje adulto' :
                                      product.product_type === 'wetsuit_kids' ? 'Traje niños' :
-                                     product.product_type === 'snorkel' ? 'Snorkel' : 'Aletas'}</p>
+                                     product.product_type === 'snorkel' ? 'Snorkel' : product.product_type}</p>
                             <p>IVA: {product.tax_percentage}%</p>
                           </div>
                         </div>
