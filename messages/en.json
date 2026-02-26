@@ -105,7 +105,9 @@
     "startTimeRequired": "Please select a start time for the rental",
     "endDateRequired": "Please select a return date for the rental",
     "endTimeRequired": "Please select a return time for the rental",
-    "returnIslandRequired": "Please select an island where you will return the equipment"
+    "returnIslandRequired": "Please select an island where you will return the equipment",
+    "dateConflictAlert": "Please correct the return date, as it is earlier than the pickup date.",
+    "dateConflictTooltip": "The return date cannot be earlier than the pickup date. Please change the date."
   },
   "notifications": {
     "productAdded": "Product added",

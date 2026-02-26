@@ -35,6 +35,7 @@ import refundPaymentez from '@/lib/refund-paymentez'
 import { Separator } from '@/components/ui/separator'
 import Gallery from '@/components/gallery'
 import GalleryUploader from '@/components/gallery-uploader'
+import { AdminDatePicker } from '@/components/admin/admin-date-picker'
 
 // Interface para productos con información completa
 interface Product {
@@ -1091,15 +1092,31 @@ function AdminPageContent() {
                      ) : (
                        orders.map((order) => (
                          <TableRow key={order.id}>
-                           <TableCell className="font-mono text-sm">
-                             {order.order_number}
-                           </TableCell>
-                           <TableCell>{order.customer_name}</TableCell>
-                           <TableCell>
-                            {formatDate(order.start_date)} - {order.start_time}
+                          <TableCell className="font-mono text-sm">
+                            {order.order_number}
+                          </TableCell>
+                          <TableCell>{order.customer_name}</TableCell>
+                          <TableCell>
+                            <AdminDatePicker
+                              orderId={order.id}
+                              initialDate={order.start_date}
+                              initialTime={order.start_time}
+                              type="start"
+                              otherDate={order.end_date}
+                              otherTime={order.end_time}
+                              onUpdate={loadOrders}
+                            />
                           </TableCell>
                           <TableCell>
-                            {formatDate(order.end_date)} - {order.end_time}
+                            <AdminDatePicker
+                              orderId={order.id}
+                              initialDate={order.end_date}
+                              initialTime={order.end_time}
+                              type="end"
+                              otherDate={order.start_date}
+                              otherTime={order.start_time}
+                              onUpdate={loadOrders}
+                            />
                           </TableCell>
                            <TableCell className="capitalize">
                              {order.return_island.replace('-', ' ')}

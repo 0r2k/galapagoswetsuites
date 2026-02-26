@@ -526,6 +526,11 @@ function RentalPageContent() {
       toast.error(t('notifications.emptyCart'), { description: t('notifications.emptyCartDescription') })
       return
     }
+
+    if (hasDateConflict) {
+      toast.error(t('validation.dateConflictAlert'))
+      return
+    }
     
     if (!cartItems[0].startDate) {
       toast.error(t('notifications.startDateRequired'), { description: t('notifications.startDateRequiredDescription') })
@@ -772,6 +777,7 @@ function RentalPageContent() {
                             <Calendar
                               mode="single"
                               selected={startDate}
+                              defaultMonth={startDate || new Date()}
                               onSelect={(newDate) => {
                                 if (newDate) {
                                   setStartDate(newDate)
@@ -809,6 +815,16 @@ function RentalPageContent() {
                                     <div className="grid gap-1.5">
                                       {timeSlots.map(({ time: timeSlot, available }) => {
                                         const isAvailable = available && isTimeSlotAvailable(timeSlot, startDate)
+                                        
+                                        // Validar contra fecha/hora de devolución
+                                        let isTimeValid = true
+                                        if (endDate && endTime && startDate && endDate.getTime() === startDate.getTime()) {
+                                          // Si es el mismo día, la hora de recogida debe ser antes de la hora de devolución
+                                          if (timeSlot >= endTime) {
+                                            isTimeValid = false
+                                          }
+                                        }
+
                                         return (
                                           <Button
                                             key={timeSlot}
@@ -822,7 +838,7 @@ function RentalPageContent() {
                                               // setDateTimePopoverOpen(false)
                                               handlePopoverState('startDate', false)
                                             }}
-                                            disabled={!isAvailable}
+                                            disabled={!isAvailable || !isTimeValid}
                                           >
                                             {timeSlot}
                                           </Button>
@@ -886,24 +902,36 @@ function RentalPageContent() {
                     <div className="space-y-2">
                       <label>{t('cart.returnDate')}</label>
                       <Popover modal={false} open={getPopoverState('endDate')} onOpenChange={(open) => handlePopoverState('endDate', open)}>
-                        <PopoverTrigger asChild className="w-full">
-                          <Button
-                            variant={"outline"}
-                            className={`justify-start text-left font-normal border-primary/20 ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
-                            (endTime ? ` ${t('time.at')} ${endTime}` : '')
-                            : (
-                              <span>{t('time.selectTime')}</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <PopoverTrigger asChild className="w-full">
+                                <Button
+                                  variant={"outline"}
+                                  className={`justify-start text-left font-normal border-primary/20 ${hasDateConflict ? 'border-red-500 text-red-500' : ''}`}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {endDate ? format(endDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) + 
+                                  (endTime ? ` ${t('time.at')} ${endTime}` : '')
+                                  : (
+                                    <span>{t('time.selectTime')}</span>
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                            </TooltipTrigger>
+                            {hasDateConflict && (
+                              <TooltipContent>
+                                <p>{t('validation.dateConflictTooltip')}</p>
+                              </TooltipContent>
                             )}
-                          </Button>
-                        </PopoverTrigger>
+                          </Tooltip>
+                        </TooltipProvider>
                         <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0 max-h-[75vh] overflow-y-auto">
                           <div className="flex">
                             <Calendar
                               mode="single"
                               selected={endDate}
+                              defaultMonth={endDate || startDate || new Date()}
                               onSelect={(newDate) => {
                                 if (newDate) {
                                   setEndDate(newDate)
@@ -935,24 +963,35 @@ function RentalPageContent() {
                                     data-scroll-lock-scrollable=""
                                   >
                                     <div className="grid gap-1.5">
-                                      {timeSlots.map(({ time: timeSlot, available }) => (
-                                        <Button
-                                          key={timeSlot}
-                                          variant={endTime === timeSlot ? "default" : "outline"}
-                                          size="sm"
-                                          className="w-full"
-                                          onClick={() => {
-                                            setEndTime(timeSlot)
-                                            updateCartDetails('endTime', timeSlot)
-                                            // Cerrar el popover automáticamente cuando se selecciona una hora
-                                            // setEndDateTimePopoverOpen(false)
-                                            handlePopoverState('endDate', false)
-                                          }}
-                                          disabled={!available}
-                                        >
-                                          {timeSlot}
-                                        </Button>
-                                      ))}
+                                      {timeSlots.map(({ time: timeSlot, available }) => {
+                                        // Validar contra fecha/hora de recogida
+                                        let isTimeValid = true
+                                        if (startDate && startTime && endDate && endDate.getTime() === startDate.getTime()) {
+                                          // Si es el mismo día, la hora de devolución debe ser después de la hora de recogida
+                                          if (timeSlot <= startTime) {
+                                            isTimeValid = false
+                                          }
+                                        }
+
+                                        return (
+                                          <Button
+                                            key={timeSlot}
+                                            variant={endTime === timeSlot ? "default" : "outline"}
+                                            size="sm"
+                                            className="w-full"
+                                            onClick={() => {
+                                              setEndTime(timeSlot)
+                                              updateCartDetails('endTime', timeSlot)
+                                              // Cerrar el popover automáticamente cuando se selecciona una hora
+                                              // setEndDateTimePopoverOpen(false)
+                                              handlePopoverState('endDate', false)
+                                            }}
+                                            disabled={!available || !isTimeValid}
+                                          >
+                                            {timeSlot}
+                                          </Button>
+                                        )
+                                      })}
                                     </div>
                                   </div>
                                 </div>
@@ -1033,7 +1072,7 @@ function RentalPageContent() {
                 <Button 
                   className="w-full mt-4" 
                   onClick={proceedToCheckout}
-                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland || hasDateConflict}
+                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland}
                 >
                   {t('cart.proceedToCheckout')}
                 </Button>

@@ -105,7 +105,9 @@
     "startTimeRequired": "Por favor selecciona una hora de inicio para el alquiler",
     "endDateRequired": "Por favor selecciona una fecha de devolución para el alquiler",
     "endTimeRequired": "Por favor selecciona una hora de devolución para el alquiler",
-    "returnIslandRequired": "Por favor selecciona una isla donde devolverás el equipo"
+    "returnIslandRequired": "Por favor selecciona una isla donde devolverás el equipo",
+    "dateConflictAlert": "Por favor corrige la fecha de devolución, ya que es anterior a la fecha de recogida.",
+    "dateConflictTooltip": "La fecha de devolución no puede ser anterior a la fecha de recogida. Por favor, cambia la fecha."
   },
   "notifications": {
     "productAdded": "Producto añadido",
