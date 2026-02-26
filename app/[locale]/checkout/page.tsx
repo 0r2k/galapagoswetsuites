@@ -62,12 +62,27 @@ function CheckoutContent() {
     try {
       const parsedCart = JSON.parse(savedCart)
       const hotelName = localStorage.getItem('hotelName') || ''
-      return parsedCart.map((item: any) => ({
-        ...item,
-        startDate: item.startDate ? new Date(item.startDate) : undefined,
-        endDate: item.endDate ? new Date(item.endDate) : undefined,
-        hotelName: hotelName
-      }))
+      return parsedCart.map((item: any) => {
+        let startDate = item.startDate ? new Date(item.startDate) : undefined
+        let endDate = item.endDate ? new Date(item.endDate) : undefined
+
+        // Si tenemos versiones en string, reconstruimos la fecha localmente
+        if (item.startDateStr) {
+          const [y, m, d] = item.startDateStr.split('-').map(Number)
+          startDate = new Date(y, m - 1, d, 12, 0, 0, 0)
+        }
+        if (item.endDateStr) {
+          const [y, m, d] = item.endDateStr.split('-').map(Number)
+          endDate = new Date(y, m - 1, d, 12, 0, 0, 0)
+        }
+
+        return {
+          ...item,
+          startDate,
+          endDate,
+          hotelName: hotelName
+        }
+      })
     } catch (error) {
       console.error('Error al cargar el carrito desde localStorage:', error)
       return null
@@ -250,6 +265,8 @@ function CheckoutContent() {
             rentalDays: calculateRentalDays(),
             startDate: cartItems[0].startDate,
             endDate: cartItems[0].endDate,
+            startDateStr: cartItems[0].startDateStr,
+            endDateStr: cartItems[0].endDateStr,
             startTime: cartItems[0].startTime,
             endTime: cartItems[0].endTime,
             returnIsland: cartItems[0].returnIsland,

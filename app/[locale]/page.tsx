@@ -43,6 +43,8 @@ interface CartItem {
   quantity: number
   startDate?: Date
   endDate?: Date
+  startDateStr?: string
+  endDateStr?: string
   startTime?: string
   endTime?: string
   returnIsland?: "santa-cruz" | "san-cristobal"
@@ -76,11 +78,26 @@ function loadCartFromLocalStorage(): CartItem[] {
   
   try {
     const parsedCart = JSON.parse(savedCart)
-    return parsedCart.map((item: any) => ({
-      ...item,
-      startDate: item.startDate ? new Date(item.startDate) : undefined,
-      endDate: item.endDate ? new Date(item.endDate) : undefined
-    }))
+    return parsedCart.map((item: any) => {
+      let startDate = item.startDate ? new Date(item.startDate) : undefined
+      let endDate = item.endDate ? new Date(item.endDate) : undefined
+
+      // Si tenemos versiones en string, reconstruimos la fecha localmente
+      if (item.startDateStr) {
+        const [y, m, d] = item.startDateStr.split('-').map(Number)
+        startDate = new Date(y, m - 1, d, 12, 0, 0, 0)
+      }
+      if (item.endDateStr) {
+        const [y, m, d] = item.endDateStr.split('-').map(Number)
+        endDate = new Date(y, m - 1, d, 12, 0, 0, 0)
+      }
+
+      return {
+        ...item,
+        startDate,
+        endDate
+      }
+    })
   } catch (error) {
     console.error('Error al cargar el carrito desde localStorage:', error)
     return []
@@ -351,10 +368,19 @@ function RentalPageContent() {
   
   // Actualizar fecha, hora, isla de devolución y pickup
   const updateCartDetails = (field: string, value: any) => {
-    const updatedCart = cartItems.map(item => ({
-      ...item,
-      [field]: value
-    }))
+    const updatedCart = cartItems.map(item => {
+      const newItem = { ...item, [field]: value }
+      
+      // Asegurar que guardamos la fecha como string para evitar problemas de zona horaria
+      if (field === 'startDate' && value instanceof Date) {
+        newItem.startDateStr = format(value, 'yyyy-MM-dd')
+      }
+      if (field === 'endDate' && value instanceof Date) {
+        newItem.endDateStr = format(value, 'yyyy-MM-dd')
+      }
+      
+      return newItem
+    })
     
     setCartItems(updatedCart)
     

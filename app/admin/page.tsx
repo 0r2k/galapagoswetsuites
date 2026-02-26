@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
@@ -238,6 +237,15 @@ function AdminPageContent() {
     amount: 5,
     active: true
   })
+
+  // Función para formatear fechas sin problemas de zona horaria
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    // Aseguramos que trabajamos con la fecha local sin conversión de zona horaria
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
 
   // Verificar autenticación
   useEffect(() => {
@@ -1088,11 +1096,11 @@ function AdminPageContent() {
                            </TableCell>
                            <TableCell>{order.customer_name}</TableCell>
                            <TableCell>
-                             {new Date(order.start_date).toLocaleDateString('es-ES')} - {order.start_time}
-                           </TableCell>
-                           <TableCell>
-                             {new Date(order.end_date).toLocaleDateString('es-ES')} - {order.end_time}
-                           </TableCell>
+                            {formatDate(order.start_date)} - {order.start_time}
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(order.end_date)} - {order.end_time}
+                          </TableCell>
                            <TableCell className="capitalize">
                              {order.return_island.replace('-', ' ')}
                            </TableCell>

@@ -113,8 +113,11 @@ function ConfirmationContent() {
   }, [])
   
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    if (!dateString) return '';
+    // Aseguramos que trabajamos con la fecha local sin conversión de zona horaria
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   const calculateReturnFee = () => {

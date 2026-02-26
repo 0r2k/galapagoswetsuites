@@ -190,7 +190,10 @@ function ReviewPageContent() {
   }
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString(locale === 'en' ? 'en-US' : 'es-ES', {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+    return date.toLocaleDateString(locale === 'en' ? 'en-US' : 'es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

@@ -158,6 +158,17 @@ async function calculateReturnFeeAmount(returnIsland: string, totalItems: number
   }
 }
 
+function formatDate(dateString: string) {
+  if (!dateString) return '';
+  // Extraer la parte de la fecha (YYYY-MM-DD) independientemente de si es timestamp o date
+  const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+  
+  // Formatear como DD/MM/YYYY
+  const d = day.toString().padStart(2, '0');
+  const m = month.toString().padStart(2, '0');
+  return `${d}/${m}/${year}`;
+}
+
 async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVariables> {
   const { order } = orderData;
   
@@ -217,10 +228,10 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     
     // Pedido
     orderNumber: order.order_number,
-    orderDate: new Date(order.created_at).toLocaleDateString('es-ES'),
-    startDate: new Date(order.start_date).toLocaleDateString('es-ES'),
+    orderDate: formatDate(order.created_at),
+    startDate: formatDate(order.start_date),
     startTime: order.start_time,
-    endDate: new Date(order.end_date).toLocaleDateString('es-ES'),
+    endDate: formatDate(order.end_date),
     endTime: order.end_time,
     pickup: order.pickup === 'santa-cruz' ? 'Santa Cruz - Agency Office' : 'Hotel - ' + order.pickup,
     returnIsland: order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal',

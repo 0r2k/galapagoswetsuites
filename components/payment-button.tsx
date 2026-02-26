@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { useTranslations } from 'next-intl'
 import { Button } from "./ui/button";
 import { toast } from "sonner"
+import { format } from "date-fns"
 import { 
   createCustomer, 
   updateCustomer, 
@@ -102,9 +103,9 @@ const PaymentButton = ({
         bin: data?.card?.bin || '',
         customer_id: customerId,
         dev_reference: data?.transaction?.dev_reference || Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000,
-        start_date: rental.startDate,
+        start_date: rental.startDateStr || format(rental.startDate, 'yyyy-MM-dd'),
         start_time: rental.startTime,
-        end_date: rental.endDate,
+        end_date: rental.endDateStr || format(rental.endDate, 'yyyy-MM-dd'),
         end_time: rental.endTime,
         return_island: rental.returnIsland || 'santa-cruz',
         pickup: rental.pickup === 'santa-cruz' ? 'santa-cruz' : ('Hotel: ' + rental.hotelName || null),
