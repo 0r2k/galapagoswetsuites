@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
+import { deleteSession } from '@/app/login/actions'
 import { 
   AdditionalFee, 
   getAdditionalFees, 
@@ -742,6 +743,7 @@ function AdminPageContent() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    await deleteSession()
     router.push('/login')
   }
 
@@ -753,7 +755,12 @@ function AdminPageContent() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
-        <Button onClick={handleLogout}>Cerrar Sesión</Button>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={() => router.push('/calendar')}>
+            Calendario
+          </Button>
+          <Button onClick={handleLogout}>Cerrar Sesión</Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>

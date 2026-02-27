@@ -932,6 +932,7 @@ function RentalPageContent() {
                               mode="single"
                               selected={endDate}
                               defaultMonth={endDate || startDate || new Date()}
+                              locale={locale === 'en' ? enUS : es}
                               onSelect={(newDate) => {
                                 if (newDate) {
                                   setEndDate(newDate)

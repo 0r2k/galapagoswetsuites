@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabaseClient"
+import { createSession } from "@/app/login/actions"
 
 interface LoginFormProps extends React.ComponentProps<"form"> {
   redirectUrl?: string;
@@ -29,12 +30,49 @@ export function LoginForm({
     setErrorMsg('')
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
       if (error) {
         setErrorMsg(error.message)
       } else {
-        router.push(redirectUrl)
+        // Check role and redirect
+        if (data.user) {
+          if (data.session) {
+            await createSession(data.session.access_token)
+          }
+
+          const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('email', data.user.email)
+            .single()
+
+          if (userData) {
+            if (userData.role === 'admin') {
+              // If admin, respect the redirectUrl if it's not default, otherwise go to admin
+              if (redirectUrl && redirectUrl !== '/admin') {
+                 router.push(redirectUrl)
+              } else {
+                 router.push('/admin')
+              }
+            } else if (userData.role === 'calendar_viewer') {
+               // Calendar viewers always go to calendar or respect specific calendar deep links
+               if (redirectUrl && redirectUrl.startsWith('/calendar')) {
+                 router.push(redirectUrl)
+               } else {
+                 router.push('/calendar')
+               }
+            } else {
+              // Customers or others go home
+              router.push('/')
+            }
+          } else {
+             router.push('/')
+          }
+        }
       }
     } catch (err) {
       console.error('Error interno durante el inicio de sesión:', err)

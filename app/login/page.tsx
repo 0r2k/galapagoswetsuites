@@ -9,7 +9,8 @@ import { LoginForm } from '@/components/login-form'
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectedFrom = searchParams.get('redirectedFrom') || '/admin'
+  // If redirectedFrom is present, use it. Otherwise, default to undefined to let LoginForm decide based on role
+  const redirectedFrom = searchParams.get('redirectedFrom') || undefined
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">

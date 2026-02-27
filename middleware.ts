@@ -9,14 +9,14 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export async function middleware(req: NextRequest) {
-  // Rutas que no deben pasar por internacionalización
-  const adminRoutes = ['/admin']
-  const isAdminRoute = adminRoutes.some(route => 
+  // Rutas internas que no deben pasar por internacionalización
+  const internalRoutes = ['/admin', '/calendar']
+  const isInternalRoute = internalRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
   )
   
-  // Solo aplicar middleware de internacionalización si NO es una ruta de admin
-  if (!isAdminRoute) {
+  // Solo aplicar middleware de internacionalización si NO es una ruta interna
+  if (!isInternalRoute) {
     const intlResponse = intlMiddleware(req);
     if (intlResponse) {
       return intlResponse;
@@ -49,27 +49,47 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Rutas que requieren ser administrador (reutilizando la variable anterior)
-  // const adminRoutes = [
-  //   '/admin',
-  // ]
+  // Si es una ruta interna, verificar permisos
+  if (isInternalRoute) {
+    // Si no hay sesión, redirigir al login
+    if (!session?.user) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/login'
+      redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
 
-  // Verificar si la ruta actual está en las rutas de administrador
-  const isAdminRouteCheck = adminRoutes.some(route => 
-    req.nextUrl.pathname.startsWith(route)
-  )
-
-  // Si es una ruta de administrador, verificar si el usuario es administrador
-  if (isAdminRouteCheck && session) {
-    // El usuario ya está en la sesión, no necesitamos obtenerlo de nuevo
     const user = session.user
     
-    // Verificar si el usuario es administrador (por su email)
-    // En un entorno real, esto debería verificarse con un rol en la base de datos
-    if (user?.email !== 'cecheverria@gmail.com') {
+    // Consultar el rol del usuario en la base de datos
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('email', user.email)
+      .single()
+      
+    if (error || !userData) {
+      // Si hay error o no se encuentra el usuario, denegar acceso
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/'
       return NextResponse.redirect(redirectUrl)
+    }
+
+    const role = userData.role
+
+    // Validar acceso según la ruta y el rol
+    if (req.nextUrl.pathname.startsWith('/admin')) {
+      if (role !== 'admin') {
+        const redirectUrl = req.nextUrl.clone()
+        redirectUrl.pathname = '/'
+        return NextResponse.redirect(redirectUrl)
+      }
+    } else if (req.nextUrl.pathname.startsWith('/calendar')) {
+      if (role !== 'admin' && role !== 'calendar_viewer') {
+        const redirectUrl = req.nextUrl.clone()
+        redirectUrl.pathname = '/'
+        return NextResponse.redirect(redirectUrl)
+      }
     }
   }
 
@@ -83,6 +103,7 @@ export const config = {
     '/(es|en)/:path*',
     '/dashboard/:path*',
     '/admin/:path*',
+    '/calendar/:path*',
     '/sizes/:path*',
     '/checkout/:path*',
     '/checkout/confirmation/:path*',
