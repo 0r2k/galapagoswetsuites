@@ -1,17 +1,19 @@
 import { supabase } from './supabaseClient';
 
 // Tipos para la configuración de productos
-export type ProductType = 'wetsuit' | 'wetsuit_adult' | 'wetsuit_kids' | 'snorkel' | 'fins';
+export type ProductType = 'wetsuit' | 'wetsuit_adult' | 'wetsuit_kids' | 'snorkel' | 'fins' | string;
 export type WetsuitSubtype = 'corto' | 'largo';
 export type AdultSize = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
 export type KidsSize = '4-6' | '6-8' | '8-10' | '10-12' | '12-14' | '14-16';
 export type FootSize = '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45';
 export type Island = 'santa-cruz' | 'san-cristobal';
+export type BookingMode = 'rental_range' | 'single_day_no_fixed_time';
 
 // Interfaces para las tablas
 export interface ProductConfig {
   id: string;
   product_type: ProductType;
+  booking_mode?: BookingMode;
   product_subtype?: WetsuitSubtype;
   size?: string;
   supplier_cost: number;
@@ -19,6 +21,10 @@ export interface ProductConfig {
   tax_percentage: number;
   stock_quantity: number;
   active: boolean;
+  quantity_question?: string | null;
+  quantity_question_en?: string | null;
+  cta_label?: string | null;
+  cta_label_en?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -59,12 +65,14 @@ export interface RentalOrder {
   total_amount: number;
   tax_amount: number;
   status: number;
-  start_date: string;
-  end_date: string;
-  start_time: string;
-  end_time: string;
-  pickup?: string;
-  return_island: Island;
+  start_date: string | null;
+  end_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  pickup?: string | null;
+  return_island?: Island | null;
+  service_date?: string | null;
+  service_end_date?: string | null;
   payment_method?: string;
   status_detail?: string;
   payment_status: PaymentStatus;

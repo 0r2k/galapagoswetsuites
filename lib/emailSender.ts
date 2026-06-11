@@ -37,6 +37,7 @@ export interface OrderEmailData {
     rental_items: (RentalItem & { 
       product_config: {
         id: string;
+        booking_mode?: string;
         product_type: string;
         product_subtype?: string;
         size?: string;
@@ -74,6 +75,8 @@ export interface EmailVariables {
   pickup: string;
   returnIsland: string;
   rentalDays: number;
+  serviceDate?: string;
+  serviceEndDate?: string;
   
   // Variables de productos
   products: Array<{
@@ -83,7 +86,26 @@ export interface EmailVariables {
     days: number;
     unitPrice: number;
     subtotal: number;
+    bookingMode?: string;
   }>;
+  standardProducts: Array<{
+    name: string;
+    name_en: string;
+    quantity: number;
+    days: number;
+    unitPrice: number;
+    subtotal: number;
+  }>;
+  serviceProducts: Array<{
+    name: string;
+    name_en: string;
+    quantity: number;
+    days: number;
+    unitPrice: number;
+    subtotal: number;
+  }>;
+  hasStandardProducts: boolean;
+  hasServiceProducts: boolean;
   
   // Variables financieras
   subtotal: number;
@@ -181,7 +203,7 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
   const totalItems = order.rental_items.reduce((total, item) => total + item.quantity, 0);
   
   // Calcular costo adicional por isla de devolución
-  const returnFee = await calculateReturnFeeAmount(order.return_island, totalItems);
+  const returnFee = order.return_island ? await calculateReturnFeeAmount(order.return_island, totalItems) : 0;
   const returnFeeAmount = returnFee;
   
   // Preparar productos
@@ -191,8 +213,13 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     quantity: item.quantity,
     days: item.days,
     unitPrice: item.unit_price,
-    subtotal: item.subtotal
+    subtotal: item.subtotal,
+    bookingMode: item.product_config.booking_mode
   }));
+  
+  // Separar productos estándar y de servicio
+  const standardProducts = products.filter(p => p.bookingMode !== 'single_day_no_fixed_time');
+  const serviceProducts = products.filter(p => p.bookingMode === 'single_day_no_fixed_time');
   
   // Calcular comisiones (ejemplo: 30% de ganancia)
   const supplierCost = order.rental_items.reduce((total, item) => 
@@ -229,16 +256,22 @@ async function prepareEmailVariables(orderData: OrderEmailData): Promise<EmailVa
     // Pedido
     orderNumber: order.order_number,
     orderDate: formatDate(order.created_at),
-    startDate: formatDate(order.start_date),
-    startTime: order.start_time,
-    endDate: formatDate(order.end_date),
-    endTime: order.end_time,
-    pickup: order.pickup === 'santa-cruz' ? 'Santa Cruz - Agency Office' : 'Hotel - ' + order.pickup,
-    returnIsland: order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal',
+    startDate: formatDate(order.start_date || order.service_date || ''),
+    startTime: order.start_time || '',
+    endDate: formatDate(order.end_date || order.service_end_date || ''),
+    endTime: order.end_time || '',
+    pickup: order.pickup === 'santa-cruz' ? 'Santa Cruz - Agency Office' : (order.pickup ? 'Hotel - ' + order.pickup : 'No aplica'),
+    returnIsland: order.return_island ? (order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal') : 'No aplica',
     rentalDays: order.rental_items[0]?.days || 1,
+    serviceDate: order.service_date ? formatDate(order.service_date) : '',
+    serviceEndDate: order.service_end_date ? formatDate(order.service_end_date) : '',
     
     // Productos
     products,
+    standardProducts,
+    serviceProducts,
+    hasStandardProducts: standardProducts.length > 0,
+    hasServiceProducts: serviceProducts.length > 0,
     
     // Negocio
     supplierCost,
@@ -460,6 +493,7 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
         *,
         product_config (
           id,
+          booking_mode,
           product_type,
           product_subtype,
           size,
@@ -507,6 +541,8 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
         end_time: order.end_time,
         pickup: order.pickup,
         return_island: order.return_island,
+        service_date: order.service_date,
+        service_end_date: order.service_end_date,
         payment_method: order.payment_method,
         status_detail: order.status_detail,
         payment_status: order.payment_status,
@@ -528,6 +564,7 @@ export async function getOrderDataForEmails(orderId: string): Promise<OrderEmail
           updated_at: item.updated_at,
           product_config: {
             id: item.product_config.id,
+            booking_mode: item.product_config.booking_mode,
             product_type: item.product_config.product_type,
             product_subtype: item.product_config.product_subtype,
             size: item.product_config.size,

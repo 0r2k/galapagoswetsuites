@@ -13,12 +13,13 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign, Star, ChevronDown, ChevronUp } from 'lucide-react'
+import { Edit, Eye, Mail, RefreshCw, Loader2, DollarSign, Star, ChevronDown, ChevronUp, Check, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { deleteSession } from '@/app/login/actions'
 import { 
   AdditionalFee, 
+  BookingMode,
   getAdditionalFees, 
   Island,
   ProductType
@@ -42,6 +43,7 @@ import { AdminDatePicker } from '@/components/admin/admin-date-picker'
 interface Product {
   id: string
   product_type: string
+  booking_mode: BookingMode
   name: string
   name_en: string
   description: string
@@ -52,6 +54,10 @@ interface Product {
   tax_percentage: number
   active: boolean
   protected: boolean
+  quantity_question?: string | null
+  quantity_question_en?: string | null
+  cta_label?: string | null
+  cta_label_en?: string | null
 }
 
 // Interface para pedidos de alquiler
@@ -66,7 +72,9 @@ interface RentalOrder {
   end_date: string
   start_time: string
   end_time: string
-  return_island: string
+  return_island: string | null
+  service_date: string | null
+  service_end_date: string | null
   payment_method: string | null
   payment_status: string
   notes: string | null
@@ -134,7 +142,19 @@ function AdminPageContent() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [reviews, setReviews] = useState<RentalOrder[]>([])
   const [loadingApproval, setLoadingApproval] = useState<string | null>(null)
+  const [loadingDelete, setLoadingDelete] = useState<string | null>(null)
   const [approvalConfirmDialog, setApprovalConfirmDialog] = useState<{
+    isOpen: boolean
+    orderId: string
+    reviewText: string
+    customerName: string
+  }>({
+    isOpen: false,
+    orderId: '',
+    reviewText: '',
+    customerName: ''
+  })
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
     isOpen: boolean
     orderId: string
     reviewText: string
@@ -163,11 +183,17 @@ function AdminPageContent() {
     supplier_cost: 0,
     public_price: 0,
     tax_percentage: 0,
-    active: true
+    booking_mode: 'rental_range',
+    active: true,
+    quantity_question: '',
+    quantity_question_en: '',
+    cta_label: '',
+    cta_label_en: ''
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newProductForm, setNewProductForm] = useState<{
     product_type: ProductType | string
+    booking_mode: BookingMode
     name: string
     description: string
     name_en: string
@@ -177,8 +203,13 @@ function AdminPageContent() {
     image: string
     tax_percentage: number
     active: boolean
+    quantity_question: string
+    quantity_question_en: string
+    cta_label: string
+    cta_label_en: string
   }>({
     product_type: 'wetsuit',
+    booking_mode: 'rental_range',
     name: '',
     description: '',
     name_en: '',
@@ -187,13 +218,27 @@ function AdminPageContent() {
     public_price: 0,
     image: '',
     tax_percentage: 12,
-    active: true
+    active: true,
+    quantity_question: '',
+    quantity_question_en: '',
+    cta_label: '',
+    cta_label_en: ''
   })
 
   // Función para cargar reviews
   // Función para mostrar el diálogo de confirmación de aprobación
   const showApprovalConfirmation = (review: RentalOrder) => {
     setApprovalConfirmDialog({
+      isOpen: true,
+      orderId: review.id,
+      reviewText: review.review_text || '',
+      customerName: review.customer_name
+    })
+  }
+
+  // Función para mostrar el diálogo de confirmación de eliminación
+  const showDeleteConfirmation = (review: RentalOrder) => {
+    setDeleteConfirmDialog({
       isOpen: true,
       orderId: review.id,
       reviewText: review.review_text || '',
@@ -229,6 +274,40 @@ function AdminPageContent() {
       toast.error('Error al aprobar la review')
     } finally {
       setLoadingApproval(null)
+    }
+  }
+
+  // Función para eliminar una review
+  const handleDeleteReview = async () => {
+    const { orderId } = deleteConfirmDialog
+    setLoadingDelete(orderId)
+    try {
+      const { error } = await supabase
+        .from('rental_orders')
+        .update({ 
+          review_text: null,
+          review_stars: null,
+          review_submitted_at: null,
+          review_approved: null 
+        })
+        .eq('id', orderId)
+
+      if (error) throw error
+
+      toast.success('Review eliminada exitosamente')
+      await loadOrders()
+      
+      setDeleteConfirmDialog({
+        isOpen: false,
+        orderId: '',
+        reviewText: '',
+        customerName: ''
+      })
+    } catch (error) {
+      console.error('Error deleting review:', error)
+      toast.error('Error al eliminar la review')
+    } finally {
+      setLoadingDelete(null)
     }
   }
 
@@ -512,7 +591,7 @@ function AdminPageContent() {
       // Cargar productos con información completa
       const { data: productsData, error: productsError } = await supabase
         .from('product_config')
-        .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage, active, protected')
+        .select('id, product_type, booking_mode, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage, active, protected, quantity_question, quantity_question_en, cta_label, cta_label_en')
         .eq('active', true)
       
       if (productsError) throw productsError
@@ -526,7 +605,7 @@ function AdminPageContent() {
       // Cargar pedidos
       await loadOrders()
       
-      setProducts(productsData || [])
+      setProducts((productsData || []) as Product[])
       setFees(feesData)
       setPaymentConfigs(paymentConfigsData)
     } catch (error) {
@@ -547,7 +626,12 @@ function AdminPageContent() {
       supplier_cost: product.supplier_cost,
       public_price: product.public_price,
       tax_percentage: product.tax_percentage,
-      active: product.active
+      booking_mode: product.booking_mode,
+      active: product.active,
+      quantity_question: product.quantity_question ?? '',
+      quantity_question_en: product.quantity_question_en ?? '',
+      cta_label: product.cta_label ?? '',
+      cta_label_en: product.cta_label_en ?? ''
     })
     setIsEditModalOpen(true)
   }
@@ -555,6 +639,7 @@ function AdminPageContent() {
   const openCreateModal = () => {
     setNewProductForm({
       product_type: 'wetsuit',
+      booking_mode: 'rental_range',
       name: '',
       description: '',
       name_en: '',
@@ -563,7 +648,11 @@ function AdminPageContent() {
       public_price: 0,
       image: '',
       tax_percentage: 12,
-      active: true
+      active: true,
+      quantity_question: '',
+      quantity_question_en: '',
+      cta_label: '',
+      cta_label_en: ''
     })
     setIsCreateModalOpen(true)
   }
@@ -581,8 +670,13 @@ function AdminPageContent() {
           name_en: editForm.name_en,
           description_en: editForm.description_en,
           tax_percentage: editForm.tax_percentage,
+          booking_mode: editForm.booking_mode,
           active: editForm.active,
-          public_price: editForm.public_price
+          public_price: editForm.public_price,
+          quantity_question: editForm.quantity_question || null,
+          quantity_question_en: editForm.quantity_question_en || null,
+          cta_label: editForm.cta_label || null,
+          cta_label_en: editForm.cta_label_en || null
         })
         .eq('id', editingProduct.id)
       
@@ -604,6 +698,7 @@ function AdminPageContent() {
         .from('product_config')
         .insert([{
           product_type: newProductForm.product_type,
+          booking_mode: newProductForm.booking_mode,
           name: newProductForm.name,
           description: newProductForm.description,
           name_en: newProductForm.name_en,
@@ -612,7 +707,11 @@ function AdminPageContent() {
           public_price: newProductForm.public_price,
           image: newProductForm.image,
           tax_percentage: newProductForm.tax_percentage,
-          active: newProductForm.active
+          active: newProductForm.active,
+          quantity_question: newProductForm.quantity_question || null,
+          quantity_question_en: newProductForm.quantity_question_en || null,
+          cta_label: newProductForm.cta_label || null,
+          cta_label_en: newProductForm.cta_label_en || null
         }])
       if (error) throw error
       toast.success('Producto creado')
@@ -794,6 +893,9 @@ function AdminPageContent() {
                           <div className="flex gap-2">
                             <Badge variant="secondary">${product.public_price}/día</Badge>
                             <Badge variant="outline">Costo: ${product.supplier_cost}</Badge>
+                            <Badge variant="outline">
+                              {product.booking_mode === 'single_day_no_fixed_time' ? 'Servicio 1 día' : 'Rango + hora'}
+                            </Badge>
                             {product.protected && <Badge variant="outline">Protegido</Badge>}
                           </div>
                         </CardTitle>
@@ -814,6 +916,7 @@ function AdminPageContent() {
                                      product.product_type === 'wetsuit_adult' ? 'Traje adulto' :
                                      product.product_type === 'wetsuit_kids' ? 'Traje niños' :
                                      product.product_type === 'snorkel' ? 'Snorkel' : product.product_type}</p>
+                            <p>Reserva: {product.booking_mode === 'single_day_no_fixed_time' ? 'Servicio 1 día sin hora fija' : 'Alquiler normal (rango + hora)'}</p>
                             <p>IVA: {product.tax_percentage}%</p>
                           </div>
                         </div>
@@ -1126,7 +1229,7 @@ function AdminPageContent() {
                             />
                           </TableCell>
                            <TableCell className="capitalize">
-                             {order.return_island.replace('-', ' ')}
+                             {(order.return_island ?? 'No aplica').replace('-', ' ')}
                            </TableCell>
                            <TableCell>
                              <Badge 
@@ -1302,20 +1405,54 @@ function AdminPageContent() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {!review.review_approved && (
-                          <Button
-                            onClick={() => showApprovalConfirmation(review)}
-                            disabled={loadingApproval === review.id}
-                            size="sm"
-                            className="bg-green-600 cursor-pointer hover:bg-green-700"
-                          >
-                            {loadingApproval === review.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              'Aprobar'
-                            )}
-                          </Button>
-                        )}
+                        <div className="flex gap-2">
+                          {!review.review_approved && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    onClick={() => showApprovalConfirmation(review)}
+                                    disabled={loadingApproval === review.id}
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700 cursor-pointer"
+                                  >
+                                    {loadingApproval === review.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Check className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Aprobar</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  onClick={() => showDeleteConfirmation(review)}
+                                  disabled={loadingDelete === review.id}
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700 cursor-pointer"
+                                >
+                                  {loadingDelete === review.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Eliminar</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1410,6 +1547,67 @@ function AdminPageContent() {
                   className="border border-gray-300"
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Modo de reserva</Label>
+                <Select
+                  value={newProductForm.booking_mode}
+                  onValueChange={(value: BookingMode) => setNewProductForm({ ...newProductForm, booking_mode: value })}
+                >
+                  <SelectTrigger className="border border-gray-300 bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="rental_range">Alquiler normal (rango + hora)</SelectItem>
+                    <SelectItem value="single_day_no_fixed_time">Servicio 1 día sin hora fija</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {newProductForm.booking_mode === 'single_day_no_fixed_time' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Pregunta (ES)</Label>
+                    <Input
+                      value={newProductForm.quantity_question}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, quantity_question: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: ¿Cuántas maletas quieres guardar?'
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Question (EN)</Label>
+                    <Input
+                      value={newProductForm.quantity_question_en}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, quantity_question_en: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: How many bags to store?'
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Texto botón (ES)</Label>
+                    <Input
+                      value={newProductForm.cta_label}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, cta_label: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: Reservar'
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Button text (EN)</Label>
+                    <Input
+                      value={newProductForm.cta_label_en}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, cta_label_en: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: Reserve'
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Imagen (URL)</Label>
                 <Input
@@ -1528,6 +1726,65 @@ function AdminPageContent() {
                   className="col-span-3 border border-gray-300"
                 />
             </div>
+            <div className="space-y-2">
+              <Label>Modo de reserva</Label>
+              <Select
+                value={editForm.booking_mode || 'rental_range'}
+                onValueChange={(value: BookingMode) => setEditForm({ ...editForm, booking_mode: value })}
+              >
+                <SelectTrigger className="border border-gray-300 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="rental_range">Alquiler normal (rango + hora)</SelectItem>
+                  <SelectItem value="single_day_no_fixed_time">Servicio 1 día sin hora fija</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {editForm.booking_mode === 'single_day_no_fixed_time' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Pregunta (ES)</Label>
+                    <Input
+                      value={editForm.quantity_question || ''}
+                      onChange={(e) => setEditForm({ ...editForm, quantity_question: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: ¿Cuántas maletas quieres guardar?'
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Question (EN)</Label>
+                    <Input
+                      value={editForm.quantity_question_en || ''}
+                      onChange={(e) => setEditForm({ ...editForm, quantity_question_en: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: How many bags to store?'
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Texto botón (ES)</Label>
+                    <Input
+                      value={editForm.cta_label || ''}
+                      onChange={(e) => setEditForm({ ...editForm, cta_label: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: Reservar'
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Button text (EN)</Label>
+                    <Input
+                      value={editForm.cta_label_en || ''}
+                      onChange={(e) => setEditForm({ ...editForm, cta_label_en: e.target.value })}
+                      className="border border-gray-300"
+                      placeholder='Ej: Reserve'
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" onClick={handleUpdateProduct}>
@@ -1718,7 +1975,7 @@ function AdminPageContent() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>¿Está seguro que desea aprobar la review de {approvalConfirmDialog.customerName}</DialogTitle>
+            <DialogTitle>¿Está seguro que desea aprobar la review de {approvalConfirmDialog.customerName}?</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p><strong>Comentario:</strong></p>
@@ -1742,7 +1999,7 @@ function AdminPageContent() {
             <Button
               onClick={handleApproveReview}
               disabled={loadingApproval !== null}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
               {loadingApproval ? (
                 <>
@@ -1751,6 +2008,59 @@ function AdminPageContent() {
                 </>
               ) : (
                 'Aprobar Review'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmación para eliminar review */}
+      <Dialog open={deleteConfirmDialog.isOpen} onOpenChange={(open) => {
+        if (!open) {
+          setDeleteConfirmDialog({
+            isOpen: false,
+            orderId: '',
+            reviewText: '',
+            customerName: ''
+          })
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Está seguro que desea eliminar la review de {deleteConfirmDialog.customerName}?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p><strong>Comentario:</strong></p>
+            <div className="mt-2 p-3 bg-gray-50 rounded-md">
+              <p>{deleteConfirmDialog.reviewText}</p>
+            </div>
+            <p className="mt-4 text-sm text-red-600">Esta acción no se puede deshacer.</p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmDialog({
+                isOpen: false,
+                orderId: '',
+                reviewText: '',
+                customerName: ''
+              })}
+              disabled={loadingDelete !== null}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDeleteReview}
+              disabled={loadingDelete !== null}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {loadingDelete ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Eliminando...
+                </>
+              ) : (
+                'Eliminar Review'
               )}
             </Button>
           </DialogFooter>

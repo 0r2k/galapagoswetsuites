@@ -3,7 +3,7 @@ import { updateTemplateConfig } from "@/lib/templates";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { template_type, recipient_emails } = await request.json();
@@ -15,8 +15,9 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const result = await updateTemplateConfig(
-      params.id,
+      id,
       template_type,
       recipient_emails
     );

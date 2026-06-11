@@ -30,6 +30,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           product_config (
             name,
             name_en,
+            booking_mode,
             product_type,
             product_subtype
           )

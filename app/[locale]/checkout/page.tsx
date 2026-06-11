@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { supabase } from '@/lib/supabaseClient'
-import { differenceInDays } from 'date-fns'
+import { addDays, differenceInDays } from 'date-fns'
 import { toast } from 'sonner'
 import Script from 'next/script'
 import ReactFlagsSelect from 'react-flags-select'
@@ -65,6 +65,7 @@ function CheckoutContent() {
       return parsedCart.map((item: any) => {
         let startDate = item.startDate ? new Date(item.startDate) : undefined
         let endDate = item.endDate ? new Date(item.endDate) : undefined
+        let serviceDate = item.serviceDate ? new Date(item.serviceDate) : undefined
 
         // Si tenemos versiones en string, reconstruimos la fecha localmente
         if (item.startDateStr) {
@@ -75,11 +76,16 @@ function CheckoutContent() {
           const [y, m, d] = item.endDateStr.split('-').map(Number)
           endDate = new Date(y, m - 1, d, 12, 0, 0, 0)
         }
+        if (item.serviceDateStr) {
+          const [y, m, d] = item.serviceDateStr.split('-').map(Number)
+          serviceDate = new Date(y, m - 1, d, 12, 0, 0, 0)
+        }
 
         return {
           ...item,
           startDate,
           endDate,
+          serviceDate,
           hotelName: hotelName
         }
       })
@@ -89,53 +95,13 @@ function CheckoutContent() {
     }
   }
 
-  // Funciones de cálculo de precios
-  const calculateProductsSubtotal = (rental: any) => {
-    return ((rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays).toFixed(2)
-  }
-  
-  const calculateReturnFee = (rental: any) => {
-    return rental.returnFeeAmount.toFixed(2)
-  }
-  
-  const calculateSubtotal = (rental: any) => {
-    return ((rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays + rental.returnFeeAmount).toFixed(2)
-  }
-  
-  const calculateTaxes = (rental: any) => {
-    return (rental.items ? rental.items.reduce((total: number, item: any) => {
-      const taxRate = item.product.tax_percentage || 0;
-      return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
-    }, 0) : rental.totalPrice * rental.rentalDays * 0).toFixed(2)
-  }
-
-  const calculateTotal = (rental: any) => {
-    const subtotal = (rental.totalPrice - rental.returnFeeAmount) * rental.rentalDays + rental.returnFeeAmount
-    const taxes = rental.items ? rental.items.reduce((total: number, item: any) => {
-      const taxRate = item.product.tax_percentage || 0;
-      return total + (item.product.public_price * item.quantity * rental.rentalDays * taxRate);
-    }, 0) : (rental.totalPrice * rental.rentalDays * 0)
-    
-    // Agregar $5 si el pickup es en hotel
-    const hotelPickupFee = (rental.pickup && rental.pickup !== "santa-cruz") ? 5 : 0
-    
-    return (subtotal + taxes + hotelPickupFee).toFixed(2)
-  }
-
-  const calculateInitialPayment = (rental: any) => {
-    if (!rental || !rental.items) return 0
-    
-    // Pago inicial = diferencia entre precio público y costo proveedor
-    const initialPayment = rental.items.reduce((total: number, item: any) => {
-      const priceDifference = (item.product.public_price - item.product.supplier_cost) * item.quantity * rental.rentalDays
-      return total + priceDifference
-    }, 0)
-    
-    // Agregar $5 si el pickup es en hotel
-    const hotelPickupFee = (rental.pickup && rental.pickup !== "santa-cruz") ? 5 : 0
-    
-    return Math.max(initialPayment + hotelPickupFee, 0) // Asegurar que no sea negativo
-  }
+  const isServiceItem = (item: any) => item.product.booking_mode === 'single_day_no_fixed_time'
+  const calculateProductsSubtotal = (rental: any) => rental.subtotal.toFixed(2)
+  const calculateReturnFee = (rental: any) => rental.returnFeeAmount.toFixed(2)
+  const calculateSubtotal = (rental: any) => (rental.subtotal + rental.returnFeeAmount + rental.hotelPickupFee).toFixed(2)
+  const calculateTaxes = (rental: any) => rental.taxes.toFixed(2)
+  const calculateTotal = (rental: any) => rental.total.toFixed(2)
+  const calculateInitialPayment = (rental: any) => rental.initialPayment || 0
   
   // Función de validación
   const validateForm = () => {
@@ -192,89 +158,95 @@ function CheckoutContent() {
         
         const cartItems = loadCartFromLocalStorage()
         if (cartItems && cartItems.length > 0) {
-          const calculateRentalDays = (): number => {
-            const item = cartItems[0];
-            if (!item.startDate || !item.endDate || !item.startTime || !item.endTime) {
-              return 0;
+          const standardItems = cartItems.filter((item: any) => !isServiceItem(item))
+          const serviceItems = cartItems.filter((item: any) => isServiceItem(item))
+          const standardItem = standardItems[0]
+          const serviceItem = serviceItems[0]
+
+          const calculateStandardRentalDays = (): number => {
+            if (!standardItem?.startDate || !standardItem?.endDate || !standardItem?.startTime || !standardItem?.endTime) {
+              return 0
             }
-            
-            // Extraer horas de los strings de hora (formato "HH:MM")
-            const startHour = parseInt(item.startTime.split(':')[0])
-            const endHour = parseInt(item.endTime.split(':')[0])
-            
-            // Calcular días base
-            let days = differenceInDays(new Date(item.endDate), new Date(item.startDate))
-            
-            // Aplicar reglas de horario
-            if (startHour >= 17) days -= 1;
-            if (endHour >= 17) days += 1;
-            
-            // Asegurar que al menos sea 1 día
-            return Math.max(1, days);
-          };
-          
-          // Calcular precio total
-          const calculateTotal = () => {
-            let baseTotal = cartItems.reduce((total: number, item: any) => {
-              return total + (item.product.public_price * item.quantity)
-            }, 0);
-            
-            // Aplicar tarifa de devolución si existe
-            const returnIsland = cartItems[0].returnIsland;
-            let returnFeeAmount = 0;
-            
-            // Intentar obtener la tarifa de devolución desde localStorage
+
+            const startHour = parseInt(standardItem.startTime.split(':')[0])
+            const endHour = parseInt(standardItem.endTime.split(':')[0])
+            let days = differenceInDays(new Date(standardItem.endDate), new Date(standardItem.startDate))
+
+            if (startHour >= 17) days -= 1
+            if (endHour >= 17) days += 1
+
+            return Math.max(1, days)
+          }
+
+          const standardRentalDays = standardItems.length > 0 ? calculateStandardRentalDays() : 0
+          const serviceDays = serviceItems.length > 0 ? 1 : 0
+
+          let returnFeeAmount = 0
+          if (standardItem?.returnIsland) {
             try {
-              const savedReturnFee = localStorage.getItem('galapagosReturnFee');
+              const savedReturnFee = localStorage.getItem('galapagosReturnFee')
               if (savedReturnFee) {
-                const parsedReturnFee = JSON.parse(savedReturnFee);
-                if (parsedReturnFee.island === returnIsland) {
-                  returnFeeAmount = parsedReturnFee.amount;
+                const parsedReturnFee = JSON.parse(savedReturnFee)
+                if (parsedReturnFee.island === standardItem.returnIsland) {
+                  returnFeeAmount = parsedReturnFee.amount
                 }
               }
             } catch (error) {
-              console.error('Error al cargar la tarifa de devolución:', error);
+              console.error('Error al cargar la tarifa de devolución:', error)
             }
-            
-            // Si no se pudo obtener de localStorage, usar valor por defecto
-            if (returnFeeAmount === 0 && returnIsland === 'san-cristobal') {
-              returnFeeAmount = 5; // Tarifa por defecto para San Cristóbal
+
+            if (returnFeeAmount === 0 && standardItem.returnIsland === 'san-cristobal') {
+              returnFeeAmount = 5
             }
-            
-            // Calcular cantidad total de items para aplicar la tarifa por cada 3 productos
-            const totalItems = cartItems.reduce((total: number, item: any) => total + item.quantity, 0);
-            // Multiplicar por cada grupo de 3 items (redondeado hacia arriba)
-            const multiplier = Math.ceil(totalItems / 3);
-            returnFeeAmount = returnFeeAmount * multiplier;
-            
-            baseTotal += returnFeeAmount;
-            
-            // Multiplicamos por los días de alquiler (sin incluir la tarifa de devolución)
-            return {
-              baseTotal: baseTotal,
-              returnFeeAmount: returnFeeAmount
-            };
-          };
-          
-          const { baseTotal, returnFeeAmount } = calculateTotal();
-          
+
+            const totalStandardItems = standardItems.reduce((total: number, item: any) => total + item.quantity, 0)
+            const multiplier = Math.ceil(totalStandardItems / 3)
+            returnFeeAmount = returnFeeAmount * multiplier
+          }
+
+          const hotelPickupFee = (standardItem?.pickup && standardItem.pickup !== "santa-cruz") ? 5 : 0
+          const subtotal = cartItems.reduce((total: number, item: any) => {
+            const itemDays = isServiceItem(item) ? 1 : standardRentalDays
+            return total + (item.product.public_price * item.quantity * itemDays)
+          }, 0)
+          const taxesAmount = cartItems.reduce((total: number, item: any) => {
+            const itemDays = isServiceItem(item) ? 1 : standardRentalDays
+            return total + (item.product.public_price * item.quantity * itemDays * (item.product.tax_percentage || 0))
+          }, 0)
+          const initialPayment = Math.max(cartItems.reduce((total: number, item: any) => {
+            const itemDays = isServiceItem(item) ? 1 : standardRentalDays
+            return total + ((item.product.public_price - item.product.supplier_cost) * item.quantity * itemDays)
+          }, 0) + hotelPickupFee, 0)
+
           const rentalData = {
             items: cartItems,
-            totalPrice: baseTotal,
+            standardItems,
+            serviceItems,
+            totalPrice: subtotal + returnFeeAmount + hotelPickupFee,
             returnFeeAmount: returnFeeAmount,
-            rentalDays: calculateRentalDays(),
-            startDate: cartItems[0].startDate,
-            endDate: cartItems[0].endDate,
-            startDateStr: cartItems[0].startDateStr,
-            endDateStr: cartItems[0].endDateStr,
-            startTime: cartItems[0].startTime,
-            endTime: cartItems[0].endTime,
-            returnIsland: cartItems[0].returnIsland,
-            pickup: cartItems[0].pickup,
-            hotelName: cartItems[0].hotelName
-          };
+            rentalDays: standardRentalDays,
+            serviceDays,
+            subtotal,
+            taxes: taxesAmount,
+            total: subtotal + taxesAmount + returnFeeAmount + hotelPickupFee,
+            initialPayment,
+            hotelPickupFee,
+            startDate: standardItem?.startDate,
+            endDate: standardItem?.endDate,
+            startDateStr: standardItem?.startDateStr,
+            endDateStr: standardItem?.endDateStr,
+            startTime: standardItem?.startTime,
+            endTime: standardItem?.endTime,
+            returnIsland: standardItem?.returnIsland,
+            pickup: standardItem?.pickup,
+            hotelName: standardItem?.hotelName,
+            serviceDate: serviceItem?.serviceDate,
+            serviceDateStr: serviceItem?.serviceDateStr,
+            serviceEndDate: serviceItem?.serviceDate ? addDays(serviceItem.serviceDate, 1) : undefined,
+            serviceEndDateStr: serviceItem?.serviceEndDateStr
+          }
           
-          setRental(rentalData);
+          setRental(rentalData)
         } else {
           // Si no hay datos de alquiler, redirigir a la página principal
           router.push('/')
@@ -462,48 +434,71 @@ function CheckoutContent() {
               <CardTitle>{t('checkout.orderSummary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-2">{t('checkout.rentalDetails')}</h3>
-                <p><strong>{t('checkout.startDate')}:</strong> {rental.startDate instanceof Date ? rental.startDate.toLocaleDateString() : rental.startDate} {rental.startTime}</p>
-                <p><strong>{t('checkout.endDate')}:</strong> {rental.endDate instanceof Date ? rental.endDate.toLocaleDateString() : rental.endDate} {rental.endTime}</p>
-                <p><strong>{t('checkout.days')}:</strong> {rental.rentalDays}</p>
-                <p><strong>{t('checkout.returnIsland')}:</strong> {rental.returnIsland === 'santa-cruz' ? t('cart.santaCruz') : t('cart.sanCristobal')}</p>
-                <p><strong>{t('cart.pickupIsland')}:</strong> {
-                  rental.pickup === 'santa-cruz' 
-                    ? t('cart.santaCruzOffice')
-                    : rental.hotelName 
-                      ? `${t('cart.santaCruzHotel')} : ${rental.hotelName}`
-                      : t('cart.santaCruzHotel')
-                }</p>
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <h3 className="font-medium mb-2">{t('checkout.products')}</h3>
-                <ul className="space-y-2">
-                  {rental.items && rental.items.map((item: any, index: number) => {
-                    // Obtener nombre según el idioma
-                    const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
-                    
-                    return (
-                      <li key={index} className="flex justify-between">
-                        <span>{itemName} x{item.quantity}</span>
-                        <span>US${(item.product.public_price * item.quantity).toFixed(2)}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-              
+              {rental.standardItems?.length > 0 && (
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-medium mb-2">{t('checkout.rentalDetails')}</h3>
+                    <p><strong>{t('checkout.startDate')}:</strong> {rental.startDate instanceof Date ? rental.startDate.toLocaleDateString() : rental.startDate} {rental.startTime}</p>
+                    <p><strong>{t('checkout.endDate')}:</strong> {rental.endDate instanceof Date ? rental.endDate.toLocaleDateString() : rental.endDate} {rental.endTime}</p>
+                    <p><strong>{t('checkout.days')}:</strong> {rental.rentalDays}</p>
+                    <p><strong>{t('checkout.returnIsland')}:</strong> {rental.returnIsland === 'santa-cruz' ? t('cart.santaCruz') : t('cart.sanCristobal')}</p>
+                    <p><strong>{t('cart.pickupIsland')}:</strong> {
+                      rental.pickup === 'santa-cruz'
+                        ? t('cart.santaCruzOffice')
+                        : rental.hotelName
+                          ? `${t('cart.santaCruzHotel')} : ${rental.hotelName}`
+                          : t('cart.santaCruzHotel')
+                    }</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-2">{t('checkout.standardProducts')}</h3>
+                    <ul className="space-y-2">
+                      {rental.standardItems.map((item: any, index: number) => {
+                        const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
+                        return (
+                          <li key={`std-${index}`} className="flex justify-between">
+                            <span>{itemName} x{item.quantity}</span>
+                            <span>US${(item.product.public_price * item.quantity * rental.rentalDays).toFixed(2)}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {rental.serviceItems?.length > 0 && (
+                <div className={`space-y-3 ${rental.standardItems?.length > 0 ? 'pt-4 border-t' : ''}`}>
+                  <div>
+                    <h3 className="font-medium mb-2">{t('checkout.serviceDetails')}</h3>
+                    <p><strong>{t('cart.serviceDate')}:</strong> {rental.serviceDate instanceof Date ? rental.serviceDate.toLocaleDateString() : rental.serviceDateStr}</p>
+                    <p className="text-sm text-muted-foreground">{t('cart.serviceDescription')}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-2">{t('checkout.serviceProducts')}</h3>
+                    <ul className="space-y-2">
+                      {rental.serviceItems.map((item: any, index: number) => {
+                        const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
+                        return (
+                          <li key={`svc-${index}`} className="flex justify-between">
+                            <span>{itemName} x{item.quantity}</span>
+                            <span>US${(item.product.public_price * item.quantity).toFixed(2)}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               <Separator />
               
               <div>
                 <div className="flex justify-between">
-                  <span>{t('checkout.productsSubtotal', { days: rental.rentalDays })}</span>
+                  <span>{t('checkout.productsSubtotal', { days: rental.rentalDays || rental.serviceDays })}</span>
                   <span>US${calculateProductsSubtotal(rental)}</span>
                 </div>
-                {rental.pickup === "hotel" && (
+                {rental.hotelPickupFee > 0 && (
                   <div className="flex justify-between">
                     <span>{t('cart.hotelPickupFee')}</span>
                     <span>US$5.00</span>
@@ -536,7 +531,7 @@ function CheckoutContent() {
                 </div>
                 <div className="flex justify-between font-bold text-lg">
                   <span className=' font-bold'>{t('cart.payOnPickup')}</span>
-                  <span>US${(parseFloat(calculateTotal(rental)) - calculateInitialPayment(rental)).toFixed(2)}</span>
+                  <span>US${(rental.total - calculateInitialPayment(rental)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg">
                   <span className=' font-bold'>{t('cart.total')}</span>

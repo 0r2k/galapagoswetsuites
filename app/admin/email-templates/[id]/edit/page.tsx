@@ -204,8 +204,107 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
               name: 'Precio unitario',
               value: '{{unitPrice}}',
               sample: '5',
+            },
+            bookingMode: {
+              name: 'Modo de reserva',
+              value: '{{bookingMode}}',
+              sample: 'rental_range',
             }
           },
+        },
+        standardProducts: {
+          name: 'Productos de alquiler',
+          rules: {
+            repeat: {
+              name: 'Repeat for Each Rental Product',
+              before: '{{#each standardProducts}}',
+              after: '{{/each}}',
+            },
+          },
+          mergeTags: {
+            name: {
+              name: 'Producto',
+              value: '{{name}}',
+              sample: 'Traje de buceo largo - Talla M',
+            },
+            name_en: {
+              name: 'Producto en inglés',
+              value: '{{name_en}}',
+              sample: 'Wetsuit - Size M',
+            },
+            quantity: {
+              name: 'Cantidad',
+              value: '{{quantity}}',
+              sample: '2',
+            },
+            days: {
+              name: 'Días',
+              value: '{{days}}',
+              sample: '5',
+            },
+            subtotal: {
+              name: 'Subtotal',
+              value: '{{subtotal}}',
+              sample: '45',
+            },
+            unitPrice: {
+              name: 'Precio unitario',
+              value: '{{unitPrice}}',
+              sample: '5',
+            }
+          },
+        },
+        serviceProducts: {
+          name: 'Productos de día único',
+          rules: {
+            repeat: {
+              name: 'Repeat for Each Single-Day Product',
+              before: '{{#each serviceProducts}}',
+              after: '{{/each}}',
+            },
+          },
+          mergeTags: {
+            name: {
+              name: 'Producto',
+              value: '{{name}}',
+              sample: 'Tour de snorkel',
+            },
+            name_en: {
+              name: 'Producto en inglés',
+              value: '{{name_en}}',
+              sample: 'Snorkel Tour',
+            },
+            quantity: {
+              name: 'Cantidad',
+              value: '{{quantity}}',
+              sample: '2',
+            },
+            days: {
+              name: 'Días',
+              value: '{{days}}',
+              sample: '1',
+            },
+            subtotal: {
+              name: 'Subtotal',
+              value: '{{subtotal}}',
+              sample: '50',
+            },
+            unitPrice: {
+              name: 'Precio unitario',
+              value: '{{unitPrice}}',
+              sample: '25',
+            }
+          },
+        },
+        hasStandardProducts: {
+          name: 'Tiene productos de alquiler',
+          value: '{{hasStandardProducts}}',
+          sample: 'true',
+        },
+        hasServiceProducts: {
+          name: 'Tiene productos de día único',
+          value: '{{hasServiceProducts}}',
+          sample: 'true',
         },
         rentalDays: {
           name: 'Días de alquiler',

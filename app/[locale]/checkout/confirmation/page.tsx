@@ -149,6 +149,10 @@ function ConfirmationContent() {
   if (!order.total_amount || !order.rental_items) {
     return <div className="flex items-center justify-center h-screen">{tCommon('loading')}</div>
   }
+
+  const standardItems = order.rental_items.filter((item: any) => item.product_config?.booking_mode !== 'single_day_no_fixed_time')
+  const serviceItems = order.rental_items.filter((item: any) => item.product_config?.booking_mode === 'single_day_no_fixed_time')
+  const requiresSizesSelection = standardItems.some((item: any) => ['wetsuit', 'fins'].includes(item.product_config?.product_type))
   
   return (
     <div className="container mx-auto py-8">
@@ -164,26 +168,36 @@ function ConfirmationContent() {
             <p className="text-sm text-green-600">{t('emailSent', {email: order.customer?.email || 'email'})}</p>
           </div>
           
-          <div>
-            <h3 className="font-medium mb-2">{t('rentalDetails')}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p><strong>{t('startDate')}:</strong> {formatDate(order.start_date)} {order.start_time}</p>
-                <p><strong>{t('endDate')}:</strong> {formatDate(order.end_date)} {order.end_time}</p>
-              </div>
-              <div>
-                <p><strong>{t('returnIsland')}:</strong> {order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</p>
-                <p><strong>{t('pickupLocation')}:</strong> {
-                  order.pickup === 'santa-cruz' 
-                    ? t('santaCruzOffice')
-                    : order.pickup 
-                      ? `${t('santaCruzHotel')} : ${order.pickup}`
-                      : t('santaCruzHotel')
-                }</p>
-                <p><strong>{t('status')}:</strong> {t('confirmed')}</p>
+          {standardItems.length > 0 && (
+            <div>
+              <h3 className="font-medium mb-2">{t('rentalDetails')}</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p><strong>{t('startDate')}:</strong> {formatDate(order.start_date)} {order.start_time}</p>
+                  <p><strong>{t('endDate')}:</strong> {formatDate(order.end_date)} {order.end_time}</p>
+                </div>
+                <div>
+                  <p><strong>{t('returnIsland')}:</strong> {order.return_island === 'santa-cruz' ? 'Santa Cruz' : 'San Cristóbal'}</p>
+                  <p><strong>{t('pickupLocation')}:</strong> {
+                    order.pickup === 'santa-cruz' 
+                      ? t('santaCruzOffice')
+                      : order.pickup 
+                        ? `${t('santaCruzHotel')} : ${order.pickup}`
+                        : t('santaCruzHotel')
+                  }</p>
+                  <p><strong>{t('status')}:</strong> {t('confirmed')}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {serviceItems.length > 0 && (
+            <div>
+              <h3 className="font-medium mb-2">{t('serviceTitle')}</h3>
+              <p><strong>{t('serviceDate')}:</strong> {formatDate(order.service_date || order.start_date)}</p>
+              <p><strong>{t('servicePickupUntil')}:</strong> {formatDate(order.service_end_date || order.end_date)}</p>
+            </div>
+          )}
           
           <Separator />
           
@@ -246,17 +260,19 @@ function ConfirmationContent() {
             </div>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-md">
-            <h3 className="font-medium text-[#f79b1e] mb-2">{t('pickupInstructions')}</h3>
-            <p className="text-sm mb-4">
-              {t('pickupInstructionsText')}
-            </p>
-            <p className="text-sm">
-              {t('customizeInstructions1')}<br />
-              <a href={`https://galapagos.viajes/sizes?orderId=${order.id}`} className="text-blue-600 underline">{`https://galapagos.viajes/sizes?orderId=${order.id}`}</a><br /><br />
-              {t('customizeInstructions2')}
-            </p>
-          </div>
+          {requiresSizesSelection && (
+            <div className="bg-blue-50 p-4 rounded-md">
+              <h3 className="font-medium text-[#f79b1e] mb-2">{t('pickupInstructions')}</h3>
+              <p className="text-sm mb-4">
+                {t('pickupInstructionsText')}
+              </p>
+              <p className="text-sm">
+                {t('customizeInstructions1')}<br />
+                <a href={`https://galapagos.viajes/sizes?orderId=${order.id}`} className="text-blue-600 underline">{`https://galapagos.viajes/sizes?orderId=${order.id}`}</a><br /><br />
+                {t('customizeInstructions2')}
+              </p>
+            </div>
+          )}
         </CardContent>
         
         <CardFooter className="flex justify-center">

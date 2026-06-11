@@ -103,12 +103,14 @@ const PaymentButton = ({
         bin: data?.card?.bin || '',
         customer_id: customerId,
         dev_reference: data?.transaction?.dev_reference || Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000,
-        start_date: rental.startDateStr || format(rental.startDate, 'yyyy-MM-dd'),
-        start_time: rental.startTime,
-        end_date: rental.endDateStr || format(rental.endDate, 'yyyy-MM-dd'),
-        end_time: rental.endTime,
-        return_island: rental.returnIsland || 'santa-cruz',
-        pickup: rental.pickup === 'santa-cruz' ? 'santa-cruz' : ('Hotel: ' + rental.hotelName || null),
+        start_date: rental.startDateStr || (rental.startDate ? format(rental.startDate, 'yyyy-MM-dd') : rental.serviceDateStr || null),
+        start_time: rental.startTime || null,
+        end_date: rental.endDateStr || (rental.endDate ? format(rental.endDate, 'yyyy-MM-dd') : rental.serviceEndDateStr || null),
+        end_time: rental.endTime || null,
+        service_date: rental.serviceDateStr || (rental.serviceDate ? format(rental.serviceDate, 'yyyy-MM-dd') : null),
+        service_end_date: rental.serviceEndDateStr || (rental.serviceEndDate ? format(rental.serviceEndDate, 'yyyy-MM-dd') : null),
+        return_island: rental.returnIsland || null,
+        pickup: rental.pickup === 'santa-cruz' ? 'santa-cruz' : (rental.hotelName ? 'Hotel: ' + rental.hotelName : null),
         total_amount: data?.transaction?.amount || totalAmount,
         tax_amount: taxAmount,
         payment_method: data?.card?.type || 'card',
@@ -158,9 +160,9 @@ const PaymentButton = ({
         order_id: order.id,
         product_config_id: item.product.id,
         quantity: item.quantity,
-        days: rental.rentalDays,
+        days: item.product.booking_mode === 'single_day_no_fixed_time' ? 1 : rental.rentalDays,
         unit_price: item.product.public_price,
-        subtotal: item.product.public_price * item.quantity * rental.rentalDays
+        subtotal: item.product.public_price * item.quantity * (item.product.booking_mode === 'single_day_no_fixed_time' ? 1 : rental.rentalDays)
       }))
       
       // Guardar los items

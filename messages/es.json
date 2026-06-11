@@ -90,7 +90,11 @@
     "noAirbnb": "No AirBnB.",
     "noHotel": "Si aún no tiene hotel, puede indicarlo después.",
     "returnFee": "Cargo de devolución",
-    "hotelPickupFee": "Cargo por entregar en su hotel"
+    "hotelPickupFee": "Cargo por entregar en su hotel",
+    "serviceTitle": "Día",
+    "serviceDate": "Fecha",
+    "serviceDescription": "Puede guardar su equipaje a cualquier hora entre las 10h00 y las 20h00 y retirarlo hasta la misma hora del día siguiente.",
+    "servicePickupUntil": "Puede retirarlo hasta {date}"
   },
   "payment": {
     "loadingConfig": "Cargando configuración...",
@@ -152,6 +156,9 @@
     "selectCountry": "Selecciona tu país",
     "orderSummary": "Resumen del Pedido",
     "rentalDetails": "Detalles del Alquiler",
+    "serviceDetails": "Detalles del Servicio",
+    "standardProducts": "Productos de Alquiler",
+    "serviceProducts": "Productos del Servicio",
     "startDate": "Fecha Inicio",
     "endDate": "Fecha Fin",
     "days": "Días",
@@ -202,6 +209,10 @@
     "snorkel": "Snorkel",
     "fins": "Aletas",
     "other": "Otro"
+    ,
+    "serviceTitle": "Guarda equipaje",
+    "serviceDate": "Fecha de entrega",
+    "servicePickupUntil": "Retiro hasta"
   },
   "sizes": {
     "title": "Selecciona las tallas",

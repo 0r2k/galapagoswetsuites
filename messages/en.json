@@ -90,7 +90,11 @@
     "noAirbnb": "No AirBnB.",
     "noHotel": "If you don't have a hotel, you can indicate it later.",
     "returnFee": "Return fee",
-    "hotelPickupFee": "Hotel pickup fee"
+    "hotelPickupFee": "Hotel pickup fee",
+    "serviceTitle": "Day",
+    "serviceDate": "Date",
+    "serviceDescription": "You can store your luggage any time between 10:00 and 20:00 and pick it up until the same time the following day.",
+    "servicePickupUntil": "You can pick it up until {date}"
   },
   "payment": {
     "loadingConfig": "Loading configuration...",
@@ -152,6 +156,9 @@
     "selectCountry": "Select your country",
     "orderSummary": "Order Summary",
     "rentalDetails": "Rental Details",
+    "serviceDetails": "Service Details",
+    "standardProducts": "Rental Products",
+    "serviceProducts": "Service Products",
     "startDate": "Start Date",
     "endDate": "End Date",
     "days": "Days",
@@ -201,7 +208,10 @@
     "wetsuitLong": "Long wetsuit",
     "snorkel": "Snorkel",
     "fins": "Fins",
-    "other": "Other"
+    "other": "Other",
+    "serviceTitle": "Luggage storage",
+    "serviceDate": "Drop-off date",
+    "servicePickupUntil": "Pick up until"
   },
   "sizes": {
     "title": "Select Sizes",

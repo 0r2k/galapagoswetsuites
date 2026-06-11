@@ -68,10 +68,10 @@ function stripConditionalSections(html: string, vars: any) {
   return $.html();
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { to, subject, vars } = await req.json();
-    const { id } = params;
+    const { id } = await params;
 
     if (!to) return new Response("Missing 'to'", { status: 400 });
     // const { default: mjml2html } = await import('mjml');

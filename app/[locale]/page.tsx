@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SheetPopoverContent } from "@/components/ui/sheet-popover-content"
 import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2, ChevronLeft, ChevronRight, Star } from "lucide-react"
-import { format, differenceInDays } from "date-fns"
+import { addDays, format, differenceInDays } from "date-fns"
 import { es, enUS } from "date-fns/locale"
 import { toast } from 'sonner'
 import Image from "next/image"
@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 interface Product {
   id: string
   product_type: string
+  booking_mode?: "rental_range" | "single_day_no_fixed_time"
   name: string
   description: string
   name_en?: string
@@ -35,6 +36,10 @@ interface Product {
   supplier_cost: number
   image: string
   tax_percentage: number
+  quantity_question?: string | null
+  quantity_question_en?: string | null
+  cta_label?: string | null
+  cta_label_en?: string | null
 }
 
 // Definición de tipos para los items del carrito
@@ -50,6 +55,9 @@ interface CartItem {
   returnIsland?: "santa-cruz" | "san-cristobal"
   pickup?: "santa-cruz" | string
   hotelName?: string
+  serviceDate?: Date
+  serviceDateStr?: string
+  serviceEndDateStr?: string
 }
 
 interface Review {
@@ -81,6 +89,7 @@ function loadCartFromLocalStorage(): CartItem[] {
     return parsedCart.map((item: any) => {
       let startDate = item.startDate ? new Date(item.startDate) : undefined
       let endDate = item.endDate ? new Date(item.endDate) : undefined
+      let serviceDate = item.serviceDate ? new Date(item.serviceDate) : undefined
 
       // Si tenemos versiones en string, reconstruimos la fecha localmente
       if (item.startDateStr) {
@@ -91,11 +100,16 @@ function loadCartFromLocalStorage(): CartItem[] {
         const [y, m, d] = item.endDateStr.split('-').map(Number)
         endDate = new Date(y, m - 1, d, 12, 0, 0, 0)
       }
+      if (item.serviceDateStr) {
+        const [y, m, d] = item.serviceDateStr.split('-').map(Number)
+        serviceDate = new Date(y, m - 1, d, 12, 0, 0, 0)
+      }
 
       return {
         ...item,
         startDate,
-        endDate
+        endDate,
+        serviceDate
       }
     })
   } catch (error) {
@@ -117,6 +131,7 @@ function RentalPageContent() {
   const [endDate, setEndDate] = useState<Date>()
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
+  const [serviceDate, setServiceDate] = useState<Date>()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -134,6 +149,7 @@ function RentalPageContent() {
   const [galleryLoading, setGalleryLoading] = useState(false)
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
   const [hotelName, setHotelName] = useState<string>("")
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
   const reviewsContainerRef = useRef<HTMLDivElement>(null);
@@ -159,6 +175,18 @@ function RentalPageContent() {
     { time: "19:00", available: true },
     { time: "20:00", available: true },
   ]
+
+  const isServiceItem = (item: CartItem) => item.product.booking_mode === 'single_day_no_fixed_time'
+  const isStandardItem = (item: CartItem) => !isServiceItem(item)
+  const cartEntries = cartItems.map((item, index) => ({ item, index }))
+  const standardCartEntries = cartEntries.filter(({ item }) => isStandardItem(item))
+  const serviceCartEntries = cartEntries.filter(({ item }) => isServiceItem(item))
+  const standardCartItems = standardCartEntries.map(({ item }) => item)
+  const serviceCartItems = serviceCartEntries.map(({ item }) => item)
+  const hasStandardItems = standardCartItems.length > 0
+  const hasServiceItems = serviceCartItems.length > 0
+  const primaryStandardItem = standardCartItems[0]
+  const serviceEndDate = serviceDate ? addDays(serviceDate, 1) : undefined
 
   // Función para verificar si una hora está disponible
   const isTimeSlotAvailable = (timeSlot: string, selectedDate: Date | undefined) => {
@@ -193,16 +221,18 @@ function RentalPageContent() {
     
     // Actualizar estados de fechas y horas si hay items en el carrito
     if (loadedCart.length > 0) {
-      const firstItem = loadedCart[0]
-      if (firstItem.startDate) setStartDate(firstItem.startDate)
-      if (firstItem.endDate) setEndDate(firstItem.endDate)
-      if (firstItem.startTime) setStartTime(firstItem.startTime)
-      if (firstItem.endTime) setEndTime(firstItem.endTime)
+      const firstStandardItem = loadedCart.find(isStandardItem)
+      const firstServiceItem = loadedCart.find(isServiceItem)
+      if (firstStandardItem?.startDate) setStartDate(firstStandardItem.startDate)
+      if (firstStandardItem?.endDate) setEndDate(firstStandardItem.endDate)
+      if (firstStandardItem?.startTime) setStartTime(firstStandardItem.startTime)
+      if (firstStandardItem?.endTime) setEndTime(firstStandardItem.endTime)
+      if (firstServiceItem?.serviceDate) setServiceDate(firstServiceItem.serviceDate)
       
       // Cargar pickup y hotelName desde localStorage
-      if (firstItem.pickup) {
-        if (firstItem.pickup === 'hotel') {
-          setHotelName(firstItem.hotelName || firstItem.pickup)
+      if (firstStandardItem?.pickup) {
+        if (firstStandardItem.pickup === 'hotel') {
+          setHotelName(firstStandardItem.hotelName || firstStandardItem.pickup)
         } else {
           setHotelName('')
         }
@@ -215,7 +245,7 @@ function RentalPageContent() {
       try {
         const { data, error } = await supabase
           .from('product_config')
-          .select('id, product_type, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage')
+          .select('id, product_type, booking_mode, name, description, name_en, description_en, public_price, supplier_cost, image, tax_percentage, quantity_question, quantity_question_en, cta_label, cta_label_en')
           .eq('active', true)
           .order('created_at', { ascending: true })
         
@@ -227,6 +257,7 @@ function RentalPageContent() {
           const mappedProducts = data.map(item => ({
             id: item.id,
             product_type: item.product_type,
+            booking_mode: item.booking_mode || 'rental_range',
             name: item.name,
             description: item.description,
             name_en: item.name_en,
@@ -234,7 +265,11 @@ function RentalPageContent() {
             public_price: item.public_price,
             supplier_cost: item.supplier_cost,
             image: item.image,
-            tax_percentage: item.tax_percentage || 0
+            tax_percentage: item.tax_percentage || 0,
+            quantity_question: item.quantity_question,
+            quantity_question_en: item.quantity_question_en,
+            cta_label: item.cta_label,
+            cta_label_en: item.cta_label_en
           }))
           
           setProducts(mappedProducts)
@@ -366,30 +401,39 @@ function RentalPageContent() {
     localStorage.setItem('galapagosCart', JSON.stringify(newCartItems))
   }
   
-  // Actualizar fecha, hora, isla de devolución y pickup
-  const updateCartDetails = (field: string, value: any) => {
+  const persistCart = (updatedCart: CartItem[]) => {
+    setCartItems(updatedCart)
+    localStorage.setItem('galapagosCart', JSON.stringify(updatedCart))
+  }
+
+  // Actualizar fecha, hora, isla de devolución y pickup por grupo de productos
+  const updateCartDetails = (field: string, value: any, target: 'standard' | 'service' | 'all' = 'all') => {
     const updatedCart = cartItems.map(item => {
+      const belongsToTarget = target === 'all' || (target === 'standard' ? isStandardItem(item) : isServiceItem(item))
+      if (!belongsToTarget) {
+        return item
+      }
+
       const newItem = { ...item, [field]: value }
-      
-      // Asegurar que guardamos la fecha como string para evitar problemas de zona horaria
+
+      // Guardar fechas como strings para evitar problemas de zona horaria
       if (field === 'startDate' && value instanceof Date) {
         newItem.startDateStr = format(value, 'yyyy-MM-dd')
       }
       if (field === 'endDate' && value instanceof Date) {
         newItem.endDateStr = format(value, 'yyyy-MM-dd')
       }
-      
+      if (field === 'serviceDate' && value instanceof Date) {
+        newItem.serviceDateStr = format(value, 'yyyy-MM-dd')
+        newItem.serviceEndDateStr = format(addDays(value, 1), 'yyyy-MM-dd')
+      }
+
       return newItem
     })
-    
-    setCartItems(updatedCart)
-    
-    // Si estamos actualizando la isla de devolución, calculamos y guardamos la tarifa
+
     if (field === 'returnIsland') {
       const returnFee = returnFees.find(fee => fee.location === value)
       const returnFeeAmount = returnFee ? returnFee.amount : 0
-      
-      // Guardamos la tarifa de devolución en localStorage
       localStorage.setItem('galapagosReturnFee', JSON.stringify({
         island: value,
         amount: returnFeeAmount
@@ -400,8 +444,8 @@ function RentalPageContent() {
       setHotelName("")
       localStorage.setItem('hotelName', '')
     }
-    
-    localStorage.setItem('galapagosCart', JSON.stringify(updatedCart))
+
+    persistCart(updatedCart)
   }
 
   const scrollToReview = (index: number) => {
@@ -465,63 +509,62 @@ function RentalPageContent() {
     // Asegurar que al menos sea 1 día
     return Math.max(1, days)
   }
-  
-  const calculateCartTotal = (): { baseTotal: number, returnFeeAmount: number } => {
-    let baseTotal = cartItems.reduce((total, item) => {
-      return total + (item.product.public_price * item.quantity)
-    }, 0)
-    
-    let returnFeeAmount = 0;
-    if (cartItems.length > 0 && cartItems[0].returnIsland) {
-      const returnFee = returnFees.find(fee => fee.location === cartItems[0].returnIsland)
-      if (returnFee) {
-        // Calcular cantidad total de items
-        const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
-        // Multiplicar por cada grupo de 3 items (redondeado hacia arriba)
-        const multiplier = Math.ceil(totalItems / 3)
-        returnFeeAmount = returnFee.amount * multiplier;
-      }
+
+  const calculateGroupBaseTotal = (items: CartItem[]) => items.reduce((total, item) => total + (item.product.public_price * item.quantity), 0)
+
+  const calculateStandardReturnFee = (): number => {
+    if (!primaryStandardItem?.returnIsland) {
+      return 0
     }
-    
-    return { baseTotal, returnFeeAmount }
+
+    const returnFee = returnFees.find(fee => fee.location === primaryStandardItem.returnIsland)
+    if (!returnFee) {
+      return 0
+    }
+
+    const totalItems = standardCartItems.reduce((total, item) => total + item.quantity, 0)
+    const multiplier = Math.ceil(totalItems / 3)
+    return returnFee.amount * multiplier
   }
-  
-  const calculateFinalTotal = (): { subtotal: number, returnFeeAmount: number, totalWithTax: number } => {
-    const { baseTotal, returnFeeAmount } = calculateCartTotal()
-    const days = calculateRentalDays()
-    
-    // El subtotal es el precio base por día multiplicado por los días
-    const subtotal = baseTotal * days
-    
-    // Calculamos el IVA basado en el tax_percentage de cada producto
+
+  const calculateServiceDays = () => (hasServiceItems ? 1 : 0)
+
+  const calculateFinalTotal = (): { subtotal: number, returnFeeAmount: number, serviceSubtotal: number, totalWithTax: number } => {
+    const standardDays = hasStandardItems ? calculateRentalDays() : 0
+    const serviceDays = calculateServiceDays()
+    const standardBaseTotal = calculateGroupBaseTotal(standardCartItems)
+    const serviceBaseTotal = calculateGroupBaseTotal(serviceCartItems)
+    const returnFeeAmount = calculateStandardReturnFee()
+    const hotelPickupFee = standardCartItems.some(item => item.pickup === "hotel") ? 5 : 0
+
+    const standardSubtotal = standardBaseTotal * standardDays
+    const serviceSubtotal = serviceBaseTotal * serviceDays
+    const subtotal = standardSubtotal + serviceSubtotal
+
     const totalWithTax = cartItems.reduce((total, item) => {
-      const itemSubtotal = item.product.public_price * item.quantity * days
+      const itemDays = isServiceItem(item) ? 1 : standardDays
+      const itemSubtotal = item.product.public_price * item.quantity * itemDays
       const itemTax = itemSubtotal * (item.product.tax_percentage || 0)
       return total + itemSubtotal + itemTax
-    }, returnFeeAmount) // Agregamos la tarifa de devolución sin multiplicar por días
-    
-    // Agregar $5 si el pickup es en hotel
-    const hotelPickupFee = cartItems.some(item => item.pickup === "hotel") ? 5 : 0
-    
-    return { subtotal, returnFeeAmount, totalWithTax: totalWithTax + hotelPickupFee }
+    }, returnFeeAmount + hotelPickupFee)
+
+    return { subtotal, returnFeeAmount, serviceSubtotal, totalWithTax }
   }
 
   const calculateInitialPayment = (): number => {
-    const days = calculateRentalDays()
-    
-    // Pago inicial = diferencia entre precio público y costo proveedor
+    const standardDays = hasStandardItems ? calculateRentalDays() : 0
+    const hotelPickupFee = standardCartItems.some(item => item.pickup === "hotel") ? 5 : 0
+
     const initialPayment = cartItems.reduce((total, item) => {
-      const priceDifference = (item.product.public_price - item.product.supplier_cost) * item.quantity * days
+      const itemDays = isServiceItem(item) ? 1 : standardDays
+      const priceDifference = (item.product.public_price - item.product.supplier_cost) * item.quantity * itemDays
       return total + priceDifference
     }, 0)
-    
-    // Agregar $5 si el pickup es en hotel
-    const hotelPickupFee = cartItems.some(item => item.pickup === "hotel") ? 5 : 0
-    
-    return Math.max(initialPayment + hotelPickupFee, 0) // Asegurar que no sea negativo
+
+    return Math.max(initialPayment + hotelPickupFee, 0)
   }
   
-  const proceedToCheckout = () => {
+  const proceedToCheckout = async () => {
     if (cartItems.length === 0) {
       toast.error(t('notifications.emptyCart'), { description: t('notifications.emptyCartDescription') })
       return
@@ -532,33 +575,46 @@ function RentalPageContent() {
       return
     }
     
-    if (!cartItems[0].startDate) {
+    if (hasStandardItems && !primaryStandardItem?.startDate) {
       toast.error(t('notifications.startDateRequired'), { description: t('notifications.startDateRequiredDescription') })
       return
     }
     
-    if (!cartItems[0].startTime) {
+    if (hasStandardItems && !primaryStandardItem?.startTime) {
       toast.error(t('notifications.startTimeRequired'), { description: t('notifications.startTimeRequiredDescription') })
       return
     }
     
-    if (!cartItems[0].endDate) {
+    if (hasStandardItems && !primaryStandardItem?.endDate) {
       toast.error(t('notifications.endDateRequired'), { description: t('notifications.endDateRequiredDescription') })
       return
     }
     
-    if (!cartItems[0].endTime) {
+    if (hasStandardItems && !primaryStandardItem?.endTime) {
       toast.error(t('notifications.endTimeRequired'), { description: t('notifications.endTimeRequiredDescription') })
       return
     }
     
-    if (!cartItems[0].returnIsland) {
+    if (hasStandardItems && !primaryStandardItem?.returnIsland) {
       toast.error(t('notifications.returnIslandRequired'), { description: t('notifications.returnIslandRequiredDescription') })
       return
     }
+
+    if (hasServiceItems && !serviceDate) {
+      toast.error(t('notifications.startDateRequired'), { description: t('notifications.startDateRequiredDescription') })
+      return
+    }
     
-    // Los datos ya están en localStorage, así que podemos navegar directamente a checkout
-    router.push(`/${locale}/checkout`)
+    setCheckoutLoading(true)
+    
+    try {
+      // Los datos ya están en localStorage, así que podemos navegar directamente a checkout
+      await router.push(`/${locale}/checkout`)
+    } catch (error) {
+      console.error('Error navigating to checkout:', error)
+      toast.error(t('common.error'))
+      setCheckoutLoading(false)
+    }
   }
 
   const renderProduct = (product: Product) => {
@@ -571,7 +627,7 @@ function RentalPageContent() {
     const productDescription = locale === 'en' && product.description_en ? product.description_en : product.description
     
     return (
-      <Card key={product.id} className="gap-4 relative">
+      <Card key={product.id} className="gap-4 relative justify-between">
         {productQuantity > 0 && (
           <Badge 
             variant="destructive" 
@@ -603,7 +659,7 @@ function RentalPageContent() {
             variant="outline"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
-            {t('products.rent')}
+            {(locale === 'en' && product.cta_label_en) ? product.cta_label_en : (product.cta_label || t('products.rent'))}
           </Button>
         </CardFooter>
       </Card>
@@ -616,13 +672,20 @@ function RentalPageContent() {
     
     // Obtener nombre según el idioma para el modal
     const productName = locale === 'en' && selectedProduct.name_en ? selectedProduct.name_en : selectedProduct.name
+    const questionText = locale === 'en' && selectedProduct.quantity_question_en 
+      ? selectedProduct.quantity_question_en 
+      : selectedProduct.quantity_question
     
     return (
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {selectedProduct.product_type === "fins" ? t('products.howManyFeminine', {productName}) : t('products.howMany', {productName})}
+              {questionText
+                ? questionText
+                : selectedProduct.product_type === "fins"
+                  ? t('products.howManyFeminine', {productName})
+                  : t('products.howMany', {productName})}
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center justify-center gap-4 py-4">
@@ -709,52 +772,48 @@ function RentalPageContent() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Lista de productos en el carrito */}
-              <div className="space-y-3 px-6">
-                {cartItems.map((item, index) => {
-                  // Obtener nombre según el idioma para cada item del carrito
-                  const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between gap-2 pb-2 border-b">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xl">
-                          <Image 
-                            src={item.product.image}
-                            alt={itemName}
-                            width={20}
-                            height={20}
-                          />
-                        </div>
-                        <div>
-                          <p className="font-medium">{itemName}</p>
-                          <p className="text-sm text-muted-foreground">${item.product.public_price}{t('products.perDay')} × {item.quantity}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="text-right font-medium">
-                          ${item.product.public_price * item.quantity}
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeFromCart(index)}>
-                          <Trash2 color="red" className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              
-              {/* Total por dia */}
-              <div className="px-6">
-                <div className="flex justify-between font-medium">
-                  <span>{t('cart.totalPerDay')}</span>
-                  <span>${calculateCartTotal().baseTotal}</span>
-                </div>
-              </div>
-              
-              {/* Selector de fechas y horas */}
-              {cartItems.length > 0 && (
+              {hasStandardItems && (
                 <>
+                  <div className="space-y-3 px-6">
+                    {standardCartEntries.map(({ item, index }) => {
+                      const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
+
+                      return (
+                        <div key={index} className="flex items-center justify-between gap-2 pb-2 border-b">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xl">
+                              <Image 
+                                src={item.product.image}
+                                alt={itemName}
+                                width={20}
+                                height={20}
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{itemName}</p>
+                              <p className="text-sm text-muted-foreground">${item.product.public_price}{t('products.perDay')} × {item.quantity}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="text-right font-medium">
+                              ${item.product.public_price * item.quantity}
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-red-700 hover:text-white" onClick={() => removeFromCart(index)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <div className="px-6">
+                    <div className="flex justify-between font-medium">
+                      <span>{t('cart.totalPerDay')}</span>
+                      <span>${calculateGroupBaseTotal(standardCartItems)}</span>
+                    </div>
+                  </div>
+
                   <div className="mt-8 space-y-3 p-6 bg-[#f9feff] border-b mb-0">
                     <p className="font-bold">{t('cart.pickupTitle')}:</p>
                     <div className="space-y-2">
@@ -782,7 +841,7 @@ function RentalPageContent() {
                                 if (newDate) {
                                   setStartDate(newDate)
                                   setStartTime(null)
-                                  updateCartDetails('startDate', newDate)
+                                  updateCartDetails('startDate', newDate, 'standard')
                                   
                                   // Check if new start date is after end date
                                   if (endDate && newDate > endDate) {
@@ -833,7 +892,7 @@ function RentalPageContent() {
                                             className="w-full"
                                             onClick={() => {
                                               setStartTime(timeSlot)
-                                              updateCartDetails('startTime', timeSlot)
+                                              updateCartDetails('startTime', timeSlot, 'standard')
                                               // Cerrar el popover automáticamente cuando se selecciona una hora
                                               // setDateTimePopoverOpen(false)
                                               handlePopoverState('startDate', false)
@@ -857,9 +916,9 @@ function RentalPageContent() {
                     <div className="space-y-2">
                       <label>{t('cart.pickupIsland')}</label>
                       <Select 
-                        value={cartItems.length > 0 && cartItems[0].pickup ? cartItems[0].pickup : undefined} 
+                        value={primaryStandardItem?.pickup ? primaryStandardItem.pickup : undefined} 
                         onValueChange={(value) => {
-                          updateCartDetails('pickup', value)
+                          updateCartDetails('pickup', value, 'standard')
                           console.log('pickup', value)
                         }}
                       >
@@ -876,7 +935,7 @@ function RentalPageContent() {
                         </SelectContent>
                       </Select>
                       
-                      {cartItems.length > 0 && cartItems[0].pickup === "hotel" && (
+                      {primaryStandardItem?.pickup === "hotel" && (
                         <div className="space-y-2 mt-3">
                           <input
                             type="text"
@@ -885,7 +944,7 @@ function RentalPageContent() {
                             onChange={(e) => {
                               setHotelName(e.target.value)
                               localStorage.setItem('hotelName', e.target.value)
-                              updateCartDetails('hotelName', e.target.value)
+                              updateCartDetails('hotelName', e.target.value, 'standard')
                             }}
                             className="w-full px-3 py-2 border border-primary/20 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
@@ -937,7 +996,7 @@ function RentalPageContent() {
                                 if (newDate) {
                                   setEndDate(newDate)
                                   setEndTime(null)
-                                  updateCartDetails('endDate', newDate)
+                                  updateCartDetails('endDate', newDate, 'standard')
                                   if (startDate && newDate < startDate) {
                                     setHasDateConflict(true)
                                   } else {
@@ -982,7 +1041,7 @@ function RentalPageContent() {
                                             className="w-full"
                                             onClick={() => {
                                               setEndTime(timeSlot)
-                                              updateCartDetails('endTime', timeSlot)
+                                              updateCartDetails('endTime', timeSlot, 'standard')
                                               // Cerrar el popover automáticamente cuando se selecciona una hora
                                               // setEndDateTimePopoverOpen(false)
                                               handlePopoverState('endDate', false)
@@ -1006,9 +1065,9 @@ function RentalPageContent() {
                     <div className="space-y-2">
                       <label>{t('cart.returnIsland')}</label>
                       <Select
-                        value={cartItems.length > 0 && cartItems[0].returnIsland ? cartItems[0].returnIsland : undefined}
+                        value={primaryStandardItem?.returnIsland ? primaryStandardItem.returnIsland : undefined}
                         onValueChange={(value) => {
-                          updateCartDetails('returnIsland', value)
+                          updateCartDetails('returnIsland', value, 'standard')
                         }}
                       >
                         <SelectTrigger className="w-full bg-white border border-primary/20">
@@ -1016,8 +1075,7 @@ function RentalPageContent() {
                         </SelectTrigger>
                         <SelectContent className="bg-white">
                           {returnFees.map((fee) => {
-                            // Calcular el monto con multiplier como en línea 323
-                            const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+                            const totalItems = standardCartItems.reduce((total, item) => total + item.quantity, 0)
                             const multiplier = Math.ceil(totalItems / 3)
                             const calculatedDeliveryAmount = fee.amount * multiplier
                             
@@ -1034,20 +1092,114 @@ function RentalPageContent() {
                 </>
               )}
 
-              {/* Total final */}
-              {cartItems.length > 0 && startDate && endDate && (
-                <div className="border-t pt-4 px-6">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>{t('cart.rentalDays')}</span>
-                    <span>{calculateRentalDays()} días</span>
+              {hasServiceItems && (
+                <>
+                  <div className={`${hasStandardItems ? 'border-t border-orange-200' : ''} space-y-3 px-6 pt-6 pb-4 mb-0 bg-[#faf7f0]`}>
+                    {serviceCartEntries.map(({ item, index }) => {
+                      const itemName = locale === 'en' && item.product.name_en ? item.product.name_en : item.product.name
+
+                      return (
+                        <div key={index} className="flex items-center justify-between gap-2 pb-2 border-b border-orange-100">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xl">
+                              <Image
+                                src={item.product.image}
+                                alt={itemName}
+                                width={20}
+                                height={20}
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{itemName}</p>
+                              <p className="text-sm text-[#b36908]/80">${item.product.public_price}{t('products.perDay')} × {item.quantity}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="text-right font-medium">
+                              ${item.product.public_price * item.quantity}
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-red-700 hover:text-white" onClick={() => removeFromCart(index)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                  {cartItems.length > 0 && cartItems[0].pickup === "hotel" && (
+
+                  <div className="px-6 pb-4 mb-0 bg-[#faf7f0]">
+                    <div className="flex justify-between font-medium text-[#b36908]">
+                      <span>{t('cart.totalPerDay')}</span>
+                      <span>${calculateGroupBaseTotal(serviceCartItems)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-0 p-6 bg-[#fef3df] border-t border-orange-200">
+                    <p className="font-bold text-[#b36908]">{t('cart.serviceTitle')}:</p>
+                    <div className="space-y-2">
+                      <label>{t('cart.serviceDate')}</label>
+                      <Popover modal={false} open={getPopoverState('serviceDate')} onOpenChange={(open) => handlePopoverState('serviceDate', open)}>
+                        <PopoverTrigger asChild className="w-full">
+                          <Button
+                            variant={"outline"}
+                            className="justify-start text-left font-normal border-orange-200 bg-white"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {serviceDate ? format(serviceDate, "MMM d, yyyy", { locale: locale === 'en' ? enUS : es }) : (
+                              <span>{t('time.selectTime')}</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <SheetPopoverContent container={portalEl ?? undefined} className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={serviceDate}
+                            defaultMonth={serviceDate || new Date()}
+                            locale={locale === 'en' ? enUS : es}
+                            onSelect={(newDate) => {
+                              if (newDate) {
+                                setServiceDate(newDate)
+                                updateCartDetails('serviceDate', newDate, 'service')
+                                handlePopoverState('serviceDate', false)
+                              }
+                            }}
+                            className="p-2 sm:pe-5"
+                            disabled={[
+                              { before: today }
+                            ]}
+                          />
+                        </SheetPopoverContent>
+                      </Popover>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('cart.serviceDescription')}</p>
+
+                    {serviceDate && serviceEndDate && (
+                      <p className="text-sm text-[#b36908]">
+                        {t('cart.servicePickupUntil', {
+                          date: format(serviceEndDate, locale === 'en' ? 'MMM d, yyyy' : 'd MMM yyyy', { locale: locale === 'en' ? enUS : es })
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Total final */}
+              {cartItems.length > 0 && (!hasStandardItems || (startDate && endDate && startTime && endTime)) && (!hasServiceItems || serviceDate) && (
+                <div className="border-t pt-4 px-6">
+                  {hasStandardItems && (
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>{t('cart.rentalDays')}</span>
+                      <span>{calculateRentalDays()} días</span>
+                    </div>
+                  )}
+                  {primaryStandardItem?.pickup === "hotel" && (
                     <div className="flex justify-between text-sm mb-2">
                       <span>{t('cart.hotelPickupFee')}</span>
                       <span>US$5.00</span>
                     </div>
                   )}
-                  {cartItems.length > 0 && cartItems[0].returnIsland === "san-cristobal" && (
+                  {primaryStandardItem?.returnIsland === "san-cristobal" && (
                     <div className="flex justify-between text-sm mb-2">
                       <span>{t('cart.returnFee')}</span>
                       <span>US${calculateFinalTotal().returnFeeAmount.toFixed(2)}</span>
@@ -1073,9 +1225,21 @@ function RentalPageContent() {
                 <Button 
                   className="w-full mt-4" 
                   onClick={proceedToCheckout}
-                disabled={!cartItems.length || !startDate || !endDate || !startTime || !endTime || !cartItems[0]?.returnIsland}
+                  disabled={
+                    checkoutLoading ||
+                    !cartItems.length ||
+                    (hasStandardItems && (!startDate || !endDate || !startTime || !endTime || !primaryStandardItem?.returnIsland)) ||
+                    (hasServiceItems && !serviceDate)
+                  }
                 >
-                  {t('cart.proceedToCheckout')}
+                  {checkoutLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {t('common.loading')}
+                    </>
+                  ) : (
+                    t('cart.proceedToCheckout')
+                  )}
                 </Button>
               </div>
             </div>

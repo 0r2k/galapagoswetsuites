@@ -16,6 +16,7 @@ export async function GET(req: Request) {
         *,
         product_config (
             id,
+          booking_mode,
             product_type,
             product_subtype,
             size,
