@@ -72,23 +72,23 @@ INSERT INTO site_content (
 )
 SELECT 
     -- Default hero content (Spanish)
-    'Alquiler de Trajes de Neopreno y Equipo de Snorkel',
-    '¡Tu aventura submarina empieza aquí!',
-    'Equipo de alta calidad para explorar las aguas cristalinas de Galápagos. Trajes de neopreno, snorkeles, aletas y más.',
-    'Elige tu talla perfecta',
+    'Alquiler de wetsuits y snorkel en Galápagos',
+    '<strong>Tenemos wetsuit cortos y largos de todas las tallas</strong>, equipos de snorkel con aletas y GoPro Hero11 Black, <strong>todo en excelentes condiciones</strong> para que tengas una experiencia espectacular en las Islas Galápagos.',
+    '<strong>Puedes rentarlo en linea</strong> y lo mejor es que te lo podemos <strong>entregar en tu hotel/hostal</strong>, o tambien <strong>lo puedes recoger en la oficina</strong> de la agencia en la Isla Santa Cruz.',
+    'No te preocupes si no sabes tu talla para el wetsuit, tenemos todas las tallas para que te pruebes.',
     -- Default hero content (English)
-    'Wetsuit and Snorkel Gear Rental',
-    'Your underwater adventure starts here!',
-    'High-quality equipment to explore the crystal-clear waters of Galápagos. Wetsuits, snorkels, fins and more.',
-    'Choose your perfect size',
+    'Wetsuit and Snorkel Rental in Galápagos',
+    '<strong>We have short and long wetsuits in all sizes</strong>, snorkeling gear with fins and GoPro Hero11 Black, <strong>all in excellent condition</strong> for you to have an amazing experience in the Galápagos Islands.',
+    '<strong>You can rent it online</strong> and best of all, we can <strong>deliver it to your hotel/hostel</strong>, or you can also <strong>pick it up at the agency office</strong> on Santa Cruz Island.',
+    'Don''t worry if you don''t know your wetsuit size, we have all sizes for you to try.',
     -- Default SEO (Spanish)
-    'Alquiler de Trajes de Neopreno Galápagos | Equipo de Snorkel',
-    'Alquila trajes de neopreno y equipo de snorkel de alta calidad en Galápagos. Explora las Islas Galápagos con el mejor equipo.',
-    'Alquiler de Trajes de Neopreno Galápagos',
-    'Alquila trajes de neopreno y equipo de snorkel de alta calidad en Galápagos.',
+    'Galapagos: Alquiler de Wetsuit corto y largo, equipo de snorkel, aletas, GoPro Hero11 Black, Reserva en linea',
+    'Tenemos más de 100 trajes wetsuit y equipos de snorkel en perfectas condiciones para rentarlos en la Isla Santa Cruz Galápagos, Resérvalo en línea.',
+    'Galápagos - Wetsuit & Snorkeling by ChokoTrip',
+    'Alquiler de equipos de snorkeling y wetsuits en Galápagos. Más de 100 equipos disponibles para explorar la vida marina. Recogida en Santa Cruz, devolución en Santa Cruz o San Cristóbal.',
     -- Default SEO (English)
-    'Galápagos Wetsuit Rental | Snorkel Gear',
-    'Rent high-quality wetsuits and snorkel gear in Galápagos. Explore the Galápagos Islands with the best equipment.',
-    'Galápagos Wetsuit Rental',
-    'Rent high-quality wetsuits and snorkel gear in Galápagos.'
+    'Galapagos: Short and Long Wetsuit Rental, Snorkeling Gear, Fins, GoPro Hero11 Black, Online Reservation',
+    'We have more than 100 wetsuits and snorkeling gear in perfect condition for rent on Santa Cruz Island Galápagos, Reserve it online.',
+    'Galápagos - Wetsuit & Snorkeling by ChokoTrip',
+    'Snorkeling and wetsuit equipment rental in Galápagos. More than 100 sets available to explore marine life. Pickup in Santa Cruz, drop-off in Santa Cruz or San Cristóbal.'
 WHERE NOT EXISTS (SELECT 1 FROM site_content);

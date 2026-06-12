@@ -1301,11 +1301,26 @@ function RentalPageContent() {
           <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4 text-[#01a4d4]">
             {(locale === 'en' ? siteContent?.hero_title_en : siteContent?.hero_title_es) || t('hero.title')}
           </h1>
-          <p className="text-sm sm:text-sm text-gray-500 text-pretty"
-             dangerouslySetInnerHTML={{
-               __html: (locale === 'en' ? siteContent?.hero_subtitle_en : siteContent?.hero_subtitle_es) || t('hero.subtitle')
-             }}
-          />
+          
+          {/* Hero Subtitle */}
+          {(() => {
+            const dbContent = locale === 'en' ? siteContent?.hero_subtitle_en : siteContent?.hero_subtitle_es;
+            if (dbContent) {
+              return (
+                <p className="text-sm sm:text-sm text-gray-500 text-pretty"
+                   dangerouslySetInnerHTML={{ __html: dbContent }}
+                />
+              );
+            }
+            return (
+              <p className="text-sm sm:text-sm text-gray-500 text-pretty">
+                {t.rich('hero.subtitle', {
+                  br: () => <br />,
+                  strong: (chunks) => <strong>{chunks}</strong>
+                })}
+              </p>
+            );
+          })()}
 
           {isMobile && (
             <GalleryComponent 
@@ -1317,11 +1332,25 @@ function RentalPageContent() {
             />
           )}
 
-          <p className="text-sm sm:text-sm text-gray-500 text-pretty mt-4"
-             dangerouslySetInnerHTML={{
-               __html: (locale === 'en' ? siteContent?.hero_description_en : siteContent?.hero_description_es) || t('hero.description')
-             }}
-          />
+          {/* Hero Description */}
+          {(() => {
+            const dbContent = locale === 'en' ? siteContent?.hero_description_en : siteContent?.hero_description_es;
+            if (dbContent) {
+              return (
+                <p className="text-sm sm:text-sm text-gray-500 text-pretty mt-4"
+                   dangerouslySetInnerHTML={{ __html: dbContent }}
+                />
+              );
+            }
+            return (
+              <p className="text-sm sm:text-sm text-gray-500 text-pretty mt-4">
+                {t.rich('hero.description', {
+                  strong: (chunks) => <strong>{chunks}</strong>
+                })}
+              </p>
+            );
+          })()}
+          
           <p className="text-base sm:text-lg text-gray-900 text-pretty mt-4 font-medium">
             {(locale === 'en' ? siteContent?.hero_sizes_note_en : siteContent?.hero_sizes_note_es) || t('hero.sizesnote')}
           </p>
