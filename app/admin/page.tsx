@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
@@ -22,7 +23,10 @@ import {
   BookingMode,
   getAdditionalFees, 
   Island,
-  ProductType
+  ProductType,
+  SiteContent,
+  getSiteContent,
+  updateSiteContent
 } from '@/lib/db'
 import { toast } from 'sonner'
 import EmailTemplatesList from '@/app/admin/email-templates/page'
@@ -125,7 +129,10 @@ function AdminPageContent() {
   
   // Obtener la pestaña de la URL o usar 'general-config' por defecto
   const tabFromUrl = searchParams.get('tab')
-  const validTabs = ['general-config', 'fees', 'payment-config', 'email-templates', 'orders', 'reviews']
+  const validTabs = ['seo', 'general-config', 'fees', 'payment-config', 'email-templates', 'orders', 'reviews']
+  const [siteContent, setSiteContent] = useState<SiteContent | null>(null)
+  const [siteContentForm, setSiteContentForm] = useState<Partial<SiteContent>>({})
+  const [savingSiteContent, setSavingSiteContent] = useState(false)
   const initialTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : 'general-config'
   const [activeTab, setActiveTab] = useState(initialTab)
   const [paymentConfigs, setPaymentConfigs] = useState<PaymentConfig[]>([])
@@ -605,6 +612,13 @@ function AdminPageContent() {
       // Cargar pedidos
       await loadOrders()
       
+      // Cargar contenido del sitio
+      const siteContentData = await getSiteContent()
+      if (siteContentData) {
+        setSiteContent(siteContentData)
+        setSiteContentForm(siteContentData)
+      }
+      
       setProducts((productsData || []) as Product[])
       setFees(feesData)
       setPaymentConfigs(paymentConfigsData)
@@ -785,6 +799,25 @@ function AdminPageContent() {
     }
   }
 
+  const handleSaveSiteContent = async () => {
+    if (!siteContent) return
+    setSavingSiteContent(true)
+    try {
+      const updated = await updateSiteContent(siteContent.id, siteContentForm)
+      if (updated) {
+        setSiteContent(updated)
+        toast.success('Contenido guardado exitosamente')
+      } else {
+        toast.error('Error al guardar el contenido')
+      }
+    } catch (error) {
+      console.error('Error saving site content:', error)
+      toast.error('Error al guardar el contenido')
+    } finally {
+      setSavingSiteContent(false)
+    }
+  }
+
   // Funciones para manejar configuración de Paymentez
   const handleActivatePaymentConfig = async (id: number) => {
     try {
@@ -863,7 +896,8 @@ function AdminPageContent() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="seo">SEO & Contenido</TabsTrigger>
           <TabsTrigger value="general-config">Configuración</TabsTrigger>
           <TabsTrigger value="fees">Tarifas Adicionales</TabsTrigger>
           <TabsTrigger value="payment-config">Nuvei</TabsTrigger>
@@ -871,6 +905,206 @@ function AdminPageContent() {
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="seo" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contenido del Hero</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Español</h3>
+                  <div className="space-y-2">
+                    <Label>Título</Label>
+                    <Input
+                      value={siteContentForm.hero_title_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_title_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Subtítulo</Label>
+                    <Textarea
+                      value={siteContentForm.hero_subtitle_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_subtitle_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descripción</Label>
+                    <Textarea
+                      value={siteContentForm.hero_description_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_description_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nota de Tallas</Label>
+                    <Input
+                      value={siteContentForm.hero_sizes_note_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_sizes_note_es: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Inglés</h3>
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={siteContentForm.hero_title_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_title_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Subtitle</Label>
+                    <Textarea
+                      value={siteContentForm.hero_subtitle_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_subtitle_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={siteContentForm.hero_description_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_description_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Sizes Note</Label>
+                    <Input
+                      value={siteContentForm.hero_sizes_note_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_sizes_note_en: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO & Metadatos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Español</h3>
+                  <div className="space-y-2">
+                    <Label>Título de la Página</Label>
+                    <Input
+                      value={siteContentForm.seo_title_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_title_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descripción SEO</Label>
+                    <Textarea
+                      value={siteContentForm.seo_description_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_description_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Título Open Graph</Label>
+                    <Input
+                      value={siteContentForm.og_title_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, og_title_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descripción Open Graph</Label>
+                    <Textarea
+                      value={siteContentForm.og_description_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, og_description_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Imagen Open Graph (URL)</Label>
+                    <Input
+                      value={siteContentForm.og_image_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, og_image_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Título Twitter</Label>
+                    <Input
+                      value={siteContentForm.twitter_title_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_title_es: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descripción Twitter</Label>
+                    <Textarea
+                      value={siteContentForm.twitter_description_es || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_description_es: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Inglés</h3>
+                  <div className="space-y-2">
+                    <Label>Page Title</Label>
+                    <Input
+                      value={siteContentForm.seo_title_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_title_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>SEO Description</Label>
+                    <Textarea
+                      value={siteContentForm.seo_description_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_description_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Open Graph Title</Label>
+                    <Input
+                      value={siteContentForm.og_title_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, og_title_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Open Graph Description</Label>
+                    <Textarea
+                      value={siteContentForm.og_description_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, og_description_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Open Graph Image (URL)</Label>
+                    <Input
+                      value={siteContentForm.og_image_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, og_image_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Twitter Title</Label>
+                    <Input
+                      value={siteContentForm.twitter_title_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_title_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Twitter Description</Label>
+                    <Textarea
+                      value={siteContentForm.twitter_description_en || ''}
+                      onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_description_en: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleSaveSiteContent} disabled={savingSiteContent}>
+                {savingSiteContent ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Cambios'
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="general-config" className="space-y-6">
           <Card>

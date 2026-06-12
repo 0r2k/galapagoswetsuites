@@ -1,4 +1,34 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient'
+import { supabaseAdmin } from './supabaseAdmin'
+
+// Tipos para el contenido del sitio (SEO y hero)
+export interface SiteContent {
+  id: string
+  hero_title_es?: string | null
+  hero_subtitle_es?: string | null
+  hero_description_es?: string | null
+  hero_sizes_note_es?: string | null
+  hero_title_en?: string | null
+  hero_subtitle_en?: string | null
+  hero_description_en?: string | null
+  hero_sizes_note_en?: string | null
+  seo_title_es?: string | null
+  seo_description_es?: string | null
+  og_title_es?: string | null
+  og_description_es?: string | null
+  og_image_es?: string | null
+  twitter_title_es?: string | null
+  twitter_description_es?: string | null
+  seo_title_en?: string | null
+  seo_description_en?: string | null
+  og_title_en?: string | null
+  og_description_en?: string | null
+  og_image_en?: string | null
+  twitter_title_en?: string | null
+  twitter_description_en?: string | null
+  created_at: string
+  updated_at: string
+}
 
 // Tipos para la configuración de productos
 export type ProductType = 'wetsuit' | 'wetsuit_adult' | 'wetsuit_kids' | 'snorkel' | 'fins' | string;
@@ -302,4 +332,48 @@ export function calculateRentalDays(startDate: Date, endDate: Date, startTime: s
   }
 
   return days;
+}
+
+// Funciones para manejar el contenido del sitio
+export async function getSiteContent(): Promise<SiteContent | null> {
+  const { data, error } = await supabase
+    .from('site_content')
+    .select('*')
+    .limit(1)
+    .single()
+  
+  if (error) {
+    console.error('Error fetching site content:', error)
+    return null
+  }
+  return data as SiteContent
+}
+
+export async function updateSiteContent(id: string, updates: Partial<SiteContent>): Promise<SiteContent | null> {
+  const { data, error } = await supabase
+    .from('site_content')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  
+  if (error) {
+    console.error('Error updating site content:', error)
+    return null
+  }
+  return data as SiteContent
+}
+
+export async function getSiteContentServer(): Promise<SiteContent | null> {
+  const { data, error } = await supabaseAdmin
+    .from('site_content')
+    .select('*')
+    .limit(1)
+    .single()
+  
+  if (error) {
+    console.error('Error fetching site content (server):', error)
+    return null
+  }
+  return data as SiteContent
 }

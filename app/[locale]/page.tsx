@@ -12,12 +12,13 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SheetPopoverContent } from "@/components/ui/sheet-popover-content"
-import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2, ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { CalendarIcon, PlusIcon, ShoppingCart, Trash2, MinusIcon, Loader2, Star } from "lucide-react"
 import { addDays, format, differenceInDays } from "date-fns"
 import { es, enUS } from "date-fns/locale"
 import { toast } from 'sonner'
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
+import { getSiteContent, SiteContent } from "@/lib/db"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { GalleryComponent } from "@/components/gallery-component"
 import { useTranslations } from 'next-intl'
@@ -150,6 +151,7 @@ function RentalPageContent() {
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
   const [hotelName, setHotelName] = useState<string>("")
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [siteContent, setSiteContent] = useState<SiteContent | null>(null)
   const portalRef = useRef<HTMLDivElement | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
   const reviewsContainerRef = useRef<HTMLDivElement>(null);
@@ -315,10 +317,20 @@ function RentalPageContent() {
         setGalleryLoading(false)
       }
     }
+
+    const fetchSiteContent = async () => {
+      try {
+        const content = await getSiteContent()
+        setSiteContent(content)
+      } catch (error) {
+        console.error('Error al cargar contenido del sitio:', error)
+      }
+    }
     
     fetchProducts()
     fetchReviews()
     fetchGalleryImages()
+    fetchSiteContent()
   }, [])
 
   useEffect(() => {
@@ -1173,13 +1185,9 @@ function RentalPageContent() {
                     </div>
                     <p className="text-xs text-muted-foreground">{t('cart.serviceDescription')}</p>
 
-                    {serviceDate && serviceEndDate && (
-                      <p className="text-sm text-[#b36908]">
-                        {t('cart.servicePickupUntil', {
-                          date: format(serviceEndDate, locale === 'en' ? 'MMM d, yyyy' : 'd MMM yyyy', { locale: locale === 'en' ? enUS : es })
-                        })}
-                      </p>
-                    )}
+                    <p className="text-sm text-[#b36908]">
+                      {t('cart.servicePickupUntil')}
+                    </p>
                   </div>
                 </>
               )}
@@ -1290,13 +1298,14 @@ function RentalPageContent() {
       {/* Hero Section */}
       <section className="relative py-6 sm:py-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4 text-[#01a4d4]">{t('hero.title')}</h1>
-          <p className="text-sm sm:text-sm text-gray-500 text-pretty">
-            {t.rich('hero.subtitle', {
-              br: () => <br />,
-              strong: (chunks) => <strong>{chunks}</strong>
-            })} 
-          </p>
+          <h1 className="text-3xl sm:text-5xl font-bold text-balance mb-4 text-[#01a4d4]">
+            {(locale === 'en' ? siteContent?.hero_title_en : siteContent?.hero_title_es) || t('hero.title')}
+          </h1>
+          <p className="text-sm sm:text-sm text-gray-500 text-pretty"
+             dangerouslySetInnerHTML={{
+               __html: (locale === 'en' ? siteContent?.hero_subtitle_en : siteContent?.hero_subtitle_es) || t('hero.subtitle')
+             }}
+          />
 
           {isMobile && (
             <GalleryComponent 
@@ -1308,13 +1317,13 @@ function RentalPageContent() {
             />
           )}
 
-          <p className="text-sm sm:text-sm text-gray-500 text-pretty mt-4">
-            {t.rich('hero.description', {
-              strong: (chunks) => <strong>{chunks}</strong>
-            })}
-          </p>
+          <p className="text-sm sm:text-sm text-gray-500 text-pretty mt-4"
+             dangerouslySetInnerHTML={{
+               __html: (locale === 'en' ? siteContent?.hero_description_en : siteContent?.hero_description_es) || t('hero.description')
+             }}
+          />
           <p className="text-base sm:text-lg text-gray-900 text-pretty mt-4 font-medium">
-            {t('hero.sizesnote')}
+            {(locale === 'en' ? siteContent?.hero_sizes_note_en : siteContent?.hero_sizes_note_es) || t('hero.sizesnote')}
           </p>
         </div>
       </section>

@@ -93,8 +93,8 @@
     "hotelPickupFee": "Cargo por entregar en su hotel",
     "serviceTitle": "Día",
     "serviceDate": "Fecha",
-    "serviceDescription": "Puede guardar su equipaje a cualquier hora entre las 10h00 y las 20h00 y retirarlo hasta la misma hora del día siguiente.",
-    "servicePickupUntil": "Puede retirarlo hasta {date}"
+    "serviceDescription": "Puede guardar su equipaje a cualquier hora entre las 08h00 y las 15h00.",
+    "servicePickupUntil": "Solo guardamos equipaje el mismo día"
   },
   "payment": {
     "loadingConfig": "Cargando configuración...",

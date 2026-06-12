@@ -93,8 +93,8 @@
     "hotelPickupFee": "Hotel pickup fee",
     "serviceTitle": "Day",
     "serviceDate": "Date",
-    "serviceDescription": "You can store your luggage any time between 10:00 and 20:00 and pick it up until the same time the following day.",
-    "servicePickupUntil": "You can pick it up until {date}"
+    "serviceDescription": "You can store your luggage any time between 08:00 and 15:00.",
+    "servicePickupUntil": "Only store your luggage the same day"
   },
   "payment": {
     "loadingConfig": "Loading configuration...",
