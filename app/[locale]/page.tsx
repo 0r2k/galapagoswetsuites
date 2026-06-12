@@ -1351,9 +1351,27 @@ function RentalPageContent() {
             );
           })()}
           
-          <p className="text-base sm:text-lg text-gray-900 text-pretty mt-4 font-medium">
+          <blockquote className="
+            text-base sm:text-lg
+            text-[#707979]
+            text-center
+            font-medium
+            mt-4
+            mx-auto
+            max-w-3xl
+            rounded-tr-xl
+            rounded-bl-xl
+            px-5
+            py-2.5
+            border-l-3
+            border-r-3
+            border-[#1585f0]
+            bg-transparent
+          " style={{
+            fontFamily: '"Playfair Display", Georgia, "Times New Roman", serif'
+          }}>
             {(locale === 'en' ? siteContent?.hero_sizes_note_en : siteContent?.hero_sizes_note_es) || t('hero.sizesnote')}
-          </p>
+          </blockquote>
         </div>
       </section>
 

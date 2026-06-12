@@ -918,6 +918,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Título</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.hero_title_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_title_es: e.target.value })}
                     />
@@ -925,6 +926,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Subtítulo</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.hero_subtitle_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_subtitle_es: e.target.value })}
                     />
@@ -932,6 +934,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Descripción</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.hero_description_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_description_es: e.target.value })}
                     />
@@ -939,6 +942,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Nota de Tallas</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.hero_sizes_note_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_sizes_note_es: e.target.value })}
                     />
@@ -949,6 +953,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Title</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.hero_title_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_title_en: e.target.value })}
                     />
@@ -956,6 +961,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Subtitle</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.hero_subtitle_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_subtitle_en: e.target.value })}
                     />
@@ -963,6 +969,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Description</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.hero_description_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_description_en: e.target.value })}
                     />
@@ -970,6 +977,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Sizes Note</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.hero_sizes_note_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, hero_sizes_note_en: e.target.value })}
                     />
@@ -990,6 +998,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Título de la Página</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.seo_title_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_title_es: e.target.value })}
                     />
@@ -997,6 +1006,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Descripción SEO</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.seo_description_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_description_es: e.target.value })}
                     />
@@ -1004,6 +1014,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Título Open Graph</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.og_title_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, og_title_es: e.target.value })}
                     />
@@ -1011,6 +1022,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Descripción Open Graph</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.og_description_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, og_description_es: e.target.value })}
                     />
@@ -1018,6 +1030,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Imagen Open Graph (URL)</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.og_image_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, og_image_es: e.target.value })}
                     />
@@ -1025,6 +1038,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Título Twitter</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.twitter_title_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_title_es: e.target.value })}
                     />
@@ -1032,6 +1046,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Descripción Twitter</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.twitter_description_es || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_description_es: e.target.value })}
                     />
@@ -1042,6 +1057,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Page Title</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.seo_title_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_title_en: e.target.value })}
                     />
@@ -1049,6 +1065,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>SEO Description</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.seo_description_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, seo_description_en: e.target.value })}
                     />
@@ -1056,6 +1073,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Open Graph Title</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.og_title_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, og_title_en: e.target.value })}
                     />
@@ -1063,6 +1081,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Open Graph Description</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.og_description_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, og_description_en: e.target.value })}
                     />
@@ -1070,6 +1089,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Open Graph Image (URL)</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.og_image_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, og_image_en: e.target.value })}
                     />
@@ -1077,6 +1097,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Twitter Title</Label>
                     <Input
+                      className="bg-white border border-gray-600"
                       value={siteContentForm.twitter_title_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_title_en: e.target.value })}
                     />
@@ -1084,6 +1105,7 @@ function AdminPageContent() {
                   <div className="space-y-2">
                     <Label>Twitter Description</Label>
                     <Textarea
+                      className="bg-white border border-gray-600 h-40"
                       value={siteContentForm.twitter_description_en || ''}
                       onChange={(e) => setSiteContentForm({ ...siteContentForm, twitter_description_en: e.target.value })}
                     />
@@ -1105,7 +1127,7 @@ function AdminPageContent() {
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="general-config" className="space-y-6">
           <Card>
             <CardHeader>

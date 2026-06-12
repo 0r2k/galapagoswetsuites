@@ -1,5 +1,4 @@
 import { supabase } from './supabaseClient'
-import { supabaseAdmin } from './supabaseAdmin'
 
 // Tipos para el contenido del sitio (SEO y hero)
 export interface SiteContent {
@@ -359,20 +358,6 @@ export async function updateSiteContent(id: string, updates: Partial<SiteContent
   
   if (error) {
     console.error('Error updating site content:', error)
-    return null
-  }
-  return data as SiteContent
-}
-
-export async function getSiteContentServer(): Promise<SiteContent | null> {
-  const { data, error } = await supabaseAdmin
-    .from('site_content')
-    .select('*')
-    .limit(1)
-    .single()
-  
-  if (error) {
-    console.error('Error fetching site content (server):', error)
     return null
   }
   return data as SiteContent

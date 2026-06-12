@@ -3,7 +3,8 @@ import '../globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations } from 'next-intl/server'
-import { getSiteContentServer } from '@/lib/db'
+import { getSiteContentServer } from '@/lib/db-server'
+import { LanguageProvider } from '@/components/LanguageProvider'
 
 export async function generateMetadata({
   params
@@ -26,6 +27,12 @@ export async function generateMetadata({
     title: title || t('title'),
     description: description || t('description'),
     icons: "/favicon.webp",
+    metadataBase: new URL(process.env.NODE_ENV === 'production' 
+      ? 'https://galapagos.viajes' 
+      : 'http://localhost:3001'),
+    verification: {
+      google: 'DBRZ7kKioExpBi2zaBBzblqg7awy2HTL-m0v1yoEULA'
+    },
     openGraph: {
       title: ogTitle || t('openGraph.title'),
       description: ogDescription || t('openGraph.description'),
@@ -62,9 +69,11 @@ export default async function LocaleLayout({
   const messages = await getMessages()
 
   return (
-    <NextIntlClientProvider messages={messages}>
-      {children}
-      <Toaster richColors position="top-center" />
-    </NextIntlClientProvider>
+    <LanguageProvider locale={locale}>
+      <NextIntlClientProvider messages={messages}>
+        {children}
+        <Toaster richColors position="top-center" />
+      </NextIntlClientProvider>
+    </LanguageProvider>
   )
 }
