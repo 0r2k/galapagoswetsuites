@@ -1,0 +1,2476 @@
+{
+  "body": {
+    "id": "hTL1k9hzie",
+    "rows": [
+      {
+        "id": "gIu3sQNqf0",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_1",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true,
+            "customPosition": [
+              "50%",
+              "50%"
+            ]
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "4li4uFaB7H",
+            "values": {
+              "_meta": {
+                "htmlID": "u_column_1",
+                "htmlClassNames": "u_column"
+              },
+              "border": {},
+              "locked": false,
+              "padding": "30px 8px",
+              "deletable": true,
+              "borderRadius": "0px",
+              "backgroundColor": "#e5e5e6"
+            },
+            "contents": [
+              {
+                "id": "RVapUODjvo",
+                "type": "image",
+                "values": {
+                  "src": {
+                    "url": "https://assets.unlayer.com/projects/0/1761073148764-Galapagos%20Viajes%20Logo.png",
+                    "size": 17731,
+                    "width": 740,
+                    "height": 146,
+                    "dynamic": true,
+                    "filename": "Galapagos Viajes Logo.png",
+                    "maxWidth": "54%",
+                    "autoWidth": false,
+                    "contentType": "image/png"
+                  },
+                  "_meta": {
+                    "htmlID": "u_content_image_1",
+                    "htmlClassNames": "u_content_image"
+                  },
+                  "action": {
+                    "name": "web",
+                    "values": {
+                      "href": "",
+                      "target": "_blank"
+                    }
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "altText": "",
+                  "pending": false,
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "DbGnkWzP3u",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 120%;\"><strong>Equipment Rental Confirmation!</strong></p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_1",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#00a0d7",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "22px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "center",
+                  "_languages": {},
+                  "lineHeight": "120%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "anJJ1nO3Q7",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_2",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "8DekPdLqVY",
+            "values": {
+              "_meta": {
+                "htmlID": "u_column_2",
+                "htmlClassNames": "u_column"
+              },
+              "border": {},
+              "locked": false,
+              "padding": "30px",
+              "deletable": true,
+              "borderRadius": "0px",
+              "backgroundColor": "#f4f4f4"
+            },
+            "contents": [
+              {
+                "id": "F1j8M9WluG",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\">Hi <strong>{{customerName}}</strong>,</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_2",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "15px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "e6LPDhBzTO",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\">Thank you for choosing ChokoTrip!<br>Your equipment booking has been successfully confirmed.</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_3",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "15px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "4JXfJ-I2Ka",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_3",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "H52eZx2qgo",
+            "values": {
+              "_meta": {
+                "htmlID": "u_column_3",
+                "htmlClassNames": "u_column"
+              },
+              "border": {},
+              "locked": false,
+              "padding": "15px",
+              "deletable": true,
+              "borderRadius": "0px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "MHv-MPUCG7",
+                "type": "text",
+                "values": {
+                  "text": "{{#if hasStandardProducts}}<p style=\"line-height: 140%;\"><strong>\ud83d\udccb Rental Details</strong></p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_4",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#00a0d7",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "18px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "NCS6jUmoYf",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 100%;\"><strong>Order Number:</strong> {{orderNumber}}</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_5",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "100%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "oZR7UPhJa7",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 100%;\"><strong>Booking Date: </strong>{{orderDate}}</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_6",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "100%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "dL9rAZmksX",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\"><strong>Rental Period:</strong> {{startDate}} {{startTime}} - {{endDate}} {{endTime}}</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_7",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "mj4bTLqtlE",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\"><strong>Rental Days:</strong> {{rentalDays}}</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_8",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "crQO-1_bap",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\"><strong>Pickup:</strong> {{pickup}}</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_9",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "agZ1GBe4zn",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\"><strong>Return Island:</strong> {{returnIsland}}</p>{{/if}}",
+                  "_meta": {
+                    "htmlID": "u_content_text_10",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "service_details_block",
+                "type": "text",
+                "values": {
+                  "text": "{{#if hasServiceProducts}}\n<p style=\"line-height: 140%; color: #00a0d7; font-size: 18px; padding-top: 15px;\"><strong>\ud83d\udccb Service Details</strong></p>\n<p style=\"line-height: 100%; padding-top: 10px;\"><strong>Order Number:</strong> {{orderNumber}}</p>\n<p style=\"line-height: 100%; padding-top: 10px;\"><strong>Booking Date:</strong> {{orderDate}}</p>\n{{#if serviceDate}}<p style=\"line-height: 140%; padding-top: 10px;\"><strong>Service Date:</strong> {{serviceDate}}</p>{{/if}}\n{{/if}}",
+                  "containerPadding": "10px",
+                  "color": "#333333",
+                  "fontSize": "14px",
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "_meta": {
+                    "htmlID": "u_content_text_new",
+                    "htmlClassNames": "u_content_text"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_equipos_title",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_equipos_title",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_equipos_title",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_equipos_title",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "15px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_equipos_title",
+                "type": "text",
+                "values": {
+                  "text": "{{#if hasStandardProducts}}<p style=\"line-height: 140%;\"><strong>\ud83e\udd3f Reserved Equipment</strong></p>{{/if}}",
+                  "_meta": {
+                    "htmlID": "u_content_text_equipos_title",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#00a0d7",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "18px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_producto",
+        "cells": [
+          2,
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_producto",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "mergeTagRule": "repeat",
+          "mergeTagGroup": "standardProducts",
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_producto_info",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_66p67",
+                "htmlClassNames": "u_col u_col-66p67"
+              },
+              "padding": "0px 5px 0px 30px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_producto_nombre",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>{{name_en}}</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_prod_name",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 5px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_producto_qty_price",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\">Quantity: {{quantity}} | Price per day: US${{unitPrice}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_prod_meta",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "11px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "0px 10px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "44FBbkNGZ7",
+                "type": "divider",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_content_divider_2",
+                    "htmlClassNames": "u_content_divider"
+                  },
+                  "width": "100%",
+                  "anchor": "",
+                  "border": {
+                    "borderTopColor": "#BBBBBB",
+                    "borderTopStyle": "solid",
+                    "borderTopWidth": "1px"
+                  },
+                  "locked": false,
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          },
+          {
+            "id": "col_producto_subtotal",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_33p33",
+                "htmlClassNames": "u_col u_col-33p33"
+              },
+              "padding": "0px 30px 0px 5px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_producto_subtotal",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left; color: #0066cc;\">\n<p style=\"line-height: 140%;\"><strong>US${{subtotal}}</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_prod_sub",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 10px 35px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "service_title_row",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_equipos_title",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_equipos_title",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_equipos_title",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "15px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "service_title_text",
+                "type": "text",
+                "values": {
+                  "text": "{{#if hasServiceProducts}}<p style=\"line-height: 140%;\"><strong>\ud83c\udf92 Reserved Services</strong></p>{{/if}}",
+                  "_meta": {
+                    "htmlID": "u_content_text_equipos_title",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#00a0d7",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "18px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "service_loop_row",
+        "cells": [
+          2,
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_producto",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "mergeTagRule": "repeat",
+          "mergeTagGroup": "serviceProducts",
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_producto_info",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_66p67",
+                "htmlClassNames": "u_col u_col-66p67"
+              },
+              "padding": "0px 5px 0px 30px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_producto_nombre",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>{{name_en}}</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_prod_name",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 5px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_producto_qty_price",
+                "type": "text",
+                "values": {
+                  "text": "<p style=\"line-height: 140%;\">Quantity: {{quantity}} | Price: US${{unitPrice}}</p>",
+                  "_meta": {
+                    "htmlID": "u_content_text_prod_meta",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "11px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "0px 10px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "44FBbkNGZ7",
+                "type": "divider",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_content_divider_2",
+                    "htmlClassNames": "u_content_divider"
+                  },
+                  "width": "100%",
+                  "anchor": "",
+                  "border": {
+                    "borderTopColor": "#BBBBBB",
+                    "borderTopStyle": "solid",
+                    "borderTopWidth": "1px"
+                  },
+                  "locked": false,
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          },
+          {
+            "id": "col_producto_subtotal",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_33p33",
+                "htmlClassNames": "u_col u_col-33p33"
+              },
+              "padding": "0px 30px 0px 5px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_producto_subtotal",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left; color: #0066cc;\">\n<p style=\"line-height: 140%;\"><strong>US${{subtotal}}</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_prod_sub",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 10px 35px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_luggage_instructions",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_luggage",
+            "htmlClassNames": "u_row"
+          },
+          "padding": "20px 0px 0px",
+          "backgroundColor": "transparent",
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_luggage",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_luggage",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "10px",
+              "backgroundColor": "#fff3cd"
+            },
+            "contents": [
+              {
+                "id": "txt_luggage",
+                "type": "text",
+                "values": {
+                  "text": "{{#if hasServiceProducts}}\n<p style=\"line-height: 140%; font-size: 16px;\"><strong>\ud83c\udf92 Luggage Storage Instructions:</strong></p>\n<p style=\"line-height: 140%; padding-top: 10px;\">\ud83d\udc49 Luggage storage takes place at the Grupo Galapagos travel agency office.</p>\n<p style=\"line-height: 140%; padding-top: 5px;\">\ud83d\udc49 Location: Mois\u00e9s Brito between Thomas Berlanga and Juan Montalvo, Puerto Ayora - Santa Cruz Island.</p>\n<p style=\"line-height: 140%; padding-top: 5px;\">\ud83d\udc49 View on Google Maps: <a href=\"https://maps.app.goo.gl/UJzcTs4Zi6Y8Um91A\">https://maps.app.goo.gl/UJzcTs4Zi6Y8Um91A</a></p>\n<p style=\"line-height: 140%; padding-top: 5px;\">\ud83d\udc49 Present this email when dropping off your luggage.</p>\n{{/if}}",
+                  "_meta": {
+                    "htmlID": "u_content_text_luggage",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "fontSize": "14px",
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "containerPadding": "10px"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_pago",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_pago",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_pago",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_pago",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "15px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_pago_title",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>\ud83d\udcb0 Payment Details</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pago_title",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#00a0d7",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "18px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pago_initial",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>Initial amount paid:</strong> US${{initialPayment}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pago_init",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pago_missing",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>Remaining amount to pay at operator:</strong> US${{supplierTotalAmount}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pago_missing",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pago_total",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left; color: #28a745;\">\n<p style=\"line-height: 140%;\"><strong>Total: US${{totalAmount}}</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pago_total",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "16px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_noolvides",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_noolvides",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_noolvides",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_noolvides",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "10px",
+              "backgroundColor": "#e8f5e8"
+            },
+            "contents": [
+              {
+                "id": "txt_noolvides_title",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>\ud83d\udc40 DON'T FORGET:</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_noolvides_title",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "16px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_noolvides_desc",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\">To customize the wetsuit and fins, if you have rented them, please let us know the wetsuit size (based on your t-shirt or blouse size) and the fin size (based on your shoe size). Likewise, you will be able to try on other sizes. Enter here:</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_noolvides_desc",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#666666",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "13px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_noolvides_link",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left; color: #0066cc;\">\n<p style=\"line-height: 140%;\"><a rel=\"noopener\" href=\"{{sizesSelectionID}}\" target=\"_blank\"><strong>{{sizesSelectionID}}</strong></a></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_noolvides_link",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "jtGH1472Zu",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\">Also, if you have requested that we deliver the equipment to your hotel, you can enter the name of your hotel in the same link.</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_4",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#666666",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "13px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_pickup",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_pickup",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_pickup",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_pickup",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "5px",
+              "backgroundColor": "#fff3cd"
+            },
+            "contents": [
+              {
+                "id": "Be7CY7oizo",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\">{{#if (and (strContains pickup \"Santa\") (strContains returnIsland \"San Cri\"))}}<strong>\ud83d\udccd Pickup Instructions: </strong>{{/if}} {{#if (and (strContains pickup \"Santa\") (strContains returnIsland \"Santa\"))}}\ud83d\udccd <strong>Pickup &amp; Return Instructions: </strong>{{/if}} {{#if (and (strContains pickup \"Hotel\") (strContains returnIsland \"Santa\"))}}\ud83d\udccd<strong> Return Instructions: </strong>{{/if}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_11",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "16px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "img_pickup",
+                "type": "image",
+                "values": {
+                  "src": {
+                    "url": "https://www.chokotrip.info/wp-content/uploads/2024/07/Ubicacion-del-Operadora-Grupo-Galapagos.jpg",
+                    "width": 1024,
+                    "height": 500,
+                    "maxWidth": "100%",
+                    "autoWidth": false
+                  },
+                  "_meta": {
+                    "htmlID": "u_content_img_pickup",
+                    "htmlClassNames": "u_content_image"
+                  },
+                  "action": {
+                    "name": "web",
+                    "values": {
+                      "href": "",
+                      "target": "_blank"
+                    }
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "altText": "",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pickup_bullets_1",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">{{#if (strContains pickup \"Hotel\")}}The snorkeling equipment and wetsuit <strong>will be delivered at the Grupo Galapagos travel agency office</strong>, located at: Mois&eacute;s Brito between Thomas Berlanga and Juan Montalvo, Puerto Ayora - Santa Cruz Island.&nbsp;View operator on Google Maps: <a rel=\"noopener\" href=\"https://maps.app.goo.gl/UJzcTs4Zi6Y8Um91A\" target=\"_blank\">https://maps.app.goo.gl/UJzcTs4Zi6Y8Um91A</a>{{/if}}</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pickup_b1",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 5px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "pW5Pq4wp-u",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">{{#if (strContains pickup \"Santa\")}}The snorkeling equipment and wetsuit <strong>will be delivered at the Grupo Galapagos travel agency office</strong>, located at: Mois&eacute;s Brito between Thomas Berlanga and Juan Montalvo, Puerto Ayora - Santa Cruz Island.&nbsp;View operator on Google Maps: <a rel=\"noopener\" href=\"https://maps.app.goo.gl/UJzcTs4Zi6Y8Um91A\" target=\"_blank\">https://maps.app.goo.gl/UJzcTs4Zi6Y8Um91A</a>{{/if}}</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_5",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 5px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pickup_bullets_2",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\">{{#if (strContains pickup \"Santa\")}}\ud83d\udc49 Present this email when picking up your rented equipment.{{/if}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pickup_b2",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "5px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pickup_bullets_3",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\">{{#if (strContains pickup \"Santa\")}}\ud83d\udc49 Arrive at the time you indicated to pay the remaining amount and try on equipment.{{/if}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pickup_b3",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "body": false,
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "5px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_pickup_bullets_4",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\">{{#if (strContains pickup \"Santa\")}}\ud83d\udc49 Remember that the operator will charge you a deposit via credit card that will be returned the day you return the equipment without damage.{{/if}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_pickup_b4",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "5px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "Y5YWCu-c_1",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">{{#if (and (strContains pickup \"Hotel\") (strContains returnIsland \"San Cri\"))}}To return rented equipment on San Cristobal Island, you must go to the operator&nbsp;<strong>DAVA TOURS</strong>. The operator is located at: Av. Malecon and Jose de Villamil.</div>\n<div style=\"line-height: 140%; text-align: left;\">View operator on Google Maps:&nbsp;<a rel=\"noopener\" href=\"https://maps.app.goo.gl/fv7bvvd8mZhbp51f6\" target=\"_blank\">https://maps.app.goo.gl/fv7bvvd8mZhbp51f6</a>{{/if}}</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_6",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "_languages": {},
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_return",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_return",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_return",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_return",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "5px",
+              "backgroundColor": "#fff3cd"
+            },
+            "contents": [
+              {
+                "id": "txt_return_title",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\">\ud83d\udccd <strong>Return Instructions in San Cristobal:</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_return_title",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "16px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "img_return",
+                "type": "image",
+                "values": {
+                  "src": {
+                    "url": "https://www.chokotrip.info/wp-content/uploads/2024/05/Ubicacion-del-Operadora-Dava-Tours.jpg",
+                    "width": 600,
+                    "height": 0,
+                    "maxWidth": "100%",
+                    "autoWidth": false
+                  },
+                  "_meta": {
+                    "htmlID": "u_content_img_return",
+                    "htmlClassNames": "u_content_image"
+                  },
+                  "action": {
+                    "name": "web",
+                    "values": {
+                      "href": "",
+                      "target": "_blank"
+                    }
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "altText": "",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_return_desc",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">To return rented equipment on San Cristobal Island, you must go to the operator&nbsp;<strong>DAVA TOURS</strong>. The operator is located at: Av. Malecon and Jose de Villamil.</div>\n<div style=\"line-height: 140%; text-align: left;\">View operator on Google Maps:&nbsp;<a href=\"https://maps.app.goo.gl/fv7bvvd8mZhbp51f6\">https://maps.app.goo.gl/fv7bvvd8mZhbp51f6</a></div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_return_desc",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_userinfo",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_userinfo",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "20px 0px 0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_userinfo",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_userinfo",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "30px",
+              "backgroundColor": "#f6ffff"
+            },
+            "contents": [
+              {
+                "id": "txt_userinfo_title",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>\ud83d\udc64 Your Information</strong></p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_userinfo_title",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#00a0d7",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "18px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_userinfo_name",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 100%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>Name:</strong> {{customerName}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_userinfo_name",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_userinfo_email",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>Email:</strong> {{customerEmail}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_userinfo_email",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_userinfo_phone",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>Phone:</strong> {{customerPhone}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_userinfo_phone",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_userinfo_nat",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\"><strong>Nationality:</strong> {{customerNationality}}</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_userinfo_nat",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_footer",
+        "cells": [
+          1
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_row_footer",
+            "htmlClassNames": "u_row"
+          },
+          "anchor": "",
+          "locked": false,
+          "columns": false,
+          "padding": "0px",
+          "hideable": true,
+          "deletable": true,
+          "draggable": true,
+          "selectable": true,
+          "_styleGuide": null,
+          "hideDesktop": false,
+          "duplicatable": true,
+          "backgroundColor": "transparent",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "displayCondition": null,
+          "columnsBackgroundColor": ""
+        },
+        "columns": [
+          {
+            "id": "col_footer",
+            "values": {
+              "_meta": {
+                "htmlID": "u_col_footer",
+                "htmlClassNames": "u_col"
+              },
+              "padding": "10px",
+              "backgroundColor": "#ffffff"
+            },
+            "contents": [
+              {
+                "id": "txt_footer_contact",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"line-height: 140%; text-align: left;\">\n<p style=\"line-height: 140%;\">If you have any questions, please do not hesitate to contact the manager:<br><br></p>\n<p style=\"line-height: 140%;\"><strong>Robert Cajias</strong><br>payments.localgroup@gmail.com<br>+593 986260190</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_footer_contact",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#333333",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "14px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "xMzD-KBDbG",
+                "type": "divider",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_content_divider_1",
+                    "htmlClassNames": "u_content_divider"
+                  },
+                  "width": "100%",
+                  "anchor": "",
+                  "border": {
+                    "borderTopColor": "#BBBBBB",
+                    "borderTopStyle": "solid",
+                    "borderTopWidth": "1px"
+                  },
+                  "locked": false,
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "30px 10px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_footer_copy",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"color: #666; line-height: 140%; text-align: center;\">\n<p style=\"line-height: 140%;\">Copyrights &copy; 2025 All Rights Reserved by ChokoTrip</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_footer_copy",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#666666",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "12px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "10px 10px 5px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "txt_footer_contact2",
+                "type": "text",
+                "values": {
+                  "text": "<div style=\"color: #666; line-height: 140%; text-align: center;\">\n<p style=\"line-height: 140%;\">\u260e WhatsApp +593978990910 // \u2709 newsletter@chokotrip.info</p>\n</div>",
+                  "_meta": {
+                    "htmlID": "u_content_text_footer_contact2",
+                    "htmlClassNames": "u_content_text"
+                  },
+                  "color": "#666666",
+                  "anchor": "",
+                  "locked": false,
+                  "fontSize": "12px",
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "linkStyle": {
+                    "inherit": true,
+                    "linkColor": "#0000ee",
+                    "linkUnderline": true,
+                    "linkHoverColor": "#0000ee",
+                    "linkHoverUnderline": true
+                  },
+                  "textAlign": "left",
+                  "lineHeight": "140%",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "0px 10px 10px",
+                  "displayCondition": null
+                }
+              },
+              {
+                "id": "8TpTcGmRa2",
+                "type": "image",
+                "values": {
+                  "src": {
+                    "url": "https://assets.unlayer.com/projects/0/1761073296138-Galapagos%20%20ChokoTours.png",
+                    "size": 4847,
+                    "width": 210,
+                    "height": 120,
+                    "dynamic": true,
+                    "filename": "Galapagos  ChokoTours.png",
+                    "maxWidth": "50%",
+                    "autoWidth": false,
+                    "contentType": "image/png"
+                  },
+                  "_meta": {
+                    "htmlID": "u_content_image_2",
+                    "htmlClassNames": "u_content_image"
+                  },
+                  "action": {
+                    "name": "web",
+                    "attrs": {
+                      "href": "{{href}}",
+                      "target": "{{target}}"
+                    },
+                    "values": {
+                      "href": "https://www.choko.tours",
+                      "target": "_blank"
+                    }
+                  },
+                  "anchor": "",
+                  "locked": false,
+                  "altText": "",
+                  "pending": false,
+                  "hideable": true,
+                  "deletable": true,
+                  "draggable": true,
+                  "textAlign": "center",
+                  "selectable": true,
+                  "_styleGuide": null,
+                  "hideDesktop": false,
+                  "duplicatable": true,
+                  "containerPadding": "0px",
+                  "displayCondition": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "values": {
+      "_meta": {
+        "htmlID": "u_body",
+        "htmlClassNames": "u_body"
+      },
+      "language": {},
+      "linkStyle": {
+        "body": true,
+        "linkColor": "#0000ee",
+        "linkUnderline": true,
+        "linkHoverColor": "#0000ee",
+        "linkHoverUnderline": true
+      },
+      "textColor": "#000000",
+      "fontFamily": {
+        "label": "Arial",
+        "value": "arial,helvetica,sans-serif"
+      },
+      "popupWidth": "600px",
+      "_styleGuide": null,
+      "popupHeight": "auto",
+      "borderRadius": "10px",
+      "contentAlign": "center",
+      "contentWidth": 600,
+      "popupPosition": "center",
+      "preheaderText": "",
+      "backgroundColor": "#F7F8F9",
+      "backgroundImage": {
+        "url": "",
+        "size": "custom",
+        "repeat": "no-repeat",
+        "position": "center",
+        "fullWidth": true
+      },
+      "popupDisplayDelay": 0,
+      "accessibilityTitle": "",
+      "contentVerticalAlign": "center",
+      "popupBackgroundColor": "#FFFFFF",
+      "popupBackgroundImage": {
+        "url": "",
+        "size": "cover",
+        "repeat": "no-repeat",
+        "position": "center",
+        "fullWidth": true
+      },
+      "popupCloseButton_action": {
+        "name": "close_popup",
+        "attrs": {
+          "onClick": "document.querySelector('.u-popup-container').style.display = 'none';"
+        }
+      },
+      "popupCloseButton_margin": "0px",
+      "popupCloseButton_position": "top-right",
+      "popupCloseButton_iconColor": "#000000",
+      "popupOverlay_backgroundColor": "rgba(0, 0, 0, 0.1)",
+      "popupCloseButton_borderRadius": "0px",
+      "popupCloseButton_backgroundColor": "#DDDDDD"
+    },
+    "footers": [],
+    "headers": []
+  },
+  "counters": {
+    "u_row": 2,
+    "u_column": 2,
+    "u_content_text": 6,
+    "u_content_image": 2,
+    "u_content_divider": 1
+  },
+  "schemaVersion": 23
+}
